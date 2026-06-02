@@ -681,7 +681,7 @@
 ### Intercambio 8 — Internacionalización
 
 **Desarrollador:**
-> "ok, now, we have a lot of time to refine this system, what you think if we use a lang library to avoid using hardcoded strings on labels?"
+> "what you think if we use a lang library to avoid using hardcoded strings on labels?"
 
 **Claude** evaluó la propuesta: el beneficio principal de centralizar strings en un archivo no es la traducción en sí, sino la mantenibilidad — un único lugar donde buscar y modificar cualquier texto de la UI, y la posibilidad de detectar strings faltantes antes del deploy.
 
