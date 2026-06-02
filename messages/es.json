@@ -4,6 +4,16 @@
     "fleet": "Flotas",
     "settings": "Configuración"
   },
+  "filterBar": {
+    "searchPlaceholder": "Buscar por nombre, teléfono o ciudad...",
+    "all": "Todas",
+    "noResults": "Sin resultados para los filtros aplicados.",
+    "clearFilters": "Limpiar filtros",
+    "statusPending": "Pendiente",
+    "statusAssigned": "Asignado",
+    "statusCompleted": "Completado",
+    "statusCancelled": "Cancelado"
+  },
   "dashboard": {
     "statPending": "Pendientes",
     "statAssigned": "Asignados",

@@ -6,21 +6,27 @@ import { useTranslations } from "next-intl";
 import { Plus, ClipboardList } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import RequestCard from "@/components/molecules/RequestCard";
+import FilterBar from "@/components/molecules/FilterBar";
 import RequestDetailPanel from "./RequestDetailPanel";
 import NewRequestModal from "./NewRequestModal";
-import type { TransportRequest } from "@/types";
+import type { TransportRequest, RequestStatus } from "@/types";
 
 interface Props {
   requests: TransportRequest[];
   stats: { pending: number; assigned: number; completed: number };
+  currentStatus: RequestStatus | null;
+  currentSearch: string | null;
 }
 
-export default function DashboardClient({ requests, stats }: Props) {
+export default function DashboardClient({ requests, stats, currentStatus, currentSearch }: Props) {
   const t = useTranslations("dashboard");
+  const tf = useTranslations("filterBar");
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
+
+  const hasActiveFilters = currentStatus !== null || currentSearch !== null;
 
   function refresh() {
     startTransition(() => router.refresh());
@@ -51,16 +57,26 @@ export default function DashboardClient({ requests, stats }: Props) {
         </Button>
       </div>
 
+      {/* Filters */}
+      <FilterBar currentStatus={currentStatus} currentSearch={currentSearch} />
+
       {/* Cards grid */}
       {requests.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-          <ClipboardList className="w-12 h-12" />
-          <p className="text-lg font-medium">{t("emptyTitle")}</p>
-          <p className="text-sm">{t("emptySubtitle")}</p>
-          <Button onClick={() => setShowNewModal(true)} className="mt-2">
-            <Plus className="w-4 h-4" /> {t("newRequest")}
-          </Button>
-        </div>
+        hasActiveFilters ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-2">
+            <ClipboardList className="w-12 h-12" />
+            <p className="text-lg font-medium">{tf("noResults")}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+            <ClipboardList className="w-12 h-12" />
+            <p className="text-lg font-medium">{t("emptyTitle")}</p>
+            <p className="text-sm">{t("emptySubtitle")}</p>
+            <Button onClick={() => setShowNewModal(true)} className="mt-2">
+              <Plus className="w-4 h-4" /> {t("newRequest")}
+            </Button>
+          </div>
+        )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {requests.map((r) => (
@@ -74,7 +90,6 @@ export default function DashboardClient({ requests, stats }: Props) {
         </div>
       )}
 
-      {/* Detail panel */}
       {selectedId && (
         <RequestDetailPanel
           requestId={selectedId}
@@ -83,7 +98,6 @@ export default function DashboardClient({ requests, stats }: Props) {
         />
       )}
 
-      {/* New request modal */}
       {showNewModal && (
         <NewRequestModal
           onClose={() => setShowNewModal(false)}

@@ -36,8 +36,8 @@ const eslintConfig = defineConfig([
         },
         callees: {
           exclude: [
-            // next-intl translation calls
-            "t", "t.rich", "useTranslations",
+            // next-intl translation calls (any alias of useTranslations result)
+            "t", "t.rich", "tf", "useTranslations",
             // react-hook-form field registration
             "register",
             // JS number/date formatting — locale identifiers, not UI text
