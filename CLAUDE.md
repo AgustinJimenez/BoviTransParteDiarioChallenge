@@ -5,72 +5,77 @@
 ## What This Is
 
 MVP logístico para digitalizar el transporte terrestre de ganado vacuno. Dos módulos centrales:
-1. **Dashboard** — gestión y asignación de solicitudes de transporte
+1. **Dashboard** — gestión y asignación de solicitudes de transporte entrantes
 2. **Administración de Flotas** — CRUD de camiones con capacidad y consumo de combustible
 
-Fórmula crítica: `Costo = Distancia (km) × Consumo (L/km) × Precio por Litro`
+Fórmula crítica del negocio: `Costo = Distancia (km) × Consumo (L/km) × Precio por Litro`  
+Implementada en `src/lib/calculations.ts` — única fuente de verdad, usada por API y frontend.
 
-## Stack
+## Stack Real (como quedó implementado)
 
-- **Framework:** Next.js 14, App Router, TypeScript strict
-- **Estilos:** Tailwind CSS + shadcn/ui (componentes propios, no dependencia de diseño)
-- **DB:** PostgreSQL 15 via Prisma ORM
-- **Mapas:** react-leaflet + OpenStreetMap (sin API key)
-- **Geocodificación:** Nominatim (OSM)
+- **Framework:** Next.js 16, App Router, TypeScript strict
+- **Estilos:** Tailwind CSS v4 (config en CSS, no tailwind.config.js) + componentes propios
+- **DB:** PostgreSQL 15 via Prisma v7 + `@prisma/adapter-pg`
+- **Mapas:** react-leaflet v5 + OpenStreetMap tiles (sin API key)
+- **Geocodificación:** Nominatim (OSM) — rate limit 1 req/seg, cachear en DB
 - **Distancias:** OSRM public API, fallback a Haversine
-- **Formularios:** react-hook-form + Zod
-- **Contenedorización:** Docker + docker-compose
+- **Formularios:** react-hook-form v7 + Zod v4 + `@hookform/resolvers` v5
+- **Iconos:** lucide-react
+- **Docker:** OrbStack (macOS) — no requiere `DOCKER_HOST`, parchea el socket automáticamente
 
 ## Estructura de Carpetas
 
 ```
 src/
 ├── app/
-│   ├── (dashboard)/         # Rutas del dashboard principal
+│   ├── page.tsx             # Dashboard (Server Component)
 │   ├── fleet/               # Módulo de flotas
-│   ├── settings/            # Configuración (precio combustible)
-│   └── api/                 # Route handlers de Next.js
+│   ├── settings/            # Configuración precio combustible
+│   └── api/
 │       ├── trucks/
 │       ├── transport-requests/
 │       └── config/
 ├── components/
-│   ├── ui/                  # Primitivos: Button, Badge, Input, Modal, Toast
-│   └── domain/              # Componentes de dominio: RequestCard, RouteMap, CapacityAlert
+│   ├── ui/                  # Button, Badge/StatusBadge, Input
+│   └── domain/              # RequestCard, RequestDetailPanel, RouteMap,
+│                            # CapacityAlert, TruckSelector, DashboardClient,
+│                            # TruckCard, NewTruckForm, NewRequestModal, MapInner
 ├── lib/
-│   ├── api/                 # Fetch wrappers — nunca fetch inline en componentes
 │   ├── calculations.ts      # Funciones puras: fuelCost, tripsNeeded, haversine
-│   └── prisma.ts            # Singleton de PrismaClient
-└── types/                   # Tipos TypeScript compartidos
+│   ├── geocoding.ts         # Nominatim geocoding
+│   ├── routing.ts           # OSRM + fallback Haversine
+│   ├── prisma.ts            # Singleton PrismaClient con pg adapter
+│   └── utils.ts             # cn() para Tailwind class merging
+└── types/
+    └── index.ts             # Truck, TransportRequest, ApiResponse, RequestStatus
 ```
 
 ## Convenciones de Desarrollo
 
 ### Git
-- **Conventional Commits:** `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`
-- **Rama de trabajo:** `feature/bovitrans-mvp`
-- Todo el desarrollo va en PR hacia `main`
+- **Conventional Commits:** `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
+- **Rama activa:** `feature/bovitrans-mvp` → PR a `main`
 
 ### TypeScript
-- Strict mode activado — no `any`, no `as unknown`
-- Tipos en `src/types/` para entidades de dominio compartidas (Truck, TransportRequest, etc.)
-- Zod schemas son la fuente de verdad para validación; los tipos se infieren de ellos
+- Strict mode — no `any`, no `as unknown`
+- Tipos en `src/types/index.ts` — las interfaces son plain JS objects (Decimal ya convertido a number)
+- Zod schemas son fuente de verdad para validación; tipos se infieren con `z.infer<>`
 
 ### Next.js App Router
-- **Server Components por defecto** — data fetching en el servidor cuando sea posible
-- **`"use client"`** solo cuando sea necesario: formularios, mapas, estado reactivo
-- **Leaflet requiere importación dinámica** con `ssr: false` — no funciona en SSR
-- Variables de entorno del cliente deben tener prefijo `NEXT_PUBLIC_`
+- **Server Components por defecto** — el dashboard fetcha via Prisma directamente, sin API call
+- **`"use client"`** solo para: formularios, mapas, estado reactivo, hooks de router
+- Variables de entorno del cliente: prefijo `NEXT_PUBLIC_`
 
 ### API REST
-- Respuestas consistentes: `{ data, error, message }`
-- Códigos HTTP correctos: 200, 201, 400, 404, 409, 422, 500
+- Respuestas consistentes: `{ data: T | null, error: string | null }`
+- Códigos HTTP: 200, 201, 400, 404, 409, 422, 500
+- Campos `Decimal` de Prisma siempre convertir a `Number()` antes de serializar a JSON
 - Validación de body con Zod en todos los endpoints que reciben datos
-- Errores de Prisma (`P2002` unique constraint, etc.) mapeados a respuestas HTTP legibles
 
 ### Componentes
-- `components/ui/` — sin lógica de negocio, solo presentación
-- `components/domain/` — pueden tener lógica de dominio pero no llamadas a API directas
-- Las llamadas a API van en `lib/api/` y se usan desde Server Components o handlers de formulario
+- `components/ui/` — sin lógica de negocio, solo presentación y estilos
+- `components/domain/` — pueden tener lógica de dominio, no llaman a API directamente
+- El fetch de datos desde el cliente va en `useEffect` dentro del componente que lo necesita
 
 ## Archivos Clave
 
@@ -78,34 +83,76 @@ src/
 |---|---|
 | `prisma/schema.prisma` | Fuente de verdad del modelo de datos |
 | `docker-compose.yml` | Levanta app + DB con un comando |
-| `init.sql` | Schema + seed para inicialización de DB en Docker |
-| `.env.example` | Referencia de todas las variables de entorno necesarias |
-| `BACKLOG.md` | Épicas, historias de usuario y tareas técnicas del MVP |
-| `DOCUMENTACION.md` | Decisiones de arquitectura y guía de instalación |
+| `docker/init.sql` | Schema DDL + seed — se ejecuta automáticamente al primer arranque |
+| `.env.example` | Variables de entorno necesarias con defaults |
+| `BACKLOG.md` | Épicas, historias de usuario, criterios de aceptación y prompts usados |
+| `DOCUMENTACION.md` | Decisiones de arquitectura, API reference, guía Docker |
 
 ## Comandos Frecuentes
 
 ```bash
-# Desarrollo local
+# Docker (entorno completo — OrbStack no necesita DOCKER_HOST)
+docker compose up --build
+docker compose down
+docker compose logs -f app
+
+# Desarrollo local (requiere PostgreSQL local)
 npm run dev
 
-# Docker (entorno completo)
-docker-compose up --build
-
 # Prisma
-npx prisma migrate dev      # Aplicar migraciones
-npx prisma studio           # GUI de la DB
-npx prisma db seed          # Cargar datos semilla
+npx prisma generate     # Regenerar cliente tras cambiar schema.prisma
+npx prisma db seed      # Cargar datos semilla
+npx prisma studio       # GUI de la DB
 
 # Calidad de código
-npm run lint
 npm run type-check
+npm run lint
 ```
 
-## Notas para Claude
+## ⚠️ Gotchas Críticos — Leer Antes de Tocar Código
 
-- La lógica de cálculo de combustible vive en `lib/calculations.ts` — nunca duplicarla en componentes o endpoints
-- El precio de combustible se lee de `SystemConfig` en DB — no hardcodearlo
-- Los camiones inactivos (`is_active: false`) no deben aparecer en selectores de asignación
-- Leaflet necesita `dynamic import` con `{ ssr: false }` — recordar esto al crear RouteMap
-- Nominatim tiene rate limit de 1 req/seg — usar el campo `origin_lat/lng` de la DB como cache
+### Prisma v7 — @map obligatorio
+El nuevo generator `prisma-client` de Prisma v7 **NO convierte automáticamente** camelCase a snake_case.
+`requesterName` busca la columna `requesterName` en la DB, no `requester_name`.
+**Todos los campos camelCase necesitan `@map("snake_case")` explícito:**
+```prisma
+requesterName   String  @map("requester_name")
+assignedTruckId String? @map("assigned_truck_id")
+```
+
+### Prisma v7 — no hay `url` en datasource
+La URL de la DB va en `prisma.config.ts`, no en `schema.prisma`.
+El cliente se instancia con el adapter:
+```typescript
+import { PrismaPg } from "@prisma/adapter-pg"
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+const prisma = new PrismaClient({ adapter })
+```
+
+### Prisma v7 — Decimal no es number
+Los campos `Decimal` de Prisma son objetos, no numbers nativos.
+Siempre convertir antes de devolver en la API: `Number(truck.fuelConsumption)`
+
+### Zod v4 + react-hook-form — no usar z.coerce para números
+`z.coerce.number()` causa mismatch de tipos con el resolver.
+Usar `z.number()` y agregar `{ valueAsNumber: true }` en `register()`:
+```typescript
+<input {...register("maxCapacity", { valueAsNumber: true })} />
+```
+
+### Leaflet — SSR rompe la app
+Leaflet requiere DOM. Importar siempre con dynamic + ssr:false:
+```typescript
+const MapInner = dynamic(() => import("./MapInner"), { ssr: false })
+```
+El CSS de Leaflet se importa dentro de `MapInner.tsx`, no en el layout.
+
+### Prisma generated client — path correcto
+El cliente generado está en `src/generated/prisma/` sin `index.ts`.
+Importar desde el archivo específico:
+```typescript
+import { PrismaClient } from "@/generated/prisma/client"
+```
+
+### Docker — usar `docker compose` (v2), no `docker-compose` (v1)
+OrbStack incluye Compose v2 como plugin. El comando es `docker compose` (sin guión).
