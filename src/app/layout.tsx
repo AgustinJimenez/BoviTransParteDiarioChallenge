@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "./globals.css";
 import Navbar from "@/components/organisms/Navbar";
+import AxeDevTools from "@/components/atoms/AxeDevTools";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main className="flex-1">{children}</main>
+          {process.env.NODE_ENV !== "production" && <AxeDevTools />}
         </NextIntlClientProvider>
       </body>
     </html>

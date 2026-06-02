@@ -13,6 +13,19 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    // Extra a11y rules beyond eslint-config-next defaults
+    // (plugin already registered by eslint-config-next — no re-declaration needed)
+    files: ["src/**/*.tsx"],
+    rules: {
+      "jsx-a11y/interactive-supports-focus": "error",
+      "jsx-a11y/no-noninteractive-element-interactions": "warn",
+      "jsx-a11y/label-has-associated-control": "error",
+      "jsx-a11y/anchor-is-valid": "error",
+      "jsx-a11y/tabindex-no-positive": "error",
+      "jsx-a11y/no-autofocus": "warn",
+    },
+  },
+  {
     files: ["src/**/*.tsx"],
     plugins: { i18next },
     rules: {
