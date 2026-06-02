@@ -70,6 +70,7 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 | **react-hook-form v7 + Zod v4** | Formik, validación manual | Type-safety end-to-end: el mismo schema Zod valida en cliente y en servidor. Con Zod v4 y `valueAsNumber` en los inputs numéricos se evita el problema de tipos en `z.coerce`. |
 | **react-leaflet v5 + OSM** | Mapbox GL JS, Google Maps | Gratuito, sin API key, suficiente para trazado de rutas en Argentina. |
 | **lucide-react** | Heroicons, Font Awesome | Consistente con el ecosistema React, tree-shakeable. |
+| **next-intl v4** | react-i18next, strings hardcodeados | Centraliza todos los strings de UI en `messages/es.json`. Integración nativa con App Router (RSC + Client). Doble validación: ESLint detecta strings hardcodeados en JSX, TypeScript detecta keys inexistentes en el JSON. |
 
 ### 2.2 Stack Backend y Datos
 
@@ -553,8 +554,11 @@ docker compose exec db psql -U bovitrans -d bovitrans
 # Type-check
 npm run type-check
 
-# Lint
+# Lint (incluye verificación de strings hardcodeados en JSX)
 npm run lint
+
+# Verificar keys de i18n inexistentes (TypeScript)
+npm run type-check
 ```
 
 ### Colima (macOS sin Docker Desktop)
