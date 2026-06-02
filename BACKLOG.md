@@ -664,11 +664,17 @@
 **Desarrollador:**
 > "is having libraries for accessibility in the dev pipeline required?"
 
-**Claude** evaluó el encaje real de herramientas como `@axe-core/react` o `eslint-plugin-jsx-a11y` en este proyecto: son linters y detectores de problemas comunes (contraste, atributos aria faltantes, orden de focus), pero su valor escala con la cantidad de componentes interactivos y la diversidad de usuarios. Un sistema operativo interno con un único perfil de usuario no es el contexto donde estas herramientas generan mayor retorno.
+**Claude** evaluó el encaje de `eslint-plugin-jsx-a11y` y `@axe-core/react`. El primero detecta violaciones en tiempo de lint (atributos aria faltantes, roles incorrectos, interactividad sin focus), el segundo las detecta en runtime durante el desarrollo y las reporta en la consola del browser.
 
-Lo que sí se incluyó como práctica base: semántica HTML correcta (`<label>` asociado a cada input, roles implícitos, navegación por teclado funcional en formularios).
+**Decisión implementada:** Ambas herramientas activas:
 
-**Decisión derivada:** No se agregan librerías de accesibilidad. La semántica HTML correcta cubre los requisitos de usabilidad para el perfil de usuario del sistema.
+1. **`eslint-plugin-jsx-a11y`** — ya incluido por `eslint-config-next` con 6 reglas base. Se agregaron reglas adicionales: `interactive-supports-focus`, `label-has-associated-control`, `anchor-is-valid`, `tabindex-no-positive`.
+
+2. **`@axe-core/react`** — montado en el layout como `<AxeDevTools />`, activo solo en `NODE_ENV !== "production"`. Corre un análisis del DOM cada vez que se renderiza la app y reporta violaciones en la consola del browser.
+
+**Desarrollador:** Decidió incluirlas al tener tiempo disponible.
+
+**Decisión derivada:** Las violaciones de accesibilidad se detectan en dos momentos distintos — en `npm run lint` (estático) y en el browser durante desarrollo (runtime). En producción el componente `AxeDevTools` no se incluye en el bundle.
 
 ---
 
