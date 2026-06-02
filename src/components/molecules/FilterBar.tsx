@@ -86,7 +86,7 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
           className={cn(
             "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
             localStatus === null
-              ? "bg-emerald-600 text-white border-emerald-600"
+              ? "bg-emerald-800 text-white border-emerald-800"
               : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
           )}
         >
@@ -99,7 +99,7 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
               localStatus === value
-                ? "bg-emerald-600 text-white border-emerald-600"
+                ? "bg-emerald-800 text-white border-emerald-800"
                 : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 cursor-pointer"
             )}
           >

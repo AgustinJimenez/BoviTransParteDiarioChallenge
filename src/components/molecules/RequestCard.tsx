@@ -37,14 +37,14 @@ export default function RequestCard({ request, onClick, selected }: Props) {
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <StatusBadge status={request.status} />
-          <span className="text-xs text-gray-400 shrink-0">{date}</span>
+          <span className="text-xs text-gray-500 shrink-0">{date}</span>
         </div>
 
         {/* Requester */}
         <div>
           <p className="font-semibold text-gray-900 text-base leading-tight">{request.requesterName}</p>
           {request.requesterPhone && (
-            <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
               <Phone className="w-3 h-3" />{request.requesterPhone}
             </p>
           )}
