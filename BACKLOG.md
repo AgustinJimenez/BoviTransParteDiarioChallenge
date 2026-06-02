@@ -739,7 +739,12 @@ Durante el desarrollo, la app corría dentro de Docker (`docker compose up --bui
 ### Intercambio 11 — Filtrado del dashboard con persistencia en URL
 
 **Desarrollador:**
-> "ok, let's do it then" (refiriéndose a implementar filtros en el dashboard)
+> "I'm thinking about some additional changes, for example the dashboard, the user can't filter the cards. Also, what happens if the system gets filled with hundreds or thousands of cards? Can it render efficiently? Do we need to implement some kind of pagination or infinite scroll?"
+
+**Claude** propuso encarar el filtrado primero y la paginación como segunda instancia, dado que si el operador puede filtrar por PENDING el problema de escala desaparece para el uso diario. Para el historial (COMPLETED) se recomendó paginación server-side simple. El desarrollador acordó arrancar con los filtros.
+
+**Desarrollador:**
+> "Ok, let's do it then."
 
 **Requerimientos definidos en la conversación:**
 - Filtros por estado (PENDING, ASSIGNED, COMPLETED, CANCELLED) y búsqueda de texto libre
