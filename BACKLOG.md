@@ -548,7 +548,7 @@
 ### Intercambio 1 — Lectura inicial de requerimientos
 
 **Desarrollador:**
-> "we need to start this project given the only file here, make a docs folder, move that file there, read it and let me know what you think"
+> "We need to start this project, the only file is here. Make a docs folder, move that file there, read it and let me know what you think."
 
 **Claude** leyó el PDF `Pauta de Prueba Tecnica_ MVP BoviTrans - Parte Diario.pdf`, lo convirtió a Markdown para facilitar la lectura, e identificó los cuatro entregables evaluados: BACKLOG.md, implementación, DOCUMENTACION.md, y el uso documentado de IA.
 
@@ -559,7 +559,7 @@
 ### Intercambio 2 — Configuración del contexto de IA
 
 **Desarrollador:**
-> "ok, let's proceed then, phase 1"
+> "Ok, let's proceed then, phase 1."
 
 **Claude** propuso crear `.claude/custom_instructions.md` para que Claude actuara como Analista de Negocios y Arquitecto de Software con contexto completo del dominio (transporte ganadero, fórmula de combustible, módulos requeridos). El objetivo fue evitar repetir contexto en cada mensaje y que todas las decisiones de diseño fuesen coherentes entre sí.
 
@@ -576,7 +576,7 @@
 ### Intercambio 3 — Elección de librerías de mapas y geocodificación
 
 **Desarrollador:**
-> "ok, and what libraries we gonna use on the frontend side? is that specified?"
+> "Ok, and what libraries are we gonna use on the frontend side? Is that specified?"
 
 **Claude** propuso las opciones y las evaluó:
 
@@ -597,7 +597,7 @@
 ### Intercambio 4 — Estructura de componentes
 
 **Desarrollador:**
-> "sounds good, and additional considerations? like having atomic design structure?"
+> "Sounds good, any additional considerations? Like having an Atomic Design structure?"
 
 **Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura orientada al dominio:
 
@@ -616,7 +616,7 @@
 ### Intercambio 5 — Tests unitarios e integración
 
 **Desarrollador:**
-> "do we need unit tests and integration tests?"
+> "Do we need unit tests and integration tests?"
 
 **Claude** analizó el valor real de cada tipo de test para este sistema:
 
@@ -635,7 +635,7 @@
 ### Intercambio 6 — Docker y entorno de desarrollo
 
 **Desarrollador:**
-> "oh, docker is not installed, can you install it?"
+> "Oh, docker is not installed, can you install it?"
 
 **Claude** detectó que Docker no estaba disponible en el sistema. Evaluó las opciones para macOS:
 
@@ -647,7 +647,7 @@
 | Rancher Desktop | ~1.5 GB | ~1.5 GB | Similar a Colima |
 
 **Desarrollador:**
-> "what i care is, which one will end up using less space"
+> "What I care about is which one will end up using less space."
 
 **Claude** recomendó OrbStack por footprint mínimo y porque no necesita configurar `DOCKER_HOST` — parchea el socket de Docker automáticamente.
 
@@ -662,7 +662,7 @@
 ### Intercambio 7 — Librerías de accesibilidad
 
 **Desarrollador:**
-> "is having libraries for accessibility in the dev pipeline required?"
+> "Is having libraries for accessibility in the dev pipeline required?"
 
 **Claude** evaluó el encaje de `eslint-plugin-jsx-a11y` y `@axe-core/react`. El primero detecta violaciones en tiempo de lint (atributos aria faltantes, roles incorrectos, interactividad sin focus), el segundo las detecta en runtime durante el desarrollo y las reporta en la consola del browser.
 
@@ -681,7 +681,7 @@
 ### Intercambio 8 — Internacionalización
 
 **Desarrollador:**
-> "what you think if we use a lang library to avoid using hardcoded strings on labels?"
+> "What do you think about using a lang library to avoid hardcoded strings on labels?"
 
 **Claude** evaluó la propuesta: el beneficio principal de centralizar strings en un archivo no es la traducción en sí, sino la mantenibilidad — un único lugar donde buscar y modificar cualquier texto de la UI, y la posibilidad de detectar strings faltantes antes del deploy.
 
@@ -699,12 +699,12 @@
 ### Intercambio 9 — Plan de pruebas manual
 
 **Desarrollador:**
-> "you think we should add on the docs folder or somewhere, tests stories? like, detailed test cases and what to expect in any case? like, how we defined the stories in the backlog file"
+> "Do you think we should add somewhere in the docs folder, test stories? Like detailed test cases and what to expect, like how we defined the stories in the backlog file."
 
 **Claude** propuso crear `docs/TEST_PLAN.md` con el mismo nivel de detalle que el BACKLOG: casos de prueba con ID, precondiciones, pasos, resultado esperado, y casos borde explícitos. El documento sirve como guía de validación manual y como checklist de regresión antes de cada deploy.
 
 **Desarrollador:**
-> "yes, try to think of edge cases too to include it"
+> "Yes, try to think of edge cases to include as well."
 
 **Claude** generó 50+ casos de prueba organizados en 8 secciones (Dashboard, Creación de solicitud, Detalle y mapa, Asignación de camión, Alerta de capacidad, Verificación de fórmula, Gestión de flota, Configuración), con énfasis en casos borde de negocio:
 
@@ -760,7 +760,7 @@ Durante el desarrollo, la app corría dentro de Docker (`docker compose up --bui
 ### Intercambio 12 — Cursor pointer en elementos interactivos
 
 **Desarrollador:**
-> "cursor pointer when hover on the items" / "no es solo eso, btn nueva solicitud, filtros btns"
+> "Cursor pointer when hovering on the items." / "It's not just that, also the nueva solicitud button and the filter buttons."
 
 **Decisión implementada:** `cursor-pointer` agregado al atom `Button` (cubre todos los botones del sistema automáticamente) y a los chips del `FilterBar`. Los `RequestCard` ya tenían el fix en el mismo intercambio inicial.
 
