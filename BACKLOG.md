@@ -696,6 +696,41 @@
 
 ---
 
+### Intercambio 9 — Plan de pruebas manual
+
+**Desarrollador:**
+> "since we have time, you think we should add on the docs folder or somewhere, tests stories? like, detailed test cases and what to expect in any case? like, how we defined the stories in the backlog file"
+
+**Claude** propuso crear `docs/TEST_PLAN.md` con el mismo nivel de detalle que el BACKLOG: casos de prueba con ID, precondiciones, pasos, resultado esperado, y casos borde explícitos. El documento sirve como guía de validación manual y como checklist de regresión antes de cada deploy.
+
+**Desarrollador:**
+> "yes, try to think of edge cases too to include it"
+
+**Claude** generó 50+ casos de prueba organizados en 8 secciones (Dashboard, Creación de solicitud, Detalle y mapa, Asignación de camión, Alerta de capacidad, Verificación de fórmula, Gestión de flota, Configuración), con énfasis en casos borde de negocio:
+
+- Capacidad exacta (30/30 → no excedida, 31/30 → excedida con 2 viajes)
+- Precio de combustible no recalcula asignaciones previas
+- Desactivar camión con solicitudes activas → procede con warning, sin bloquear
+- Origen = destino → distancia ~0, costo ~$0
+- Geocodificación fallida → UI no crashea
+
+**Decisión derivada:** `docs/TEST_PLAN.md` incluye además una **Matriz de Riesgo** (áreas de mayor probabilidad de regresión) y **Criterios de Aceptación Global** (checklist mínimo para considerar el MVP listo para entrega).
+
+---
+
+### Intercambio 10 — Refactoring a Atomic Design
+
+**Desarrollador:**
+> "si, pero tenemos tiempo de implementarlas, es a lo que voy" / "si, haz eso primero"
+
+Durante la revisión del árbol de conversación, el desarrollador notó que varias decisiones habían sido descartadas por tiempo o complejidad cuando en realidad Claude podía implementarlas. Decidió implementar Atomic Design real en lugar de mantener la estructura `ui/` + `domain/`.
+
+**Claude** ejecutó el refactor completo: clasificó los 14 componentes en tres niveles, movió los archivos, actualizó todos los imports (absolutos y relativos), y verificó TypeScript sin errores.
+
+**Decisión derivada:** Estructura final en `components/atoms/`, `components/molecules/`, `components/organisms/`. Ver Intercambio 4 para la justificación de la clasificación.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
