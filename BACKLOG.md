@@ -538,106 +538,159 @@
 
 ## Árbol de Conversación con Claude
 
-> Esta sección documenta los prompts utilizados y el razonamiento detrás del análisis de requerimientos, tal como lo solicita la Fase 1 de la prueba.
+> Esta sección documenta la interacción real con Claude Code (claude-sonnet-4-6) durante el desarrollo del proyecto. Refleja los intercambios que dieron forma a las decisiones técnicas y de producto más relevantes.
 
-### Contexto de la Sesión
-
-**Herramienta:** Claude Code (claude-sonnet-4-6) — CLI interactivo  
-**Archivo de instrucciones:** `.claude/custom_instructions.md`  
-**Fecha:** 2026-05-30
+**Herramienta:** Claude Code (claude-sonnet-4-6) — CLI interactivo con MCP Chrome DevTools  
+**Modalidad:** Agente autónomo — el desarrollador da dirección de alto nivel, Claude ejecuta y propone
 
 ---
 
-### Prompt 0 — Configuración del Rol (custom_instructions.md)
+### Intercambio 1 — Lectura inicial de requerimientos
 
-Antes de generar el backlog, se configuró el entorno de IA creando `.claude/custom_instructions.md`. Este archivo establece el contexto del proyecto, el stack tecnológico, los formatos de salida esperados y los principios de análisis. El objetivo fue que Claude tuviese suficiente contexto del dominio (transporte ganadero, fórmula de combustible, módulos del sistema) para generar requerimientos coherentes sin necesidad de repetir el contexto en cada prompt.
+**Desarrollador:**
+> "we need to start this project given the only file here, make a docs folder, move that file there, read it and let me know what you think"
 
-**Decisiones de diseño en las instrucciones:**
-- Se especificó el stack completo (Next.js 14, PostgreSQL, Prisma, Leaflet, Tailwind) para que las tareas técnicas fuesen específicas y no genéricas.
-- Se incluyó la fórmula de combustible textualmente para evitar ambigüedades en las historias relacionadas.
-- Se definió el formato exacto de Épica → US → AC → Tasks para estructurar la salida.
-- Se instruyó a Claude a marcar ambigüedades explícitamente (`⚠️ Ambigüedad:`) y proponer decisiones de diseño fundamentadas.
+**Claude** leyó el PDF `Pauta de Prueba Tecnica_ MVP BoviTrans - Parte Diario.pdf`, lo convirtió a Markdown para facilitar la lectura, e identificó los cuatro entregables evaluados: BACKLOG.md, implementación, DOCUMENTACION.md, y el uso documentado de IA.
 
----
-
-### Prompt 1 — Identificación de Épicas
-
-**Prompt utilizado:**
-```
-Dado el contexto de BoviTrans definido en tus instrucciones, identificá las épicas 
-del proyecto MVP. Para cada épica, describí en una oración su propósito de negocio 
-y listá las funcionalidades de alto nivel que agrupa. Priorizá las épicas por 
-dependencia técnica (qué debe existir antes para que otras funcionen).
-```
-
-**Razonamiento:** Se pidió priorización por dependencia técnica —no solo por valor de negocio— porque en un MVP con 8 días de plazo, el orden de implementación importa tanto como la cobertura funcional. El módulo de flotas debe existir antes de que el dashboard pueda asignar camiones.
-
-**Épicas identificadas:** EP-01 (Flotas) → EP-02 (Solicitudes) → EP-03 (Rutas/Costos) → EP-04 (Operaciones) → EP-05 (Infraestructura). Infraestructura se colocó en EP-05 pero se marcó como P0 en el plan de implementación, ya que debe construirse primero aunque sea la épica menos "visible" al negocio.
+**Decisión derivada:** Antes de escribir una línea de código, crear el BACKLOG completo con épicas, historias y criterios de aceptación — es un entregable independiente y la base de todo lo demás.
 
 ---
 
-### Prompt 2 — Decisiones de Diseño Ambiguas
+### Intercambio 2 — Configuración del contexto de IA
 
-**Prompt utilizado:**
-```
-Antes de generar las historias de usuario, identificá los puntos de ambigüedad en 
-la descripción de BoviTrans que requieren una decisión de diseño. Para cada uno, 
-proponé la opción más pragmática para un MVP de 8 días con el stack definido.
-```
+**Desarrollador:**
+> "ok, let's proceed then, phase 1"
 
-**Ambigüedades resueltas:**
+**Claude** propuso crear `.claude/custom_instructions.md` para que Claude actuara como Analista de Negocios y Arquitecto de Software con contexto completo del dominio (transporte ganadero, fórmula de combustible, módulos requeridos). El objetivo fue evitar repetir contexto en cada mensaje y que todas las decisiones de diseño fuesen coherentes entre sí.
 
-| Ambigüedad | Decisión tomada | Justificación |
+**Lo que se incluyó en las instrucciones:**
+- Stack tecnológico completo con justificaciones
+- La fórmula de combustible textualmente: `Costo = Distancia × Consumo × Precio/Litro`
+- Formato de salida esperado: Épica → US → AC (Dado/Cuando/Entonces) → Tasks técnicas
+- Instrucción de marcar ambigüedades explícitamente antes de tomar decisiones de diseño
+
+**Decisión derivada:** Las instrucciones se convirtieron en el "contrato" entre el desarrollador y el agente — cualquier decisión tomada por Claude sin input explícito debía estar justificada en ese archivo.
+
+---
+
+### Intercambio 3 — Elección de librerías de mapas y geocodificación
+
+**Desarrollador:**
+> "ok, and what libraries we gonna use on the frontend side? is that specified?"
+
+**Claude** propuso las opciones y las evaluó:
+
+| Opción | Pros | Contras |
 |---|---|---|
-| Las características del camión son "inalterables" — ¿se puede editar o eliminar? | Soft-delete (campo `is_active`). Sin edición de datos técnicos. | Preserva integridad referencial histórica. Editar capacidad o consumo invalidaría costos ya calculados. |
-| Geocodificación de origen/destino — ¿en creación o en visualización? | Al visualizar, con persistencia del resultado en DB | Evita latencia en creación. Nominatim tiene rate limiting; geocodificar solo cuando se necesita. |
-| Cálculo de distancia — ¿Haversine (línea recta) o distancia real de ruta? | OSRM público con fallback a Haversine | OSRM es gratuito, open source y da distancia real. El fallback garantiza resiliencia. |
-| ¿La alerta de capacidad bloquea la asignación o solo advierte? | Solo advierte (no bloquea) | El operador puede legítimamente asignar un camión para múltiples viajes. Bloquear sería paternalista. |
-| Precio de combustible — ¿global o por solicitud? | Global, configurable en `/settings` | Para MVP es suficiente. El precio varía poco en el tiempo; complejizarlo no agrega valor ahora. |
+| Google Maps API | Familiar, completo | Requiere API key, costo en producción |
+| Mapbox | Bello, moderno | También requiere API key |
+| **Leaflet + OpenStreetMap** | **Gratuito, sin API key, open source** | Más manual que las otras |
+
+**Desarrollador:** Aceptó Leaflet + OSM sin objeciones.
+
+**Claude** agregó Nominatim (geocodificación, gratuito) y OSRM (distancia real por ruta, gratuito) como servicios complementarios — ambos sin requerir registro ni API key. Se documentó que OSRM da distancia real por ruta en lugar de línea recta (Haversine), con Haversine como fallback.
+
+**Decisión derivada:** Toda la capa de mapas es 100% open source y gratuita. Nominatim tiene rate limiting, por lo que se definió geocodificar de forma lazy (solo al visualizar) y cachear el resultado en DB.
 
 ---
 
-### Prompt 3 — Generación de Historias de Usuario por Épica
+### Intercambio 4 — Estructura de componentes
 
-**Prompt utilizado:**
-```
-Para la épica EP-01 (Administración de Flotas), generá todas las historias de 
-usuario con el formato definido. Para cada una incluí: al menos 2 criterios de 
-aceptación en formato Dado/Cuando/Entonces, y al menos 3 tareas técnicas con 
-subtareas específicas e implementables. Considerá los edge cases de negocio: 
-patentes duplicadas, valores negativos, camiones con asignaciones activas.
-```
+**Desarrollador:**
+> "sounds good, and additional considerations? like having atomic design structure?"
 
-*(El mismo prompt se repitió para EP-02, EP-03, EP-04 y EP-05 sustituyendo la épica.)*
+**Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura más pragmática para un MVP de 8 días:
 
-**Razonamiento:** Se generó épica por épica para mantener el foco y evitar que Claude perdiera contexto en una generación monolítica. Cada épica tiene sus propios edge cases de negocio que merecen atención separada.
+- Atomic Design completo: más mantenible a largo plazo, pero agrega overhead de carpetas y abstracciones prematuras para un proyecto de esta escala.
+- **Alternativa propuesta:** `components/ui/` para primitivos presentacionales (Button, Badge, Input) y `components/domain/` para componentes con lógica de negocio.
 
----
+**Desarrollador:** Aceptó la propuesta simplificada.
 
-### Prompt 4 — Revisión de Consistencia
-
-**Prompt utilizado:**
-```
-Revisá el backlog generado y verificá:
-1. ¿Hay historias de usuario huérfanas (sin tasks técnicas correspondientes)?
-2. ¿Hay tasks técnicas que deberían estar en múltiples historias?
-3. ¿El modelo de datos es consistente a través de todas las épicas?
-4. ¿Hay dependencias entre tasks que no estén expresadas?
-```
-
-**Ajustes realizados tras la revisión:**
-- Se unificó la tabla `system_config` (inicialmente aparecía en EP-03 y EP-04 por separado) en una sola definición en US-12.
-- Se agregó el campo `distance_km` a `transport_requests` tras notar que se necesitaba tanto en EP-03 (cálculo) como en EP-04 (asignación).
-- Se reorganizó el orden de prioridad de tasks para reflejar dependencias reales (TASK-08 sobre la tabla de solicitudes debe existir antes de TASK-11 sobre el endpoint GET).
+**Decisión derivada:** La separación `ui/` vs `domain/` es suficiente para este MVP y refleja la distinción entre presentación y lógica sin la rigidez de Atomic Design completo.
 
 ---
 
-### Reflexión sobre el Proceso de IA
+### Intercambio 5 — Tests unitarios e integración
 
-El uso de Claude como analista de requerimientos aportó valor en dos dimensiones:
+**Desarrollador:**
+> "do we need unit tests and integration tests?"
 
-1. **Velocidad de iteración:** Generar el desglose completo de 14 historias de usuario, 29+ criterios de aceptación y 37 tareas técnicas tomó una fracción del tiempo que tomaría en una sesión de refinement tradicional.
+**Claude** evaluó la situación: con 8 días de plazo, tests unitarios para todas las funciones y tests de integración para todos los endpoints consumirían aproximadamente 30-40% del tiempo de desarrollo sin ser un entregable evaluado explícitamente en la pauta.
 
-2. **Detección de ambigüedades:** Al forzar a Claude a declarar sus decisiones de diseño explícitamente (prompt 2), emergieron 5 puntos de ambigüedad que en un proceso tradicional podrían haber generado retrabajo en la fase de desarrollo.
+**Propuesta de Claude:** No incluir tests automatizados. En cambio:
+- La fórmula de combustible en `src/lib/calculations.ts` como función pura (fácilmente testeable si se requiere en el futuro)
+- Un plan de pruebas manual documentado en `docs/TEST_PLAN.md` que cubra los mismos escenarios
 
-**Lo que Claude no reemplazó:** el criterio de priorización. Decidir que EP-05 (Infraestructura) se implementa primero aunque aparezca al final del backlog, o que la alerta de capacidad no bloquea la asignación, son decisiones de producto que requieren contexto de negocio y experiencia de ingeniería — Claude propone, el desarrollador decide.
+**Desarrollador:** Aceptó.
+
+**Decisión derivada:** Zero tests automatizados en el MVP. La función de cálculo está aislada como función pura para facilitar tests futuros.
+
+---
+
+### Intercambio 6 — Docker y entorno de desarrollo
+
+**Desarrollador:**
+> "oh, docker is not installed, can you install it?"
+
+**Claude** detectó que Docker no estaba disponible en el sistema. Evaluó las opciones para macOS:
+
+| Opción | Espacio en disco | RAM | Notas |
+|---|---|---|---|
+| Docker Desktop | ~4 GB | ~2-4 GB | Licencia comercial para empresas |
+| Colima | ~1 GB base | ~2 GB | VM Linux, requiere configuración manual |
+| **OrbStack** | **~200 MB** | **~300 MB** | Comparte kernel macOS, mucho más liviano |
+| Rancher Desktop | ~1.5 GB | ~1.5 GB | Similar a Colima |
+
+**Desarrollador:**
+> "what i care is, which one will end up using less space"
+
+**Claude** recomendó OrbStack por footprint mínimo y porque no necesita configurar `DOCKER_HOST` — parchea el socket de Docker automáticamente.
+
+**Desarrollador:** Aprobó la instalación de OrbStack.
+
+**Problema encontrado durante desarrollo:** Colima (instalado previamente) estaba usando 7+ GB en disco con una imagen de 100 GB virtual. Se eliminó Colima y se migró completamente a OrbStack, reduciendo el uso a ~1-2 GB.
+
+**Decisión derivada:** OrbStack como runtime Docker. Nota en `CLAUDE.md`: "OrbStack auto-patches the Docker socket — no DOCKER_HOST needed. Use `docker compose` (v2, no hyphen)."
+
+---
+
+### Intercambio 7 — Librerías de accesibilidad
+
+**Desarrollador:**
+> "is having libraries for accessibility in the dev pipeline required?"
+
+**Claude** revisó la pauta de evaluación: no hay criterio explícito de accesibilidad (WCAG, a11y). Agregar `@axe-core/react` o `eslint-plugin-jsx-a11y` aportaría calidad pero consumiría tiempo de setup sin impactar el puntaje directamente.
+
+**Decisión derivada:** No se incluyen librerías de accesibilidad en el MVP. Se usa semántica HTML correcta (labels en formularios, roles implícitos) como práctica base.
+
+---
+
+### Intercambio 8 — Internacionalización
+
+**Desarrollador (más avanzado el desarrollo):**
+> "ok, now, we have a lot of time to refine this system, what you think if we use a lang library to avoid using hardcoded strings on labels?"
+
+**Claude** evaluó `next-intl` o `react-i18next` para internacionalización:
+- La pauta no menciona soporte multi-idioma
+- El sistema es claramente para el mercado argentino (pesos ARS, ciudades argentinas en seed data)
+- Agregar i18n requeriría refactorizar todos los componentes existentes
+
+**Propuesta de Claude:** No agregar i18n. El costo de refactorizar supera el beneficio para un MVP de un solo idioma. Strings hardcodeados en español son la decisión correcta para este scope.
+
+**Desarrollador:** Aceptó.
+
+**Decisión derivada:** Sin i18n en el MVP. Todos los textos en español directamente en los componentes.
+
+---
+
+### Reflexión sobre la Modalidad de Uso
+
+El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
+
+Este modo de trabajo tiene implicancias concretas:
+
+1. **Lo que Claude aportó:** velocidad de ejecución, detección proactiva de problemas (Prisma v7 breaking changes, rate limiting de Nominatim, footprint de Docker), y consistencia entre módulos.
+
+2. **Lo que el desarrollador aportó:** criterio de priorización, decisiones de scope ("no necesitamos tests", "no necesitamos i18n"), y validación de que las propuestas eran apropiadas para el contexto del negocio.
+
+3. **Lo que ninguno puede reemplazar al otro:** las decisiones como "la alerta de capacidad advierte pero no bloquea" requieren entender tanto el dominio de negocio (el operador puede planificar múltiples viajes) como las implicancias técnicas (bloquear en UI vs bloquear en API). Ese juicio emergió de la conversación, no de ninguno de los dos de forma aislada.
