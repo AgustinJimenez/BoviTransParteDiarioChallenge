@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-nested-ternary": "error",
+      "no-unneeded-ternary": "error",
+    },
+  },
+  {
     // Extra a11y rules beyond eslint-config-next defaults
     // (plugin already registered by eslint-config-next — no re-declaration needed)
     files: ["src/**/*.tsx"],

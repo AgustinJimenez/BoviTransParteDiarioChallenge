@@ -82,6 +82,12 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
     ? calculateFuelCost(request.distanceKm, selectedTruck.fuelConsumption, fuelPrice)
     : null;
 
+  function formatFuelDisplay(req: typeof request): string {
+    if (previewCost != null) return `$${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+    if (req?.fuelCost != null) return `$${Number(req.fuelCost).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+    return "—";
+  }
+
   const suggestedTruck = selectedTruck
     ? trucks.filter(t => t.id !== selectedTruck.id).sort((a, b) => b.maxCapacity - a.maxCapacity)[0] ?? null
     : null;
@@ -112,13 +118,15 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
+          {loading && (
             <div className="flex items-center justify-center h-40">
               <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : !request ? (
+          )}
+          {!loading && !request && (
             <p className="p-5 text-gray-500">{t("loadError")}</p>
-          ) : (
+          )}
+          {!loading && request && (
             <div className="divide-y divide-gray-100">
               {/* Requester */}
               <div className="px-5 py-4 space-y-2">
@@ -193,11 +201,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                     <div>
                       <p className="text-xs text-gray-400">{t("fuelEstimate")}</p>
                       <p className="font-semibold text-gray-800 text-sm">
-                        {previewCost != null
-                          ? `$${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`
-                          : request.fuelCost != null
-                          ? `$${Number(request.fuelCost).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`
-                          : "—"}
+                        {formatFuelDisplay(request)}
                       </p>
                     </div>
                   </div>

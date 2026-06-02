@@ -28,6 +28,41 @@ export default function DashboardClient({ requests, stats, currentStatus, curren
 
   const hasActiveFilters = currentStatus !== null || currentSearch !== null;
 
+  function renderCards() {
+    if (requests.length > 0) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {requests.map((r) => (
+            <RequestCard
+              key={r.id}
+              request={r}
+              selected={selectedId === r.id}
+              onClick={() => setSelectedId(selectedId === r.id ? null : r.id)}
+            />
+          ))}
+        </div>
+      );
+    }
+    if (hasActiveFilters) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-2">
+          <ClipboardList className="w-12 h-12" />
+          <p className="text-lg font-medium">{tf("noResults")}</p>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+        <ClipboardList className="w-12 h-12" />
+        <p className="text-lg font-medium">{t("emptyTitle")}</p>
+        <p className="text-sm">{t("emptySubtitle")}</p>
+        <Button onClick={() => setShowNewModal(true)} className="mt-2">
+          <Plus className="w-4 h-4" /> {t("newRequest")}
+        </Button>
+      </div>
+    );
+  }
+
   function refresh() {
     startTransition(() => router.refresh());
   }
@@ -61,34 +96,7 @@ export default function DashboardClient({ requests, stats, currentStatus, curren
       <FilterBar currentStatus={currentStatus} currentSearch={currentSearch} />
 
       {/* Cards grid */}
-      {requests.length === 0 ? (
-        hasActiveFilters ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-2">
-            <ClipboardList className="w-12 h-12" />
-            <p className="text-lg font-medium">{tf("noResults")}</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-            <ClipboardList className="w-12 h-12" />
-            <p className="text-lg font-medium">{t("emptyTitle")}</p>
-            <p className="text-sm">{t("emptySubtitle")}</p>
-            <Button onClick={() => setShowNewModal(true)} className="mt-2">
-              <Plus className="w-4 h-4" /> {t("newRequest")}
-            </Button>
-          </div>
-        )
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {requests.map((r) => (
-            <RequestCard
-              key={r.id}
-              request={r}
-              selected={selectedId === r.id}
-              onClick={() => setSelectedId(selectedId === r.id ? null : r.id)}
-            />
-          ))}
-        </div>
-      )}
+      {renderCards()}
 
       {selectedId && (
         <RequestDetailPanel

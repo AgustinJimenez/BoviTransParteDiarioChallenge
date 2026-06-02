@@ -21,6 +21,12 @@ export default function TruckCard({ truck, onToggle }: Props) {
     try { await onToggle(truck); } finally { setLoading(false); }
   }
 
+  function renderToggleIcon() {
+    if (loading) return <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />;
+    if (truck.isActive) return <ToggleRight className="w-7 h-7 text-emerald-600" />;
+    return <ToggleLeft className="w-7 h-7" />;
+  }
+
   return (
     <div className={cn(
       "bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-opacity",
@@ -49,12 +55,7 @@ export default function TruckCard({ truck, onToggle }: Props) {
             title={truck.isActive ? t("deactivate") : t("activate")}
             className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
           >
-            {loading
-              ? <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              : truck.isActive
-              ? <ToggleRight className="w-7 h-7 text-emerald-600" />
-              : <ToggleLeft className="w-7 h-7" />
-            }
+            {renderToggleIcon()}
           </button>
         </div>
 

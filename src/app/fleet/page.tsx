@@ -43,6 +43,48 @@ export default function FleetPage() {
   const active   = trucks.filter((t) => t.isActive);
   const inactive = trucks.filter((t) => !t.isActive);
 
+  function renderContent() {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    if (trucks.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+          <TruckIcon className="w-12 h-12" />
+          <p className="text-lg font-medium">{t("emptyTitle")}</p>
+          <p className="text-sm">{t("emptySubtitle")}</p>
+          <Link href="/fleet/new">
+            <Button className="mt-2"><Plus className="w-4 h-4" /> {t("register")}</Button>
+          </Link>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-8">
+        {active.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t("sectionActive")}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {active.map((truck) => <TruckCard key={truck.id} truck={truck} onToggle={handleToggle} />)}
+            </div>
+          </section>
+        )}
+        {inactive.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t("sectionInactive")}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {inactive.map((truck) => <TruckCard key={truck.id} truck={truck} onToggle={handleToggle} />)}
+            </div>
+          </section>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -62,39 +104,7 @@ export default function FleetPage() {
         </Link>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : trucks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-          <TruckIcon className="w-12 h-12" />
-          <p className="text-lg font-medium">{t("emptyTitle")}</p>
-          <p className="text-sm">{t("emptySubtitle")}</p>
-          <Link href="/fleet/new">
-            <Button className="mt-2"><Plus className="w-4 h-4" /> {t("register")}</Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {active.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t("sectionActive")}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {active.map((t) => <TruckCard key={t.id} truck={t} onToggle={handleToggle} />)}
-              </div>
-            </section>
-          )}
-          {inactive.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t("sectionInactive")}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {inactive.map((t) => <TruckCard key={t.id} truck={t} onToggle={handleToggle} />)}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 }
