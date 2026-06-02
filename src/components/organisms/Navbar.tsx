@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Truck, LayoutDashboard, Settings, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function NavLogo() {
+const NavLogo = () => {
   return (
     <Link href="/" className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-lg bg-amber-400 flex items-center justify-center shadow">
@@ -19,12 +19,12 @@ function NavLogo() {
   );
 }
 
-function NavLinkItem({ href, label, icon: Icon, isActive }: {
+const NavLinkItem = ({ href, label, icon: Icon, isActive }: {
   href: string;
   label: string;
   icon: LucideIcon;
   isActive: boolean;
-}) {
+}) => {
   return (
     <Link
       href={href}
@@ -39,7 +39,7 @@ function NavLinkItem({ href, label, icon: Icon, isActive }: {
   );
 }
 
-function NavLinks({ pathname }: { pathname: string }) {
+const NavLinks = ({ pathname }: { pathname: string }) => {
   const t = useTranslations("nav");
 
   const links = [
@@ -57,7 +57,7 @@ function NavLinks({ pathname }: { pathname: string }) {
   );
 }
 
-export default function Navbar() {
+const Navbar = () => {
   const pathname = usePathname();
 
   return (
@@ -71,3 +71,5 @@ export default function Navbar() {
     </header>
   );
 }
+
+export default Navbar;

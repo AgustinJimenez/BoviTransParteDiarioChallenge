@@ -13,7 +13,7 @@ interface Props {
 
 const b = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
-export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Props) {
+const CapacityAlert = ({ cattleCount, truck, suggestedTruck }: Props) => {
   const t = useTranslations("capacityAlert");
   if (!truck) return null;
 
@@ -66,3 +66,5 @@ export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Pr
     </div>
   );
 }
+
+export default CapacityAlert;

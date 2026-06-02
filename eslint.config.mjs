@@ -17,6 +17,10 @@ const eslintConfig = defineConfig([
     rules: {
       "no-nested-ternary": "error",
       "no-unneeded-ternary": "error",
+      "react/function-component-definition": ["error", {
+        namedComponents: "arrow-function",
+        unnamedComponents: "arrow-function",
+      }],
     },
   },
   {

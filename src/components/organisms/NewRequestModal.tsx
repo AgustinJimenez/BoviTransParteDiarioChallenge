@@ -19,11 +19,11 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-function RequestModalHeader({ title, subtitle, onClose }: {
+const RequestModalHeader = ({ title, subtitle, onClose }: {
   title: string;
   subtitle: string;
   onClose: () => void;
-}) {
+}) => {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
       <div>
@@ -37,12 +37,12 @@ function RequestModalHeader({ title, subtitle, onClose }: {
   );
 }
 
-function RequestModalFormActions({ onClose, isSubmitting, cancelLabel, submitLabel }: {
+const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLabel }: {
   onClose: () => void;
   isSubmitting: boolean;
   cancelLabel: string;
   submitLabel: string;
-}) {
+}) => {
   return (
     <div className="flex gap-3 pt-1">
       <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
@@ -60,7 +60,7 @@ interface Props {
   onCreated: () => void;
 }
 
-export default function NewRequestModal({ onClose, onCreated }: Props) {
+const NewRequestModal = ({ onClose, onCreated }: Props) => {
   const t = useTranslations("newRequest");
   const [serverError, setServerError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -100,3 +100,5 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
     </>
   );
 }
+
+export default NewRequestModal;

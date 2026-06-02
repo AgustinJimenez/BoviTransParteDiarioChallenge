@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export default function AxeDevTools() {
+const AxeDevTools = () => {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
       Promise.all([
@@ -17,3 +17,5 @@ export default function AxeDevTools() {
 
   return null;
 }
+
+export default AxeDevTools;

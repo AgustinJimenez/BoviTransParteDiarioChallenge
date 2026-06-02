@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "Plataforma logística para el transporte terrestre de ganado vacuno",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const messages = await getMessages();
   return (
     <html lang="es" className={`${geist.variable} h-full`}>
@@ -27,3 +27,5 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   );
 }
+
+export default RootLayout;

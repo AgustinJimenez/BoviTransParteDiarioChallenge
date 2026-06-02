@@ -13,7 +13,7 @@ const statusBorder: Record<string, string> = {
   CANCELLED: "border-l-gray-300",
 };
 
-function CardHeader({ status, date }: { status: TransportRequest["status"]; date: string }) {
+const CardHeader = ({ status, date }: { status: TransportRequest["status"]; date: string }) => {
   return (
     <div className="flex items-start justify-between gap-2">
       <StatusBadge status={status} />
@@ -22,7 +22,7 @@ function CardHeader({ status, date }: { status: TransportRequest["status"]; date
   );
 }
 
-function CardRequester({ name, phone }: { name: string; phone: string | null }) {
+const CardRequester = ({ name, phone }: { name: string; phone: string | null }) => {
   return (
     <div>
       <p className="font-semibold text-gray-900 text-base leading-tight">{name}</p>
@@ -35,7 +35,7 @@ function CardRequester({ name, phone }: { name: string; phone: string | null }) 
   );
 }
 
-function CardCattleCount({ count, unit }: { count: number; unit: string }) {
+const CardCattleCount = ({ count, unit }: { count: number; unit: string }) => {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-2xl font-bold text-emerald-700">{count}</span>
@@ -44,7 +44,7 @@ function CardCattleCount({ count, unit }: { count: number; unit: string }) {
   );
 }
 
-function CardRoute({ origin, destination }: { origin: string; destination: string }) {
+const CardRoute = ({ origin, destination }: { origin: string; destination: string }) => {
   return (
     <div className="flex items-center gap-2 text-sm text-gray-600">
       <span className="truncate max-w-[40%]">{origin}</span>
@@ -54,7 +54,7 @@ function CardRoute({ origin, destination }: { origin: string; destination: strin
   );
 }
 
-function CardAssignedTruck({ truck, fuelCost }: { truck: TransportRequest["assignedTruck"]; fuelCost: number | null }) {
+const CardAssignedTruck = ({ truck, fuelCost }: { truck: TransportRequest["assignedTruck"]; fuelCost: number | null }) => {
   if (!truck) return null;
   return (
     <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
@@ -75,7 +75,7 @@ interface Props {
   selected?: boolean;
 }
 
-export default function RequestCard({ request, onClick, selected }: Props) {
+const RequestCard = ({ request, onClick, selected }: Props) => {
   const t = useTranslations("requestCard");
   const date = new Date(request.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 
@@ -99,3 +99,5 @@ export default function RequestCard({ request, onClick, selected }: Props) {
     </button>
   );
 }
+
+export default RequestCard;

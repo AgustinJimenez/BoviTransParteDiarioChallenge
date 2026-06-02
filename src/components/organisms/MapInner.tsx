@@ -30,7 +30,7 @@ interface Props {
   destinationLabel: string;
 }
 
-function FitBounds({ positions }: { positions: [number, number][] }) {
+const FitBounds = ({ positions }: { positions: [number, number][] }) => {
   const map = useMap();
   useEffect(() => {
     if (positions.length >= 2) {
@@ -40,7 +40,7 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
-export default function MapInner({ originLat, originLng, destinationLat, destinationLng, originLabel, destinationLabel }: Props) {
+const MapInner = ({ originLat, originLng, destinationLat, destinationLng, originLabel, destinationLabel }: Props) => {
   const t = useTranslations("map");
   const origin: [number, number] = [originLat, originLng];
   const destination: [number, number] = [destinationLat, destinationLng];
@@ -70,3 +70,5 @@ export default function MapInner({ originLat, originLng, destinationLat, destina
     </MapContainer>
   );
 }
+
+export default MapInner;

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/atoms/Badge";
 import type { Truck } from "@/types";
 
-function TruckCardIcon({ isActive }: { isActive: boolean }) {
+const TruckCardIcon = ({ isActive }: { isActive: boolean }) => {
   return (
     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isActive ? "bg-emerald-100" : "bg-gray-100")}>
       <TruckIcon className={cn("w-5 h-5", isActive ? "text-emerald-700" : "text-gray-400")} />
@@ -15,13 +15,13 @@ function TruckCardIcon({ isActive }: { isActive: boolean }) {
   );
 }
 
-function TruckCardToggleButton({ isActive, loading, onToggle, deactivateLabel, activateLabel }: {
+const TruckCardToggleButton = ({ isActive, loading, onToggle, deactivateLabel, activateLabel }: {
   isActive: boolean;
   loading: boolean;
   onToggle: () => void;
   deactivateLabel: string;
   activateLabel: string;
-}) {
+}) => {
   function renderIcon() {
     if (loading) return <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />;
     if (isActive) return <ToggleRight className="w-7 h-7 text-emerald-600" />;
@@ -40,12 +40,12 @@ function TruckCardToggleButton({ isActive, loading, onToggle, deactivateLabel, a
   );
 }
 
-function TruckCardHeader({ truck, loading, onToggle, t }: {
+const TruckCardHeader = ({ truck, loading, onToggle, t }: {
   truck: Truck;
   loading: boolean;
   onToggle: () => void;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3">
@@ -68,12 +68,12 @@ function TruckCardHeader({ truck, loading, onToggle, t }: {
   );
 }
 
-function TruckCardStats({ maxCapacity, fuelConsumption, capacityLabel, consumptionLabel }: {
+const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumptionLabel }: {
   maxCapacity: number;
   fuelConsumption: number;
   capacityLabel: string;
   consumptionLabel: string;
-}) {
+}) => {
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="bg-gray-50 rounded-xl p-3 text-center">
@@ -93,7 +93,7 @@ interface Props {
   onToggle: (truck: Truck) => Promise<void>;
 }
 
-export default function TruckCard({ truck, onToggle }: Props) {
+const TruckCard = ({ truck, onToggle }: Props) => {
   const t = useTranslations("truckCard");
   const [loading, setLoading] = useState(false);
 
@@ -116,3 +116,5 @@ export default function TruckCard({ truck, onToggle }: Props) {
     </div>
   );
 }
+
+export default TruckCard;

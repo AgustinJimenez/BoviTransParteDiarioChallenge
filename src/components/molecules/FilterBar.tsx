@@ -14,12 +14,12 @@ const STATUSES: { value: RequestStatus; key: string }[] = [
   { value: "CANCELLED", key: "statusCancelled" },
 ];
 
-function FilterSearchInput({ value, placeholder, onChange, onClear }: {
+const FilterSearchInput = ({ value, placeholder, onChange, onClear }: {
   value: string;
   placeholder: string;
   onChange: (v: string) => void;
   onClear: () => void;
-}) {
+}) => {
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -39,13 +39,13 @@ function FilterSearchInput({ value, placeholder, onChange, onClear }: {
   );
 }
 
-function FilterStatusChips({ localStatus, hasFilters, onStatusClick, onClear, t }: {
+const FilterStatusChips = ({ localStatus, hasFilters, onStatusClick, onClear, t }: {
   localStatus: RequestStatus | null;
   hasFilters: boolean;
   onStatusClick: (s: RequestStatus | null) => void;
   onClear: () => void;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   const chipClass = (active: boolean) => cn(
     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
     active
@@ -78,7 +78,7 @@ interface Props {
   currentSearch: string | null;
 }
 
-export default function FilterBar({ currentStatus, currentSearch }: Props) {
+const FilterBar = ({ currentStatus, currentSearch }: Props) => {
   const t = useTranslations("filterBar");
   const router = useRouter();
   const pathname = usePathname();
@@ -133,3 +133,5 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
     </div>
   );
 }
+
+export default FilterBar;

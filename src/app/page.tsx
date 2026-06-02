@@ -31,11 +31,11 @@ function serialize(r: RequestWithTruck): TransportRequest {
   };
 }
 
-export default async function DashboardPage({
+const DashboardPage = async ({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string; search?: string }>;
-}) {
+}) => {
   const { status: rawStatus, search } = await searchParams;
 
   const currentStatus = rawStatus && VALID_STATUSES.includes(rawStatus as RequestStatus)
@@ -79,3 +79,5 @@ export default async function DashboardPage({
     />
   );
 }
+
+export default DashboardPage;

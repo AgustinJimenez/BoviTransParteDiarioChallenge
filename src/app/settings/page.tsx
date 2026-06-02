@@ -9,11 +9,11 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/atoms/Input";
 import { Button } from "@/components/atoms/Button";
 
-function SettingsPageHeader({ icon: Icon, title, subtitle }: {
+const SettingsPageHeader = ({ icon: Icon, title, subtitle }: {
   icon: LucideIcon;
   title: string;
   subtitle: string;
-}) {
+}) => {
   return (
     <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-4">
       <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -32,7 +32,7 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export default function SettingsPage() {
+const SettingsPage = () => {
   const t = useTranslations("settings");
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -112,3 +112,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+export default SettingsPage;

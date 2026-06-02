@@ -17,7 +17,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function NewTruckForm() {
+const NewTruckForm = () => {
   const t = useTranslations("newTruck");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -82,3 +82,5 @@ export default function NewTruckForm() {
     </form>
   );
 }
+
+export default NewTruckForm;

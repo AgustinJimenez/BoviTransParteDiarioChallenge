@@ -13,13 +13,13 @@ import type { TransportRequest, Truck } from "@/types";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PanelBackdrop({ onClose }: { onClose: () => void }) {
+const PanelBackdrop = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity" onClick={onClose} />
   );
 }
 
-function PanelHeader({ request, onClose }: { request: TransportRequest | null; onClose: () => void }) {
+const PanelHeader = ({ request, onClose }: { request: TransportRequest | null; onClose: () => void }) => {
   return (
     <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
       <div className="flex items-center gap-3">
@@ -36,7 +36,7 @@ function PanelHeader({ request, onClose }: { request: TransportRequest | null; o
   );
 }
 
-function PanelLoadingState() {
+const PanelLoadingState = () => {
   return (
     <div className="flex items-center justify-center h-40">
       <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
@@ -44,7 +44,7 @@ function PanelLoadingState() {
   );
 }
 
-function RequesterSection({ request, sectionLabel }: { request: TransportRequest; sectionLabel: string }) {
+const RequesterSection = ({ request, sectionLabel }: { request: TransportRequest; sectionLabel: string }) => {
   return (
     <div className="px-5 py-4 space-y-2">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{sectionLabel}</p>
@@ -62,11 +62,11 @@ function RequesterSection({ request, sectionLabel }: { request: TransportRequest
   );
 }
 
-function CargoSection({ cattleCount, sectionLabel, cattleUnit }: {
+const CargoSection = ({ cattleCount, sectionLabel, cattleUnit }: {
   cattleCount: number;
   sectionLabel: string;
   cattleUnit: string;
-}) {
+}) => {
   return (
     <div className="px-5 py-4">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{sectionLabel}</p>
@@ -78,7 +78,7 @@ function CargoSection({ cattleCount, sectionLabel, cattleUnit }: {
   );
 }
 
-function RouteStopIndicator() {
+const RouteStopIndicator = () => {
   return (
     <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
       <div className="w-3 h-3 rounded-full bg-emerald-500" />
@@ -88,7 +88,7 @@ function RouteStopIndicator() {
   );
 }
 
-function RouteDistanceStat({ distanceKm, label }: { distanceKm: number | null; label: string }) {
+const RouteDistanceStat = ({ distanceKm, label }: { distanceKm: number | null; label: string }) => {
   return (
     <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
       <Ruler className="w-4 h-4 text-gray-400 shrink-0" />
@@ -102,7 +102,7 @@ function RouteDistanceStat({ distanceKm, label }: { distanceKm: number | null; l
   );
 }
 
-function RouteFuelStat({ fuelDisplay, label }: { fuelDisplay: string; label: string }) {
+const RouteFuelStat = ({ fuelDisplay, label }: { fuelDisplay: string; label: string }) => {
   return (
     <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
       <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
@@ -114,7 +114,7 @@ function RouteFuelStat({ fuelDisplay, label }: { fuelDisplay: string; label: str
   );
 }
 
-function FuelFormulaBreakdown({ formula }: { formula: string }) {
+const FuelFormulaBreakdown = ({ formula }: { formula: string }) => {
   return (
     <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
       {formula}
@@ -122,14 +122,14 @@ function FuelFormulaBreakdown({ formula }: { formula: string }) {
   );
 }
 
-function RouteAndMapSection({ request, selectedTruck, fuelPrice, previewCost, fuelDisplay, t }: {
+const RouteAndMapSection = ({ request, selectedTruck, fuelPrice, previewCost, fuelDisplay, t }: {
   request: TransportRequest;
   selectedTruck: Truck | null;
   fuelPrice: number;
   previewCost: number | null;
   fuelDisplay: string;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="px-5 py-4 space-y-3">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRoute")}</p>
@@ -175,7 +175,7 @@ function RouteAndMapSection({ request, selectedTruck, fuelPrice, previewCost, fu
   );
 }
 
-function TruckAssignmentSection({ request, trucks, selectedTruck, fuelPrice, suggestedTruck, capacityWarning, error, onSelect, t }: {
+const TruckAssignmentSection = ({ request, trucks, selectedTruck, fuelPrice, suggestedTruck, capacityWarning, error, onSelect, t }: {
   request: TransportRequest;
   trucks: Truck[];
   selectedTruck: Truck | null;
@@ -185,7 +185,7 @@ function TruckAssignmentSection({ request, trucks, selectedTruck, fuelPrice, sug
   error: string | null;
   onSelect: (truck: Truck | null) => void;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="px-5 py-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -211,7 +211,7 @@ function TruckAssignmentSection({ request, trucks, selectedTruck, fuelPrice, sug
   );
 }
 
-function CompletedBanner({ label }: { label: string }) {
+const CompletedBanner = ({ label }: { label: string }) => {
   return (
     <div className="px-5 py-4">
       <div className="bg-emerald-50 rounded-xl p-3 text-sm text-emerald-700 text-center">{label}</div>
@@ -219,14 +219,14 @@ function CompletedBanner({ label }: { label: string }) {
   );
 }
 
-function PanelFooter({ request, selectedTruck, assigning, onClose, onAssign, t }: {
+const PanelFooter = ({ request, selectedTruck, assigning, onClose, onAssign, t }: {
   request: TransportRequest;
   selectedTruck: Truck | null;
   assigning: boolean;
   onClose: () => void;
   onAssign: () => void;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="px-5 py-4 border-t border-gray-100 shrink-0">
       <div className="flex gap-3">
@@ -252,7 +252,7 @@ interface Props {
   onAssigned: () => void;
 }
 
-export default function RequestDetailPanel({ requestId, onClose, onAssigned }: Props) {
+const RequestDetailPanel = ({ requestId, onClose, onAssigned }: Props) => {
   const t = useTranslations("requestDetail");
   const [request, setRequest] = useState<TransportRequest | null>(null);
   const [trucks, setTrucks] = useState<Truck[]>([]);
@@ -378,3 +378,5 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
     </>
   );
 }
+
+export default RequestDetailPanel;

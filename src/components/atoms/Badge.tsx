@@ -8,7 +8,7 @@ const statusConfig: Record<RequestStatus, { label: string; className: string }> 
   CANCELLED: { label: "Cancelado",  className: "bg-gray-100 text-gray-500 ring-gray-200" },
 };
 
-export function StatusBadge({ status }: { status: RequestStatus }) {
+export const StatusBadge = ({ status }: { status: RequestStatus }) => {
   const { label, className } = statusConfig[status];
   return (
     <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset", className)}>
@@ -30,7 +30,7 @@ const variantMap = {
   sky:   "bg-sky-100 text-sky-800",
 };
 
-export function Badge({ children, variant = "gray", className }: BadgeProps) {
+export const Badge = ({ children, variant = "gray", className }: BadgeProps) => {
   return (
     <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold", variantMap[variant], className)}>
       {children}

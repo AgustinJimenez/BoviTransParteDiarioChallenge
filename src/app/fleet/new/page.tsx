@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Truck } from "lucide-react";
 import NewTruckForm from "@/components/organisms/NewTruckForm";
 
-export default async function NewTruckPage() {
+const NewTruckPage = async () => {
   const t = await getTranslations("fleet");
 
   return (
@@ -25,3 +25,5 @@ export default async function NewTruckPage() {
     </div>
   );
 }
+
+export default NewTruckPage;

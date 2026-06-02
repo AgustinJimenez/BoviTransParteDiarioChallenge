@@ -15,7 +15,7 @@ interface Props {
   currentTruckId?: string | null;
 }
 
-export default function TruckSelector({ trucks, selectedId, onSelect, distanceKm, fuelPrice, currentTruckId }: Props) {
+const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, currentTruckId }: Props) => {
   const t = useTranslations("truckSelector");
 
   if (!trucks.length) {
@@ -81,3 +81,5 @@ export default function TruckSelector({ trucks, selectedId, onSelect, distanceKm
     </div>
   );
 }
+
+export default TruckSelector;

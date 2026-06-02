@@ -11,12 +11,12 @@ import RequestDetailPanel from "./RequestDetailPanel";
 import NewRequestModal from "./NewRequestModal";
 import type { TransportRequest, RequestStatus } from "@/types";
 
-function DashboardStatCard({ label, value, color, bg }: {
+const DashboardStatCard = ({ label, value, color, bg }: {
   label: string;
   value: number;
   color: string;
   bg: string;
-}) {
+}) => {
   return (
     <div className={`rounded-xl border p-4 ${bg}`}>
       <p className="text-xs font-medium text-gray-500">{label}</p>
@@ -25,10 +25,10 @@ function DashboardStatCard({ label, value, color, bg }: {
   );
 }
 
-function DashboardStats({ stats, t }: {
+const DashboardStats = ({ stats, t }: {
   stats: { pending: number; assigned: number; completed: number };
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   const items = [
     { label: t("statPending"),   value: stats.pending,   color: "text-amber-700",   bg: "bg-amber-50 border-amber-100" },
     { label: t("statAssigned"),  value: stats.assigned,  color: "text-sky-700",     bg: "bg-sky-50 border-sky-100" },
@@ -44,10 +44,10 @@ function DashboardStats({ stats, t }: {
   );
 }
 
-function DashboardTitleBar({ onNewRequest, t }: {
+const DashboardTitleBar = ({ onNewRequest, t }: {
   onNewRequest: () => void;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="flex items-center justify-between mb-5">
       <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
@@ -66,7 +66,7 @@ interface Props {
   currentSearch: string | null;
 }
 
-export default function DashboardClient({ requests, stats, currentStatus, currentSearch }: Props) {
+const DashboardClient = ({ requests, stats, currentStatus, currentSearch }: Props) => {
   const t = useTranslations("dashboard");
   const tf = useTranslations("filterBar");
   const router = useRouter();
@@ -139,3 +139,5 @@ export default function DashboardClient({ requests, stats, currentStatus, curren
     </div>
   );
 }
+
+export default DashboardClient;

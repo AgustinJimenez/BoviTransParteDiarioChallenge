@@ -9,11 +9,11 @@ import { Button } from "@/components/atoms/Button";
 import TruckCard from "@/components/molecules/TruckCard";
 import type { Truck } from "@/types";
 
-function FleetPageHeader({ activeCount, inactiveCount, t }: {
+const FleetPageHeader = ({ activeCount, inactiveCount, t }: {
   activeCount: number;
   inactiveCount: number;
   t: ReturnType<typeof useTranslations>;
-}) {
+}) => {
   return (
     <div className="flex items-center justify-between mb-8">
       <div>
@@ -33,7 +33,7 @@ function FleetPageHeader({ activeCount, inactiveCount, t }: {
   );
 }
 
-export default function FleetPage() {
+const FleetPage = () => {
   const t = useTranslations("fleet");
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -117,3 +117,5 @@ export default function FleetPage() {
     </div>
   );
 }
+
+export default FleetPage;
