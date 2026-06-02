@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BoviTrans — Plataforma de Gestión de Transporte Ganadero
 
-## Getting Started
+MVP de logística para el transporte terrestre de ganado vacuno. Permite gestionar solicitudes de transporte, asignar camiones, visualizar rutas en un mapa interactivo y calcular costos de combustible en tiempo real.
 
-First, run the development server:
+## Stack
+
+- **Frontend:** Next.js 16 (App Router), TypeScript strict, Tailwind CSS v4, react-leaflet + OpenStreetMap
+- **Backend:** API Routes de Next.js, Prisma v7 + PostgreSQL 15
+- **Mapas y geocodificación:** Nominatim (gratuito, sin API key), OSRM (distancias reales por ruta)
+- **i18n:** next-intl v4 — strings centralizados en `messages/es.json`
+- **Calidad:** Vitest (tests unitarios), eslint-plugin-i18next, eslint-plugin-jsx-a11y, @axe-core/react
+
+## Inicio rápido (modo híbrido — recomendado)
+
+DB en Docker + Next.js con hot reload local. Requiere Node.js 20+ y OrbStack (o Docker Desktop).
 
 ```bash
+# 1. Instalar dependencias
+npm install
+
+# 2. Levantar solo la base de datos
+docker compose up db -d
+
+# 3. Variables de entorno para desarrollo local
+cp .env.example .env.local
+# DATABASE_URL ya apunta a localhost:5432 con los valores por defecto
+
+# 4. Generar Prisma Client
+npx prisma generate
+
+# 5. Servidor con hot reload
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+La DB se inicializa automáticamente con datos semilla: 4 camiones, 5 solicitudes y precio de combustible configurado.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comandos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev          # Servidor de desarrollo con hot reload
+npm test             # Tests unitarios (Vitest, 27 tests)
+npm run test:coverage # Tests con reporte de cobertura
+npm run lint         # ESLint (incluye reglas i18n y a11y)
+npm run type-check   # TypeScript sin emitir archivos
+npm run build        # Build de producción
+```
 
-## Learn More
+## Docker completo (para validar el build de producción)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up --build
+# → http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentación
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ver [`DOCUMENTACION.md`](./DOCUMENTACION.md) para:
+- Arquitectura y decisiones de diseño
+- Modelo de datos y API reference
+- Configuración de Docker y variables de entorno
+- Guía de troubleshooting
 
-## Deploy on Vercel
+Ver [`BACKLOG.md`](./BACKLOG.md) para:
+- Épicas, historias de usuario y criterios de aceptación
+- Árbol de conversación con Claude (decisiones técnicas y de producto)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ver [`docs/TEST_PLAN.md`](./docs/TEST_PLAN.md) para el plan de pruebas manual con casos de borde.

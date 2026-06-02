@@ -718,6 +718,24 @@
 
 ---
 
+### Intercambio 10 — Workflow de desarrollo y hot reload
+
+**Desarrollador:**
+> "puede hacer que sea hotreload?"
+
+Durante el desarrollo, la app corría dentro de Docker (`docker compose up --build`). Cada cambio de código requería un rebuild completo de la imagen — inviable para iterar rápido.
+
+**Claude** propuso y configuró el modo híbrido:
+- Solo la base de datos corre en Docker (`docker compose up db -d`)
+- Next.js corre localmente con `npm run dev` → hot reload instantáneo
+- `.env.local` apunta a `localhost:5432` en lugar de al host `db` del compose
+
+**Impacto en la documentación:** Se reescribió la sección "Cómo Correr el Proyecto" en `DOCUMENTACION.md` con tres modos diferenciados (híbrido, Docker completo, local sin Docker), y se reemplazó el README boilerplate de create-next-app con uno específico del proyecto que documenta el inicio rápido, los comandos disponibles y los enlaces a los artefactos de entrega.
+
+**Decisión derivada:** El modo híbrido quedó como el recomendado para desarrollo activo. Docker completo se mantiene para validar el build de producción antes de cada release.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
