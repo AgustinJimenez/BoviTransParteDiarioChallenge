@@ -490,57 +490,66 @@ El stage `runner` usa `output: "standalone"` de Next.js, que bundlea todas las d
 
 ### Requisitos
 
-- Docker con el plugin Compose (Docker Desktop, Colima + `brew install docker docker-compose`, o equivalente)
-- No se requiere Node.js, PostgreSQL ni ninguna otra dependencia local
+- **Para el modo híbrido (recomendado):** Node.js 20+ y OrbStack o Docker Desktop
+- **Para Docker completo:** solo OrbStack o Docker Desktop (no requiere Node.js local)
 
-### Con Docker (recomendado)
+### Desarrollo híbrido — DB en Docker + hot reload (recomendado para desarrollo activo)
+
+El modo más cómodo para desarrollo: PostgreSQL corre en Docker, Next.js corre localmente con hot reload. Cualquier cambio de código se refleja instantáneamente sin rebuild.
+
+**Requisitos:** Node.js 20+ y OrbStack (o Docker Desktop).
 
 ```bash
-# 1. Clonar el repositorio
-git clone <repo-url>
-cd BoviTransParteDiarioChallenge
+# 1. Solo la base de datos en Docker
+docker compose up db -d
 
-# 2. Copiar variables de entorno (opcional — los defaults funcionan)
-cp .env.example .env
+# 2. Variables de entorno apuntando a localhost
+cp .env.example .env.local
+# DATABASE_URL ya viene configurado con los valores por defecto:
+# postgresql://bovitrans:bovitrans_pass@localhost:5432/bovitrans
 
-# 3. Levantar la aplicación completa
+# 3. Generar Prisma Client localmente
+npx prisma generate
+
+# 4. Servidor con hot reload
+npm run dev
+# → http://localhost:3000
+```
+
+**Datos semilla:** `docker/init.sql` se ejecuta automáticamente en el primer inicio del contenedor de DB. Incluye 4 camiones, 5 solicitudes y el precio de combustible.
+
+---
+
+### Con Docker completo (para validar el build de producción)
+
+```bash
+# Levantar app + DB en contenedores
 docker compose up --build
 
 # La app estará disponible en http://localhost:3000
-# La DB estará disponible en localhost:5432
 ```
 
 El comando `docker compose up --build`:
-- Construye la imagen de Next.js (multi-stage)
+- Construye la imagen de Next.js (multi-stage, standalone output)
 - Descarga la imagen de PostgreSQL 15
 - Inicializa la DB con `docker/init.sql` (schema + datos semilla)
 - Espera a que la DB esté healthy antes de arrancar la app
 
-**Datos semilla incluidos:**
-- 4 camiones (3 activos, 1 inactivo) con capacidades y consumos realistas
-- 5 solicitudes de transporte entre ciudades argentinas (2 pendientes, 2 asignadas, 1 completada)
-- Precio de combustible inicial: $1.250/litro
+---
 
-### Desarrollo Local (sin Docker)
+### Desarrollo local sin Docker
 
-Requiere Node.js 20+ y PostgreSQL corriendo localmente.
+Requiere Node.js 20+ y PostgreSQL instalado localmente.
 
 ```bash
-# 1. Instalar dependencias
 npm install
-
-# 2. Configurar variables de entorno
-cp .env.example .env
+cp .env.example .env.local
 # Editar DATABASE_URL con tu conexión local
 
-# 3. Inicializar la base de datos
 psql -U postgres -c "CREATE DATABASE bovitrans;"
 psql -U postgres -d bovitrans -f docker/init.sql
 
-# 4. Generar Prisma Client
 npx prisma generate
-
-# 5. Correr en modo desarrollo
 npm run dev
 ```
 
