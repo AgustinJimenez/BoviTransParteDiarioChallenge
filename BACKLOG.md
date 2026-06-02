@@ -699,7 +699,7 @@
 ### Intercambio 9 — Plan de pruebas manual
 
 **Desarrollador:**
-> "since we have time, you think we should add on the docs folder or somewhere, tests stories? like, detailed test cases and what to expect in any case? like, how we defined the stories in the backlog file"
+> "you think we should add on the docs folder or somewhere, tests stories? like, detailed test cases and what to expect in any case? like, how we defined the stories in the backlog file"
 
 **Claude** propuso crear `docs/TEST_PLAN.md` con el mismo nivel de detalle que el BACKLOG: casos de prueba con ID, precondiciones, pasos, resultado esperado, y casos borde explícitos. El documento sirve como guía de validación manual y como checklist de regresión antes de cada deploy.
 
