@@ -11,6 +11,241 @@ import CapacityAlert from "@/components/molecules/CapacityAlert";
 import { calculateFuelCost } from "@/lib/calculations";
 import type { TransportRequest, Truck } from "@/types";
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function PanelBackdrop({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity" onClick={onClose} />
+  );
+}
+
+function PanelHeader({ request, onClose }: { request: TransportRequest | null; onClose: () => void }) {
+  return (
+    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-8 rounded-full bg-emerald-600" />
+        <div>
+          <p className="text-xs text-gray-400 font-mono">{request?.id.slice(0, 8).toUpperCase()}</p>
+          {request && <StatusBadge status={request.status} />}
+        </div>
+      </div>
+      <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  );
+}
+
+function PanelLoadingState() {
+  return (
+    <div className="flex items-center justify-center h-40">
+      <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+function RequesterSection({ request, sectionLabel }: { request: TransportRequest; sectionLabel: string }) {
+  return (
+    <div className="px-5 py-4 space-y-2">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{sectionLabel}</p>
+      <div className="flex items-center gap-2 text-gray-800">
+        <User className="w-4 h-4 text-gray-400" />
+        <span className="font-semibold">{request.requesterName}</span>
+      </div>
+      {request.requesterPhone && (
+        <div className="flex items-center gap-2 text-gray-600 text-sm">
+          <Phone className="w-4 h-4 text-gray-400" />
+          <span>{request.requesterPhone}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CargoSection({ cattleCount, sectionLabel, cattleUnit }: {
+  cattleCount: number;
+  sectionLabel: string;
+  cattleUnit: string;
+}) {
+  return (
+    <div className="px-5 py-4">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{sectionLabel}</p>
+      <div className="flex items-baseline gap-2">
+        <span className="text-4xl font-bold text-emerald-700">{cattleCount}</span>
+        <span className="text-gray-500">{cattleUnit}</span>
+      </div>
+    </div>
+  );
+}
+
+function RouteStopIndicator() {
+  return (
+    <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
+      <div className="w-3 h-3 rounded-full bg-emerald-500" />
+      <div className="w-0.5 h-6 bg-gray-200" />
+      <div className="w-3 h-3 rounded-full bg-red-500" />
+    </div>
+  );
+}
+
+function RouteDistanceStat({ distanceKm, label }: { distanceKm: number | null; label: string }) {
+  return (
+    <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
+      <Ruler className="w-4 h-4 text-gray-400 shrink-0" />
+      <div>
+        <p className="text-xs text-gray-400">{label}</p>
+        <p className="font-semibold text-gray-800 text-sm">
+          {distanceKm != null ? `${Number(distanceKm).toLocaleString("es-AR")} km` : "—"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function RouteFuelStat({ fuelDisplay, label }: { fuelDisplay: string; label: string }) {
+  return (
+    <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
+      <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
+      <div>
+        <p className="text-xs text-gray-400">{label}</p>
+        <p className="font-semibold text-gray-800 text-sm">{fuelDisplay}</p>
+      </div>
+    </div>
+  );
+}
+
+function FuelFormulaBreakdown({ formula }: { formula: string }) {
+  return (
+    <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
+      {formula}
+    </div>
+  );
+}
+
+function RouteAndMapSection({ request, selectedTruck, fuelPrice, previewCost, fuelDisplay, t }: {
+  request: TransportRequest;
+  selectedTruck: Truck | null;
+  fuelPrice: number;
+  previewCost: number | null;
+  fuelDisplay: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="px-5 py-4 space-y-3">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRoute")}</p>
+      <div className="flex items-start gap-3 text-sm">
+        <RouteStopIndicator />
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs text-gray-400">{t("origin")}</p>
+            <p className="font-medium text-gray-800">{request.origin}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400">{t("destination")}</p>
+            <p className="font-medium text-gray-800">{request.destination}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-52 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+        <RouteMap
+          originLat={request.originLat}
+          originLng={request.originLng}
+          destinationLat={request.destinationLat}
+          destinationLng={request.destinationLng}
+          origin={request.origin}
+          destination={request.destination}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <RouteDistanceStat distanceKm={request.distanceKm} label={t("distance")} />
+        <RouteFuelStat fuelDisplay={fuelDisplay} label={t("fuelEstimate")} />
+      </div>
+
+      {selectedTruck && request.distanceKm && previewCost != null && (
+        <FuelFormulaBreakdown formula={t("fuelFormula", {
+          distance: Number(request.distanceKm).toFixed(1),
+          consumption: selectedTruck.fuelConsumption,
+          price: fuelPrice.toLocaleString("es-AR"),
+          total: previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }),
+        })} />
+      )}
+    </div>
+  );
+}
+
+function TruckAssignmentSection({ request, trucks, selectedTruck, fuelPrice, suggestedTruck, capacityWarning, error, onSelect, t }: {
+  request: TransportRequest;
+  trucks: Truck[];
+  selectedTruck: Truck | null;
+  fuelPrice: number;
+  suggestedTruck: Truck | null;
+  capacityWarning: { exceeded: boolean; tripsNeeded: number } | null;
+  error: string | null;
+  onSelect: (truck: Truck | null) => void;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="px-5 py-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionAssignment")}</p>
+        <span className="text-xs text-gray-400">${fuelPrice.toLocaleString("es-AR")}/L</span>
+      </div>
+      <TruckSelector
+        trucks={trucks}
+        selectedId={selectedTruck?.id ?? null}
+        onSelect={onSelect}
+        distanceKm={request.distanceKm}
+        fuelPrice={fuelPrice}
+        currentTruckId={request.assignedTruckId}
+      />
+      <CapacityAlert cattleCount={request.cattleCount} truck={selectedTruck} suggestedTruck={suggestedTruck} />
+      {capacityWarning?.exceeded && (
+        <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
+          {t("assignedWithWarning", { trips: capacityWarning.tripsNeeded })}
+        </div>
+      )}
+      {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+    </div>
+  );
+}
+
+function CompletedBanner({ label }: { label: string }) {
+  return (
+    <div className="px-5 py-4">
+      <div className="bg-emerald-50 rounded-xl p-3 text-sm text-emerald-700 text-center">{label}</div>
+    </div>
+  );
+}
+
+function PanelFooter({ request, selectedTruck, assigning, onClose, onAssign, t }: {
+  request: TransportRequest;
+  selectedTruck: Truck | null;
+  assigning: boolean;
+  onClose: () => void;
+  onAssign: () => void;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+      <div className="flex gap-3">
+        <Button variant="secondary" onClick={onClose} className="flex-1">{t("close")}</Button>
+        <Button
+          onClick={onAssign}
+          disabled={!selectedTruck || selectedTruck.id === request.assignedTruckId}
+          loading={assigning}
+          className="flex-1"
+        >
+          {request.assignedTruckId ? t("reassign") : t("assign")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 interface Props {
   requestId: string;
   onClose: () => void;
@@ -42,11 +277,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
           reqRes.json(), trucksRes.json(), priceRes.json(),
         ]);
         if (cancelled) return;
-
-        if (reqData.data) {
-          setRequest(reqData.data);
-          setSelectedTruck(reqData.data.assignedTruck ?? null);
-        }
+        if (reqData.data) { setRequest(reqData.data); setSelectedTruck(reqData.data.assignedTruck ?? null); }
         if (trucksData.data) setTrucks(trucksData.data);
         if (priceData.data) setFuelPrice(priceData.data.price);
       } finally {
@@ -82,207 +313,66 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
     ? calculateFuelCost(request.distanceKm, selectedTruck.fuelConsumption, fuelPrice)
     : null;
 
-  function formatFuelDisplay(req: typeof request): string {
+  function formatFuelDisplay(req: TransportRequest | null): string {
     if (previewCost != null) return `$${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
     if (req?.fuelCost != null) return `$${Number(req.fuelCost).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
     return "—";
   }
 
   const suggestedTruck = selectedTruck
-    ? trucks.filter(t => t.id !== selectedTruck.id).sort((a, b) => b.maxCapacity - a.maxCapacity)[0] ?? null
+    ? trucks.filter(tr => tr.id !== selectedTruck.id).sort((a, b) => b.maxCapacity - a.maxCapacity)[0] ?? null
     : null;
+
+  const isActionable = request && request.status !== "COMPLETED" && request.status !== "CANCELLED";
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
+      <PanelBackdrop onClose={onClose} />
       <div className="fixed right-0 top-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-8 rounded-full bg-emerald-600" />
-            <div>
-              <p className="text-xs text-gray-400 font-mono">{request?.id.slice(0, 8).toUpperCase()}</p>
-              {request && <StatusBadge status={request.status} />}
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <PanelHeader request={request} onClose={onClose} />
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {loading && (
-            <div className="flex items-center justify-center h-40">
-              <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-          {!loading && !request && (
-            <p className="p-5 text-gray-500">{t("loadError")}</p>
-          )}
+          {loading && <PanelLoadingState />}
+          {!loading && !request && <p className="p-5 text-gray-500">{t("loadError")}</p>}
           {!loading && request && (
             <div className="divide-y divide-gray-100">
-              {/* Requester */}
-              <div className="px-5 py-4 space-y-2">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRequester")}</p>
-                <div className="flex items-center gap-2 text-gray-800">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="font-semibold">{request.requesterName}</span>
-                </div>
-                {request.requesterPhone && (
-                  <div className="flex items-center gap-2 text-gray-600 text-sm">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span>{request.requesterPhone}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Cargo */}
-              <div className="px-5 py-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t("sectionCargo")}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-emerald-700">{request.cattleCount}</span>
-                  <span className="text-gray-500">{t("cattleUnit")}</span>
-                </div>
-              </div>
-
-              {/* Route + Map */}
-              <div className="px-5 py-4 space-y-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRoute")}</p>
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                    <div className="w-0.5 h-6 bg-gray-200" />
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-400">{t("origin")}</p>
-                      <p className="font-medium text-gray-800">{request.origin}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400">{t("destination")}</p>
-                      <p className="font-medium text-gray-800">{request.destination}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Map */}
-                <div className="h-52 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
-                  <RouteMap
-                    originLat={request.originLat}
-                    originLng={request.originLng}
-                    destinationLat={request.destinationLat}
-                    destinationLng={request.destinationLng}
-                    origin={request.origin}
-                    destination={request.destination}
-                  />
-                </div>
-
-                {/* Distance + Cost stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
-                    <Ruler className="w-4 h-4 text-gray-400 shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400">{t("distance")}</p>
-                      <p className="font-semibold text-gray-800 text-sm">
-                        {request.distanceKm != null ? `${Number(request.distanceKm).toLocaleString("es-AR")} km` : "—"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
-                    <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400">{t("fuelEstimate")}</p>
-                      <p className="font-semibold text-gray-800 text-sm">
-                        {formatFuelDisplay(request)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fuel formula breakdown */}
-                {selectedTruck && request.distanceKm && previewCost != null && (
-                  <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
-                    {t("fuelFormula", {
-                      distance: Number(request.distanceKm).toFixed(1),
-                      consumption: selectedTruck.fuelConsumption,
-                      price: fuelPrice.toLocaleString("es-AR"),
-                      total: previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }),
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Truck Assignment */}
-              {request.status !== "COMPLETED" && request.status !== "CANCELLED" && (
-                <div className="px-5 py-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionAssignment")}</p>
-                    <span className="text-xs text-gray-400">${fuelPrice.toLocaleString("es-AR")}/L</span>
-                  </div>
-
-                  <TruckSelector
-                    trucks={trucks}
-                    selectedId={selectedTruck?.id ?? null}
-                    onSelect={setSelectedTruck}
-                    distanceKm={request.distanceKm}
-                    fuelPrice={fuelPrice}
-                    currentTruckId={request.assignedTruckId}
-                  />
-
-                  <CapacityAlert
-                    cattleCount={request.cattleCount}
-                    truck={selectedTruck}
-                    suggestedTruck={suggestedTruck}
-                  />
-
-                  {capacityWarning?.exceeded && (
-                    <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
-                      {t("assignedWithWarning", { trips: capacityWarning.tripsNeeded })}
-                    </div>
-                  )}
-
-                  {error && (
-                    <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
-                  )}
-                </div>
+              <RequesterSection request={request} sectionLabel={t("sectionRequester")} />
+              <CargoSection cattleCount={request.cattleCount} sectionLabel={t("sectionCargo")} cattleUnit={t("cattleUnit")} />
+              <RouteAndMapSection
+                request={request}
+                selectedTruck={selectedTruck}
+                fuelPrice={fuelPrice}
+                previewCost={previewCost}
+                fuelDisplay={formatFuelDisplay(request)}
+                t={t}
+              />
+              {isActionable && (
+                <TruckAssignmentSection
+                  request={request}
+                  trucks={trucks}
+                  selectedTruck={selectedTruck}
+                  fuelPrice={fuelPrice}
+                  suggestedTruck={suggestedTruck}
+                  capacityWarning={capacityWarning}
+                  error={error}
+                  onSelect={setSelectedTruck}
+                  t={t}
+                />
               )}
-
-              {request.status === "COMPLETED" && (
-                <div className="px-5 py-4">
-                  <div className="bg-emerald-50 rounded-xl p-3 text-sm text-emerald-700 text-center">
-                    {t("completedBanner")}
-                  </div>
-                </div>
-              )}
+              {request.status === "COMPLETED" && <CompletedBanner label={t("completedBanner")} />}
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        {request && request.status !== "COMPLETED" && request.status !== "CANCELLED" && (
-          <div className="px-5 py-4 border-t border-gray-100 shrink-0">
-            <div className="flex gap-3">
-              <Button variant="secondary" onClick={onClose} className="flex-1">
-                {t("close")}
-              </Button>
-              <Button
-                onClick={handleAssign}
-                disabled={!selectedTruck || selectedTruck.id === request.assignedTruckId}
-                loading={assigning}
-                className="flex-1"
-              >
-                {request.assignedTruckId ? t("reassign") : t("assign")}
-              </Button>
-            </div>
-          </div>
+        {isActionable && (
+          <PanelFooter
+            request={request!}
+            selectedTruck={selectedTruck}
+            assigning={assigning}
+            onClose={onClose}
+            onAssign={handleAssign}
+            t={t}
+          />
         )}
       </div>
     </>

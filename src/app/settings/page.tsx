@@ -4,10 +4,28 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Fuel, CheckCircle } from "lucide-react";
+import { Fuel, CheckCircle, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/atoms/Input";
 import { Button } from "@/components/atoms/Button";
+
+function SettingsPageHeader({ icon: Icon, title, subtitle }: {
+  icon: LucideIcon;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-4">
+      <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-amber-600" />
+      </div>
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
 
 const schema = z.object({
   price: z.number().min(0.01, "El precio debe ser mayor a 0"),
@@ -53,16 +71,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header */}
-        <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center">
-            <Fuel className="w-6 h-6 text-amber-600" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-            <p className="text-sm text-gray-500">{t("subtitle")}</p>
-          </div>
-        </div>
+        <SettingsPageHeader icon={Fuel} title={t("title")} subtitle={t("subtitle")} />
 
         <div className="px-8 py-6 space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

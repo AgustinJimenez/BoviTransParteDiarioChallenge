@@ -19,6 +19,42 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+function RequestModalHeader({ title, subtitle, onClose }: {
+  title: string;
+  subtitle: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+      <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  );
+}
+
+function RequestModalFormActions({ onClose, isSubmitting, cancelLabel, submitLabel }: {
+  onClose: () => void;
+  isSubmitting: boolean;
+  cancelLabel: string;
+  submitLabel: string;
+}) {
+  return (
+    <div className="flex gap-3 pt-1">
+      <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
+        {cancelLabel}
+      </Button>
+      <Button type="submit" loading={isSubmitting} className="flex-1">
+        {submitLabel}
+      </Button>
+    </div>
+  );
+}
+
 interface Props {
   onClose: () => void;
   onCreated: () => void;
@@ -49,64 +85,15 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">{t("title")}</h2>
-              <p className="text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Form */}
+          <RequestModalHeader title={t("title")} subtitle={t("subtitle")} onClose={onClose} />
           <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
-            <Input
-              label={t("nameLabel")}
-              placeholder={t("namePlaceholder")}
-              error={errors.requesterName?.message}
-              {...register("requesterName")}
-            />
-            <Input
-              label={t("phoneLabel")}
-              placeholder={t("phonePlaceholder")}
-              hint={t("phoneHint")}
-              {...register("requesterPhone")}
-            />
-            <Input
-              label={t("cattleLabel")}
-              type="number"
-              min={1}
-              placeholder="30"
-              error={errors.cattleCount?.message}
-              {...register("cattleCount", { valueAsNumber: true })}
-            />
-            <Input
-              label={t("originLabel")}
-              placeholder={t("originPlaceholder")}
-              error={errors.origin?.message}
-              {...register("origin")}
-            />
-            <Input
-              label={t("destinationLabel")}
-              placeholder={t("destinationPlaceholder")}
-              error={errors.destination?.message}
-              {...register("destination")}
-            />
-
-            {serverError && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{serverError}</p>
-            )}
-
-            <div className="flex gap-3 pt-1">
-              <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                {t("cancel")}
-              </Button>
-              <Button type="submit" loading={isSubmitting} className="flex-1">
-                {t("submit")}
-              </Button>
-            </div>
+            <Input label={t("nameLabel")} placeholder={t("namePlaceholder")} error={errors.requesterName?.message} {...register("requesterName")} />
+            <Input label={t("phoneLabel")} placeholder={t("phonePlaceholder")} hint={t("phoneHint")} {...register("requesterPhone")} />
+            <Input label={t("cattleLabel")} type="number" min={1} placeholder="30" error={errors.cattleCount?.message} {...register("cattleCount", { valueAsNumber: true })} />
+            <Input label={t("originLabel")} placeholder={t("originPlaceholder")} error={errors.origin?.message} {...register("origin")} />
+            <Input label={t("destinationLabel")} placeholder={t("destinationPlaceholder")} error={errors.destination?.message} {...register("destination")} />
+            {serverError && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{serverError}</p>}
+            <RequestModalFormActions onClose={onClose} isSubmitting={isSubmitting} cancelLabel={t("cancel")} submitLabel={t("submit")} />
           </form>
         </div>
       </div>

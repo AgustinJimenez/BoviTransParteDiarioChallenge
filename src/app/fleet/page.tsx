@@ -9,6 +9,30 @@ import { Button } from "@/components/atoms/Button";
 import TruckCard from "@/components/molecules/TruckCard";
 import type { Truck } from "@/types";
 
+function FleetPageHeader({ activeCount, inactiveCount, t }: {
+  activeCount: number;
+  inactiveCount: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {t("activeTrucks", { count: activeCount })}
+          {inactiveCount > 0 && t("inactiveTrucks", { count: inactiveCount })}
+        </p>
+      </div>
+      <Link href="/fleet/new">
+        <Button>
+          <Plus className="w-4 h-4" />
+          {t("register")}
+        </Button>
+      </Link>
+    </div>
+  );
+}
+
 export default function FleetPage() {
   const t = useTranslations("fleet");
   const router = useRouter();
@@ -87,22 +111,7 @@ export default function FleetPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {t("activeTrucks", { count: active.length })}
-            {inactive.length > 0 && t("inactiveTrucks", { count: inactive.length })}
-          </p>
-        </div>
-        <Link href="/fleet/new">
-          <Button>
-            <Plus className="w-4 h-4" />
-            {t("register")}
-          </Button>
-        </Link>
-      </div>
+      <FleetPageHeader activeCount={active.length} inactiveCount={inactive.length} t={t} />
 
       {renderContent()}
     </div>
