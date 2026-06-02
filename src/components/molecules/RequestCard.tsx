@@ -13,6 +13,62 @@ const statusBorder: Record<string, string> = {
   CANCELLED: "border-l-gray-300",
 };
 
+function CardHeader({ status, date }: { status: TransportRequest["status"]; date: string }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <StatusBadge status={status} />
+      <span className="text-xs text-gray-500 shrink-0">{date}</span>
+    </div>
+  );
+}
+
+function CardRequester({ name, phone }: { name: string; phone: string | null }) {
+  return (
+    <div>
+      <p className="font-semibold text-gray-900 text-base leading-tight">{name}</p>
+      {phone && (
+        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+          <Phone className="w-3 h-3" />{phone}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function CardCattleCount({ count, unit }: { count: number; unit: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-2xl font-bold text-emerald-700">{count}</span>
+      <span className="text-sm text-gray-500">{unit}</span>
+    </div>
+  );
+}
+
+function CardRoute({ origin, destination }: { origin: string; destination: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm text-gray-600">
+      <span className="truncate max-w-[40%]">{origin}</span>
+      <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
+      <span className="truncate max-w-[40%]">{destination}</span>
+    </div>
+  );
+}
+
+function CardAssignedTruck({ truck, fuelCost }: { truck: TransportRequest["assignedTruck"]; fuelCost: number | null }) {
+  if (!truck) return null;
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
+      <Truck className="w-3.5 h-3.5 shrink-0" />
+      <span>{truck.plate}</span>
+      {fuelCost != null && (
+        <span className="ml-auto font-semibold">
+          ${fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+        </span>
+      )}
+    </div>
+  );
+}
+
 interface Props {
   request: TransportRequest;
   onClick: () => void;
@@ -34,47 +90,11 @@ export default function RequestCard({ request, onClick, selected }: Props) {
       )}
     >
       <div className="p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <StatusBadge status={request.status} />
-          <span className="text-xs text-gray-500 shrink-0">{date}</span>
-        </div>
-
-        {/* Requester */}
-        <div>
-          <p className="font-semibold text-gray-900 text-base leading-tight">{request.requesterName}</p>
-          {request.requesterPhone && (
-            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-              <Phone className="w-3 h-3" />{request.requesterPhone}
-            </p>
-          )}
-        </div>
-
-        {/* Cattle count */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-2xl font-bold text-emerald-700">{request.cattleCount}</span>
-          <span className="text-sm text-gray-500">{t("cattleUnit")}</span>
-        </div>
-
-        {/* Route */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span className="truncate max-w-[40%]">{request.origin}</span>
-          <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="truncate max-w-[40%]">{request.destination}</span>
-        </div>
-
-        {/* Assigned truck */}
-        {request.assignedTruck && (
-          <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
-            <Truck className="w-3.5 h-3.5 shrink-0" />
-            <span>{request.assignedTruck.plate}</span>
-            {request.fuelCost != null && (
-              <span className="ml-auto font-semibold">
-                ${request.fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
-              </span>
-            )}
-          </div>
-        )}
+        <CardHeader status={request.status} date={date} />
+        <CardRequester name={request.requesterName} phone={request.requesterPhone} />
+        <CardCattleCount count={request.cattleCount} unit={t("cattleUnit")} />
+        <CardRoute origin={request.origin} destination={request.destination} />
+        <CardAssignedTruck truck={request.assignedTruck} fuelCost={request.fuelCost} />
       </div>
     </button>
   );
