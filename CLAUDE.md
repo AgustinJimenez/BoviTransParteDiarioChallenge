@@ -1,5 +1,3 @@
-@AGENTS.md
-
 BoviTrans MVP — logistics platform for cattle transport. Two modules: Dashboard (transport request management + truck assignment) and Fleet Management (truck CRUD). Core formula: Fuel Cost = Distance (km) × Consumption (L/km) × Price/Liter — lives in src/lib/calculations.ts, nowhere else.
 
 STACK: Next.js 16 App Router, TypeScript strict, Tailwind CSS v4, PostgreSQL 15, Prisma v7 + @prisma/adapter-pg, react-leaflet v5 + OpenStreetMap, Nominatim geocoding, OSRM routing, react-hook-form v7 + Zod v4, lucide-react, OrbStack for Docker on macOS.
