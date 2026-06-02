@@ -17,6 +17,8 @@ PRISMA V7 GOTCHAS — READ BEFORE TOUCHING SCHEMA:
 
 ZOD V4 + REACT-HOOK-FORM: do not use z.coerce.number() — type mismatch with the resolver. Use z.number() and add { valueAsNumber: true } to register() for number inputs.
 
+TESTS: unit tests with Vitest in src/lib/__tests__/. Run with npm test. Coverage with npm run test:coverage. Only pure functions are tested (calculations.ts). No integration or component tests — the risk surface is in external integrations (Prisma v7, Leaflet, OSRM), not in business logic.
+
 I18N: all UI strings live in messages/es.json, organized by namespace (nav, dashboard, fleet, etc.). Client components use useTranslations("namespace"), server components use await getTranslations("namespace"). Adding a hardcoded string in JSX is a lint error (eslint-plugin-i18next). Using a key that doesn't exist in es.json is a TypeScript error (AppConfig augmentation in src/types/next-intl.d.ts).
 
 LEAFLET: always dynamic import with ssr:false. Import leaflet CSS inside MapInner.tsx, not in layout. Use L.divIcon with inline SVG for markers — avoids the default icon path issue in Next.js.

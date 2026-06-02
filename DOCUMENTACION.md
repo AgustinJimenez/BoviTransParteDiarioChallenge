@@ -72,7 +72,16 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 | **lucide-react** | Heroicons, Font Awesome | Consistente con el ecosistema React, tree-shakeable. |
 | **next-intl v4** | react-i18next, strings hardcodeados | Centraliza todos los strings de UI en `messages/es.json`. Integración nativa con App Router (RSC + Client). Doble validación: ESLint detecta strings hardcodeados en JSX, TypeScript detecta keys inexistentes en el JSON. |
 
-### 2.2 Stack Backend y Datos
+### 2.2 Stack de Calidad
+
+| Decisión | Alternativas consideradas | Justificación |
+|---|---|---|
+| **Vitest** | Jest, Mocha | Nativo a Vite/ESM, sin config de Babel, 10× más rápido que Jest en proyectos TypeScript. |
+| **Tests solo en `src/lib/`** | Tests de integración, E2E | La lógica de negocio pura (fórmulas matemáticas) es el único lugar donde los tests unitarios detectan regresiones antes que la ejecución. Las integraciones externas (Prisma v7, Leaflet, OSRM) se validan en el smoke test manual. |
+| **eslint-plugin-i18next** | Revisión manual de strings | Detecta strings hardcodeados en JSX en tiempo de lint, antes de que lleguen a producción. |
+| **TypeScript strict + AppConfig** | Ninguna verificación de i18n | Usar una key inexistente en `messages/es.json` es un error de compilación, no un runtime error. |
+
+### 2.3 Stack Backend y Datos
 
 | Decisión | Alternativas consideradas | Justificación |
 |---|---|---|
@@ -559,6 +568,12 @@ npm run lint
 
 # Verificar keys de i18n inexistentes (TypeScript)
 npm run type-check
+
+# Tests unitarios
+npm test
+
+# Tests con coverage
+npm run test:coverage
 ```
 
 ### Colima (macOS sin Docker Desktop)
