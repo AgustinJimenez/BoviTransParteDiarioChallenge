@@ -72,7 +72,7 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
         {localSearch && (
           <button
             onClick={() => { setLocalSearch(""); pushURL(localStatus, ""); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -100,7 +100,7 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
               localStatus === value
                 ? "bg-emerald-600 text-white border-emerald-600"
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 cursor-pointer"
             )}
           >
             {t(key as "statusPending" | "statusAssigned" | "statusCompleted" | "statusCancelled")}
@@ -110,7 +110,7 @@ export default function FilterBar({ currentStatus, currentSearch }: Props) {
         {hasFilters && (
           <button
             onClick={handleClear}
-            className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <X className="w-3 h-3" />
             {t("clearFilters")}
