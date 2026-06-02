@@ -718,19 +718,6 @@
 
 ---
 
-### Intercambio 10 — Refactoring a Atomic Design
-
-**Desarrollador:**
-> "si, pero tenemos tiempo de implementarlas, es a lo que voy" / "si, haz eso primero"
-
-Durante la revisión del árbol de conversación, el desarrollador notó que varias decisiones habían sido descartadas por tiempo o complejidad cuando en realidad Claude podía implementarlas. Decidió implementar Atomic Design real en lugar de mantener la estructura `ui/` + `domain/`.
-
-**Claude** ejecutó el refactor completo: clasificó los 14 componentes en tres niveles, movió los archivos, actualizó todos los imports (absolutos y relativos), y verificó TypeScript sin errores.
-
-**Decisión derivada:** Estructura final en `components/atoms/`, `components/molecules/`, `components/organisms/`. Ver Intercambio 4 para la justificación de la clasificación.
-
----
-
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
