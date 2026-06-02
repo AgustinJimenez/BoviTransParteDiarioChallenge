@@ -3,12 +3,14 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Plus, Truck as TruckIcon } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import TruckCard from "@/components/molecules/TruckCard";
 import type { Truck } from "@/types";
 
 export default function FleetPage() {
+  const t = useTranslations("fleet");
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [trucks, setTrucks] = useState<Truck[]>([]);
@@ -46,16 +48,16 @@ export default function FleetPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Administración de Flotas</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {active.length} camión{active.length !== 1 ? "es" : ""} activo{active.length !== 1 ? "s" : ""}
-            {inactive.length > 0 && ` · ${inactive.length} inactivo${inactive.length !== 1 ? "s" : ""}`}
+            {t("activeTrucks", { count: active.length })}
+            {inactive.length > 0 && t("inactiveTrucks", { count: inactive.length })}
           </p>
         </div>
         <Link href="/fleet/new">
           <Button>
             <Plus className="w-4 h-4" />
-            Registrar camión
+            {t("register")}
           </Button>
         </Link>
       </div>
@@ -67,17 +69,17 @@ export default function FleetPage() {
       ) : trucks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <TruckIcon className="w-12 h-12" />
-          <p className="text-lg font-medium">Sin camiones registrados</p>
-          <p className="text-sm">Registrá el primer camión de tu flota</p>
+          <p className="text-lg font-medium">{t("emptyTitle")}</p>
+          <p className="text-sm">{t("emptySubtitle")}</p>
           <Link href="/fleet/new">
-            <Button className="mt-2"><Plus className="w-4 h-4" /> Registrar camión</Button>
+            <Button className="mt-2"><Plus className="w-4 h-4" /> {t("register")}</Button>
           </Link>
         </div>
       ) : (
         <div className="space-y-8">
           {active.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Activos</h2>
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">{t("sectionActive")}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {active.map((t) => <TruckCard key={t.id} truck={t} onToggle={handleToggle} />)}
               </div>
@@ -85,7 +87,7 @@ export default function FleetPage() {
           )}
           {inactive.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Inactivos</h2>
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t("sectionInactive")}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {inactive.map((t) => <TruckCard key={t.id} truck={t} onToggle={handleToggle} />)}
               </div>

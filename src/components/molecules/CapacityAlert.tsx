@@ -1,4 +1,7 @@
+"use client";
+
 import { AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { calculateTripsNeeded, isCapacityExceeded } from "@/lib/calculations";
 import type { Truck } from "@/types";
 
@@ -8,7 +11,10 @@ interface Props {
   suggestedTruck?: Truck | null;
 }
 
+const b = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
+
 export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Props) {
+  const t = useTranslations("capacityAlert");
   if (!truck) return null;
 
   const exceeded = isCapacityExceeded(cattleCount, truck.maxCapacity);
@@ -21,7 +27,7 @@ export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Pr
       <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
         <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
         <p className="text-sm text-emerald-800">
-          Capacidad suficiente — quedan <strong>{free}</strong> lugares disponibles.
+          {t.rich("ok", { free, b })}
         </p>
       </div>
     );
@@ -32,7 +38,7 @@ export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Pr
       <div className="flex items-center gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100">
         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
         <p className="text-sm text-amber-800">
-          Carga casi completa — {cattleCount}/{truck.maxCapacity} cabezas ({Math.round(occupancy * 100)}%).
+          {t("tight", { count: cattleCount, capacity: truck.maxCapacity, percent: Math.round(occupancy * 100) })}
         </p>
       </div>
     );
@@ -45,16 +51,16 @@ export default function CapacityAlert({ cattleCount, truck, suggestedTruck }: Pr
       <div className="flex items-start gap-2.5">
         <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-red-800">Capacidad excedida</p>
+          <p className="text-sm font-semibold text-red-800">{t("exceededTitle")}</p>
           <p className="text-sm text-red-700">
-            Este camión soporta <strong>{truck.maxCapacity}</strong> cabezas pero la solicitud requiere <strong>{cattleCount}</strong>.
+            {t.rich("exceededBody", { capacity: truck.maxCapacity, count: cattleCount, b })}
           </p>
         </div>
       </div>
       <div className="ml-6 pl-1 space-y-1 text-sm text-red-700">
-        <p>→ Se necesitarían <strong>{tripsNeeded} viajes</strong> con este camión.</p>
+        <p>{t.rich("tripsNeeded", { trips: tripsNeeded, b })}</p>
         {suggestedTruck && (
-          <p>→ Alternativa sugerida: <strong>{suggestedTruck.plate}</strong> (capacidad {suggestedTruck.maxCapacity} cabezas).</p>
+          <p>{t.rich("suggestion", { plate: suggestedTruck.plate, capacity: suggestedTruck.maxCapacity, b })}</p>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Phone, Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { StatusBadge } from "@/components/atoms/Badge";
 import { cn } from "@/lib/utils";
 import type { TransportRequest } from "@/types";
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function RequestCard({ request, onClick, selected }: Props) {
+  const t = useTranslations("requestCard");
   const date = new Date(request.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "short" });
 
   return (
@@ -51,7 +53,7 @@ export default function RequestCard({ request, onClick, selected }: Props) {
         {/* Cattle count */}
         <div className="flex items-center gap-1.5">
           <span className="text-2xl font-bold text-emerald-700">{request.cattleCount}</span>
-          <span className="text-sm text-gray-500">cabezas de ganado</span>
+          <span className="text-sm text-gray-500">{t("cattleUnit")}</span>
         </div>
 
         {/* Route */}

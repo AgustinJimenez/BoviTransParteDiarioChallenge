@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function NewRequestModal({ onClose, onCreated }: Props) {
+  const t = useTranslations("newRequest");
   const [serverError, setServerError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -50,8 +52,8 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Nueva Solicitud</h2>
-              <p className="text-sm text-gray-500">Registrar un nuevo pedido de transporte</p>
+              <h2 className="text-lg font-bold text-gray-900">{t("title")}</h2>
+              <p className="text-sm text-gray-500">{t("subtitle")}</p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
               <X className="w-5 h-5" />
@@ -61,19 +63,19 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
             <Input
-              label="Nombre del solicitante"
-              placeholder="Juan Pérez"
+              label={t("nameLabel")}
+              placeholder={t("namePlaceholder")}
               error={errors.requesterName?.message}
               {...register("requesterName")}
             />
             <Input
-              label="Teléfono de contacto"
-              placeholder="+54 9 11 555-1234"
-              hint="Opcional"
+              label={t("phoneLabel")}
+              placeholder={t("phonePlaceholder")}
+              hint={t("phoneHint")}
               {...register("requesterPhone")}
             />
             <Input
-              label="Cabezas de ganado"
+              label={t("cattleLabel")}
               type="number"
               min={1}
               placeholder="30"
@@ -81,14 +83,14 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
               {...register("cattleCount", { valueAsNumber: true })}
             />
             <Input
-              label="Origen"
-              placeholder="Rosario, Santa Fe"
+              label={t("originLabel")}
+              placeholder={t("originPlaceholder")}
               error={errors.origin?.message}
               {...register("origin")}
             />
             <Input
-              label="Destino"
-              placeholder="Córdoba Capital"
+              label={t("destinationLabel")}
+              placeholder={t("destinationPlaceholder")}
               error={errors.destination?.message}
               {...register("destination")}
             />
@@ -99,10 +101,10 @@ export default function NewRequestModal({ onClose, onCreated }: Props) {
 
             <div className="flex gap-3 pt-1">
               <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button type="submit" loading={isSubmitting} className="flex-1">
-                Crear solicitud
+                {t("submit")}
               </Button>
             </div>
           </form>

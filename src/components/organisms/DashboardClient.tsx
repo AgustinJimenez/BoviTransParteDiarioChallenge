@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Plus, ClipboardList } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import RequestCard from "@/components/molecules/RequestCard";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function DashboardClient({ requests, stats }: Props) {
+  const t = useTranslations("dashboard");
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -29,9 +31,9 @@ export default function DashboardClient({ requests, stats }: Props) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
-          { label: "Pendientes", value: stats.pending, color: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
-          { label: "Asignados",  value: stats.assigned,  color: "text-sky-700",   bg: "bg-sky-50 border-sky-100" },
-          { label: "Completados",value: stats.completed, color: "text-emerald-700",bg: "bg-emerald-50 border-emerald-100" },
+          { label: t("statPending"),   value: stats.pending,   color: "text-amber-700",   bg: "bg-amber-50 border-amber-100" },
+          { label: t("statAssigned"),  value: stats.assigned,  color: "text-sky-700",     bg: "bg-sky-50 border-sky-100" },
+          { label: t("statCompleted"), value: stats.completed, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-100" },
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={`rounded-xl border p-4 ${bg}`}>
             <p className="text-xs font-medium text-gray-500">{label}</p>
@@ -42,10 +44,10 @@ export default function DashboardClient({ requests, stats }: Props) {
 
       {/* Title + CTA */}
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold text-gray-900">Solicitudes de Transporte</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
         <Button onClick={() => setShowNewModal(true)}>
           <Plus className="w-4 h-4" />
-          Nueva solicitud
+          {t("newRequest")}
         </Button>
       </div>
 
@@ -53,10 +55,10 @@ export default function DashboardClient({ requests, stats }: Props) {
       {requests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <ClipboardList className="w-12 h-12" />
-          <p className="text-lg font-medium">No hay solicitudes</p>
-          <p className="text-sm">Creá la primera solicitud de transporte</p>
+          <p className="text-lg font-medium">{t("emptyTitle")}</p>
+          <p className="text-sm">{t("emptySubtitle")}</p>
           <Button onClick={() => setShowNewModal(true)} className="mt-2">
-            <Plus className="w-4 h-4" /> Nueva solicitud
+            <Plus className="w-4 h-4" /> {t("newRequest")}
           </Button>
         </div>
       ) : (

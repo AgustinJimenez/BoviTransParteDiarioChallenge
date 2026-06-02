@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Truck as TruckIcon, ToggleLeft, ToggleRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/atoms/Badge";
 import type { Truck } from "@/types";
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function TruckCard({ truck, onToggle }: Props) {
+  const t = useTranslations("truckCard");
   const [loading, setLoading] = useState(false);
 
   async function handleToggle() {
@@ -37,14 +39,14 @@ export default function TruckCard({ truck, onToggle }: Props) {
             <div>
               <p className="font-bold text-lg text-gray-900 tracking-wide">{truck.plate}</p>
               <Badge variant={truck.isActive ? "green" : "gray"}>
-                {truck.isActive ? "Activo" : "Inactivo"}
+                {truck.isActive ? t("active") : t("inactive")}
               </Badge>
             </div>
           </div>
           <button
             onClick={handleToggle}
             disabled={loading}
-            title={truck.isActive ? "Desactivar camión" : "Activar camión"}
+            title={truck.isActive ? t("deactivate") : t("activate")}
             className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors"
           >
             {loading
@@ -60,11 +62,11 @@ export default function TruckCard({ truck, onToggle }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gray-50 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-emerald-700">{truck.maxCapacity}</p>
-            <p className="text-xs text-gray-500 mt-0.5">cabezas máx.</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t("capacityLabel")}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-gray-700">{truck.fuelConsumption}</p>
-            <p className="text-xs text-gray-500 mt-0.5">L/km</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t("consumptionLabel")}</p>
           </div>
         </div>
       </div>

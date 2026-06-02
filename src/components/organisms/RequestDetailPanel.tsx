@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X, Ruler, Fuel, Phone, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { StatusBadge } from "@/components/atoms/Badge";
 import RouteMap from "@/components/molecules/RouteMap";
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function RequestDetailPanel({ requestId, onClose, onAssigned }: Props) {
+  const t = useTranslations("requestDetail");
   const [request, setRequest] = useState<TransportRequest | null>(null);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [fuelPrice, setFuelPrice] = useState(1250);
@@ -115,12 +117,12 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
               <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !request ? (
-            <p className="p-5 text-gray-500">No se pudo cargar la solicitud.</p>
+            <p className="p-5 text-gray-500">{t("loadError")}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {/* Requester */}
               <div className="px-5 py-4 space-y-2">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Solicitante</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRequester")}</p>
                 <div className="flex items-center gap-2 text-gray-800">
                   <User className="w-4 h-4 text-gray-400" />
                   <span className="font-semibold">{request.requesterName}</span>
@@ -135,16 +137,16 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
 
               {/* Cargo */}
               <div className="px-5 py-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Carga</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t("sectionCargo")}</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-bold text-emerald-700">{request.cattleCount}</span>
-                  <span className="text-gray-500">cabezas de ganado</span>
+                  <span className="text-gray-500">{t("cattleUnit")}</span>
                 </div>
               </div>
 
               {/* Route + Map */}
               <div className="px-5 py-4 space-y-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Ruta</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionRoute")}</p>
                 <div className="flex items-start gap-3 text-sm">
                   <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
                     <div className="w-3 h-3 rounded-full bg-emerald-500" />
@@ -153,11 +155,11 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs text-gray-400">Origen</p>
+                      <p className="text-xs text-gray-400">{t("origin")}</p>
                       <p className="font-medium text-gray-800">{request.origin}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400">Destino</p>
+                      <p className="text-xs text-gray-400">{t("destination")}</p>
                       <p className="font-medium text-gray-800">{request.destination}</p>
                     </div>
                   </div>
@@ -180,7 +182,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                   <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
                     <Ruler className="w-4 h-4 text-gray-400 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">Distancia</p>
+                      <p className="text-xs text-gray-400">{t("distance")}</p>
                       <p className="font-semibold text-gray-800 text-sm">
                         {request.distanceKm != null ? `${Number(request.distanceKm).toLocaleString("es-AR")} km` : "—"}
                       </p>
@@ -189,7 +191,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                   <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
                     <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">Combustible est.</p>
+                      <p className="text-xs text-gray-400">{t("fuelEstimate")}</p>
                       <p className="font-semibold text-gray-800 text-sm">
                         {previewCost != null
                           ? `$${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`
@@ -213,7 +215,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
               {request.status !== "COMPLETED" && request.status !== "CANCELLED" && (
                 <div className="px-5 py-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Asignación de Camión</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("sectionAssignment")}</p>
                     <span className="text-xs text-gray-400">${fuelPrice.toLocaleString("es-AR")}/L</span>
                   </div>
 
@@ -234,7 +236,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
 
                   {capacityWarning?.exceeded && (
                     <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5">
-                      ⚠️ Asignado con advertencia: se requieren {capacityWarning.tripsNeeded} viajes.
+                      {t("assignedWithWarning", { trips: capacityWarning.tripsNeeded })}
                     </div>
                   )}
 
@@ -247,7 +249,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
               {request.status === "COMPLETED" && (
                 <div className="px-5 py-4">
                   <div className="bg-emerald-50 rounded-xl p-3 text-sm text-emerald-700 text-center">
-                    ✓ Solicitud completada
+                    {t("completedBanner")}
                   </div>
                 </div>
               )}
@@ -260,7 +262,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
           <div className="px-5 py-4 border-t border-gray-100 shrink-0">
             <div className="flex gap-3">
               <Button variant="secondary" onClick={onClose} className="flex-1">
-                Cerrar
+                {t("close")}
               </Button>
               <Button
                 onClick={handleAssign}
@@ -268,7 +270,7 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                 loading={assigning}
                 className="flex-1"
               >
-                {request.assignedTruckId ? "Reasignar" : "Asignar camión"}
+                {request.assignedTruckId ? t("reassign") : t("assign")}
               </Button>
             </div>
           </div>

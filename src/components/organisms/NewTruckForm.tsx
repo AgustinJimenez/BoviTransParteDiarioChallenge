@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/atoms/Input";
 import { Button } from "@/components/atoms/Button";
 
@@ -17,6 +18,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function NewTruckForm() {
+  const t = useTranslations("newTruck");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -39,28 +41,28 @@ export default function NewTruckForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <Input
-        label="Patente / Matrícula"
-        placeholder="AB-123-CD"
-        hint="Se guardará en mayúsculas"
+        label={t("plateLabel")}
+        placeholder={t("platePlaceholder")}
+        hint={t("plateHint")}
         error={errors.plate?.message}
         {...register("plate")}
       />
       <Input
-        label="Capacidad máxima (cabezas de ganado)"
+        label={t("capacityLabel")}
         type="number"
         min={1}
         placeholder="30"
-        hint="Cantidad máxima de animales que puede transportar en un viaje"
+        hint={t("capacityHint")}
         error={errors.maxCapacity?.message}
         {...register("maxCapacity", { valueAsNumber: true })}
       />
       <Input
-        label="Consumo de combustible (L/km)"
+        label={t("consumptionLabel")}
         type="number"
         step="0.01"
         min={0.01}
         placeholder="0.45"
-        hint="Litros consumidos por kilómetro recorrido"
+        hint={t("consumptionHint")}
         error={errors.fuelConsumption?.message}
         {...register("fuelConsumption", { valueAsNumber: true })}
       />
@@ -71,10 +73,10 @@ export default function NewTruckForm() {
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="secondary" onClick={() => router.back()} className="flex-1">
-          Cancelar
+          {t("cancel")}
         </Button>
         <Button type="submit" loading={isSubmitting} className="flex-1">
-          Registrar camión
+          {t("submit")}
         </Button>
       </div>
     </form>

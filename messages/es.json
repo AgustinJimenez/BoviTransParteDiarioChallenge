@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "fleet": "Flotas",
+    "settings": "Configuración"
+  },
+  "dashboard": {
+    "statPending": "Pendientes",
+    "statAssigned": "Asignados",
+    "statCompleted": "Completados",
+    "title": "Solicitudes de Transporte",
+    "newRequest": "Nueva solicitud",
+    "emptyTitle": "No hay solicitudes",
+    "emptySubtitle": "Creá la primera solicitud de transporte"
+  },
+  "requestCard": {
+    "cattleUnit": "cabezas de ganado"
+  },
+  "requestDetail": {
+    "sectionRequester": "Solicitante",
+    "sectionCargo": "Carga",
+    "cattleUnit": "cabezas de ganado",
+    "sectionRoute": "Ruta",
+    "origin": "Origen",
+    "destination": "Destino",
+    "distance": "Distancia",
+    "fuelEstimate": "Combustible est.",
+    "sectionAssignment": "Asignación de Camión",
+    "loadError": "No se pudo cargar la solicitud.",
+    "assignedWithWarning": "⚠️ Asignado con advertencia: se requieren {trips} viajes.",
+    "completedBanner": "✓ Solicitud completada",
+    "close": "Cerrar",
+    "reassign": "Reasignar",
+    "assign": "Asignar camión"
+  },
+  "capacityAlert": {
+    "ok": "Capacidad suficiente — quedan <b>{free}</b> lugares disponibles.",
+    "tight": "Carga casi completa — {count}/{capacity} cabezas ({percent}%).",
+    "exceededTitle": "Capacidad excedida",
+    "exceededBody": "Este camión soporta <b>{capacity}</b> cabezas pero la solicitud requiere <b>{count}</b>.",
+    "tripsNeeded": "→ Se necesitarían <b>{trips} viajes</b> con este camión.",
+    "suggestion": "→ Alternativa sugerida: <b>{plate}</b> (capacidad {capacity} cabezas)."
+  },
+  "newRequest": {
+    "title": "Nueva Solicitud",
+    "subtitle": "Registrar un nuevo pedido de transporte",
+    "nameLabel": "Nombre del solicitante",
+    "namePlaceholder": "Juan Pérez",
+    "phoneLabel": "Teléfono de contacto",
+    "phonePlaceholder": "+54 9 11 555-1234",
+    "phoneHint": "Opcional",
+    "cattleLabel": "Cabezas de ganado",
+    "originLabel": "Origen",
+    "originPlaceholder": "Rosario, Santa Fe",
+    "destinationLabel": "Destino",
+    "destinationPlaceholder": "Córdoba Capital",
+    "cancel": "Cancelar",
+    "submit": "Crear solicitud"
+  },
+  "fleet": {
+    "title": "Administración de Flotas",
+    "activeTrucks": "{count, plural, one {# camión activo} other {# camiones activos}}",
+    "inactiveTrucks": "{count, plural, one {· # inactivo} other {· # inactivos}}",
+    "register": "Registrar camión",
+    "emptyTitle": "Sin camiones registrados",
+    "emptySubtitle": "Registrá el primer camión de tu flota",
+    "sectionActive": "Activos",
+    "sectionInactive": "Inactivos"
+  },
+  "truckCard": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "capacityLabel": "cabezas máx.",
+    "consumptionLabel": "L/km",
+    "deactivate": "Desactivar camión",
+    "activate": "Activar camión"
+  },
+  "truckSelector": {
+    "empty": "No hay camiones activos disponibles.",
+    "current": "Actual",
+    "fuelLabel": "Combustible",
+    "capacityHint": "Cap. {capacity} cab. · {consumption} L/km"
+  },
+  "newTruck": {
+    "plateLabel": "Patente / Matrícula",
+    "platePlaceholder": "AB-123-CD",
+    "plateHint": "Se guardará en mayúsculas",
+    "capacityLabel": "Capacidad máxima (cabezas de ganado)",
+    "capacityHint": "Cantidad máxima de animales que puede transportar en un viaje",
+    "consumptionLabel": "Consumo de combustible (L/km)",
+    "consumptionHint": "Litros consumidos por kilómetro recorrido",
+    "cancel": "Cancelar",
+    "submit": "Registrar camión"
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Parámetros globales de la plataforma.",
+    "fuelPriceLabel": "Precio de combustible ($ por litro)",
+    "lastUpdated": "Última actualización: {date}",
+    "success": "Precio actualizado correctamente.",
+    "disclaimer": "El precio de combustible se aplica a todos los cálculos de costo de transporte nuevos. Los costos ya calculados en solicitudes existentes no se modifican retroactivamente.",
+    "save": "Guardar cambios"
+  }
+}

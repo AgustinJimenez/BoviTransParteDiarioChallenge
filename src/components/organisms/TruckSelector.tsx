@@ -1,6 +1,7 @@
 "use client";
 
 import { Truck as TruckIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { calculateFuelCost } from "@/lib/calculations";
 import type { Truck } from "@/types";
@@ -15,9 +16,11 @@ interface Props {
 }
 
 export default function TruckSelector({ trucks, selectedId, onSelect, distanceKm, fuelPrice, currentTruckId }: Props) {
+  const t = useTranslations("truckSelector");
+
   if (!trucks.length) {
     return (
-      <p className="text-sm text-gray-500 italic">No hay camiones activos disponibles.</p>
+      <p className="text-sm text-gray-500 italic">{t("empty")}</p>
     );
   }
 
@@ -54,18 +57,18 @@ export default function TruckSelector({ trucks, selectedId, onSelect, distanceKm
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-gray-900">{truck.plate}</span>
                     {isCurrentlyAssigned && (
-                      <span className="text-xs bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded font-medium">Actual</span>
+                      <span className="text-xs bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded font-medium">{t("current")}</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-500">
-                    Cap. {truck.maxCapacity} cab. · {truck.fuelConsumption} L/km
+                    {t("capacityHint", { capacity: truck.maxCapacity, consumption: truck.fuelConsumption })}
                   </p>
                 </div>
               </div>
 
               {fuelCost != null && (
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-gray-400">Combustible</p>
+                  <p className="text-xs text-gray-400">{t("fuelLabel")}</p>
                   <p className={cn("text-sm font-bold", selected ? "text-emerald-700" : "text-gray-700")}>
                     ${fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
                   </p>

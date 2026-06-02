@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Truck, LayoutDashboard, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const links = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/fleet", label: "Flotas", icon: Truck },
-  { href: "/settings", label: "Configuración", icon: Settings },
-];
-
 export default function Navbar() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
+
+  const links = [
+    { href: "/", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/fleet", label: t("fleet"), icon: Truck },
+    { href: "/settings", label: t("settings"), icon: Settings },
+  ];
   return (
     <header className="sticky top-0 z-40 bg-emerald-900 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

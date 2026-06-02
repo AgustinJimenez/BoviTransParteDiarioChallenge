@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Fuel, CheckCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/atoms/Input";
 import { Button } from "@/components/atoms/Button";
 
@@ -14,6 +15,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -57,8 +59,8 @@ export default function SettingsPage() {
             <Fuel className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Configuración</h1>
-            <p className="text-sm text-gray-500">Parámetros globales de la plataforma.</p>
+            <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
+            <p className="text-sm text-gray-500">{t("subtitle")}</p>
           </div>
         </div>
 
@@ -66,13 +68,13 @@ export default function SettingsPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <Input
-                label="Precio de combustible ($ por litro)"
+                label={t("fuelPriceLabel")}
                 type="number"
                 step="0.01"
                 min={0.01}
                 placeholder="1250"
                 error={errors.price?.message}
-                hint={updatedAt ? `Última actualización: ${new Date(updatedAt).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" })}` : undefined}
+                hint={updatedAt ? t("lastUpdated", { date: new Date(updatedAt).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }) }) : undefined}
                 {...register("price", { valueAsNumber: true })}
               />
             </div>
@@ -84,19 +86,17 @@ export default function SettingsPage() {
             {saved && (
               <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">
                 <CheckCircle className="w-4 h-4" />
-                Precio actualizado correctamente.
+                {t("success")}
               </div>
             )}
 
             <Button type="submit" loading={isSubmitting} className="w-full">
-              Guardar cambios
+              {t("save")}
             </Button>
           </form>
 
           <div className="border-t border-gray-100 pt-5">
-            <p className="text-xs text-gray-400 leading-relaxed">
-              El precio de combustible se aplica a todos los cálculos de costo de transporte nuevos. Los costos ya calculados en solicitudes existentes no se modifican retroactivamente.
-            </p>
+            <p className="text-xs text-gray-400 leading-relaxed">{t("disclaimer")}</p>
           </div>
         </div>
       </div>
