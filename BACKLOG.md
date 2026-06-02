@@ -599,14 +599,14 @@
 **Desarrollador:**
 > "sounds good, and additional considerations? like having atomic design structure?"
 
-**Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura más pragmática para un MVP de 8 días:
+**Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura orientada al dominio:
 
-- Atomic Design completo: más mantenible a largo plazo, pero agrega overhead de carpetas y abstracciones prematuras para un proyecto de esta escala.
-- **Alternativa propuesta:** `components/ui/` para primitivos presentacionales (Button, Badge, Input) y `components/domain/` para componentes con lógica de negocio.
+- Atomic Design completo: introduce una jerarquía de cinco niveles que cobra sentido en design systems compartidos entre múltiples productos o equipos. Para una aplicación de dominio acotado con dos módulos y un solo equipo, genera abstracciones sin destinatario real.
+- **Alternativa propuesta:** `components/ui/` para primitivos presentacionales (Button, Badge, Input) y `components/domain/` para componentes con lógica de negocio (RequestCard, TruckSelector, CapacityAlert).
 
-**Desarrollador:** Aceptó la propuesta simplificada.
+**Desarrollador:** Aceptó la propuesta.
 
-**Decisión derivada:** La separación `ui/` vs `domain/` es suficiente para este MVP y refleja la distinción entre presentación y lógica sin la rigidez de Atomic Design completo.
+**Decisión derivada:** La separación `ui/` vs `domain/` captura la distinción que importa — presentación vs lógica de negocio — sin capas intermedias que no aportan valor en una aplicación de este scope. Si el producto creciera a múltiples módulos con componentes compartidos, la migración a Atomic Design sería incremental y no destructiva.
 
 ---
 
@@ -615,15 +615,19 @@
 **Desarrollador:**
 > "do we need unit tests and integration tests?"
 
-**Claude** evaluó la situación: con 8 días de plazo, tests unitarios para todas las funciones y tests de integración para todos los endpoints consumirían aproximadamente 30-40% del tiempo de desarrollo sin ser un entregable evaluado explícitamente en la pauta.
+**Claude** analizó el valor real de cada tipo de test para este sistema:
+
+- **Tests unitarios:** la única lógica de negocio pura es la fórmula de combustible y los cálculos de capacidad — ambas son funciones matemáticas deterministas de 3-4 líneas. Testearlas aporta poco sobre leerlas directamente.
+- **Tests de integración:** los endpoints dependen de Prisma + PostgreSQL + servicios externos (Nominatim, OSRM). Un test de integración real requeriría una base de datos de test, mocks de los servicios externos, y mantenimiento continuo del setup — complejidad desproporcionada para 6 endpoints con lógica lineal.
+- **El riesgo real** en este sistema no está en la lógica de negocio sino en la integración con Prisma v7 (breaking changes), Leaflet SSR, y Zod v4 — todos problemas que los tests no habrían detectado antes de la ejecución real.
 
 **Propuesta de Claude:** No incluir tests automatizados. En cambio:
-- La fórmula de combustible en `src/lib/calculations.ts` como función pura (fácilmente testeable si se requiere en el futuro)
-- Un plan de pruebas manual documentado en `docs/TEST_PLAN.md` que cubra los mismos escenarios
+- Aislar la fórmula de combustible en `src/lib/calculations.ts` como función pura (testeable cuando el proyecto lo justifique)
+- Documentar un plan de pruebas manual en `docs/TEST_PLAN.md` con casos de borde explícitos
 
 **Desarrollador:** Aceptó.
 
-**Decisión derivada:** Zero tests automatizados en el MVP. La función de cálculo está aislada como función pura para facilitar tests futuros.
+**Decisión derivada:** Zero tests automatizados en el MVP. La lógica de negocio está aislada como funciones puras para facilitar tests futuros sin refactoring.
 
 ---
 
@@ -659,27 +663,28 @@
 **Desarrollador:**
 > "is having libraries for accessibility in the dev pipeline required?"
 
-**Claude** revisó la pauta de evaluación: no hay criterio explícito de accesibilidad (WCAG, a11y). Agregar `@axe-core/react` o `eslint-plugin-jsx-a11y` aportaría calidad pero consumiría tiempo de setup sin impactar el puntaje directamente.
+**Claude** evaluó el encaje real de herramientas como `@axe-core/react` o `eslint-plugin-jsx-a11y` en este proyecto: son linters y detectores de problemas comunes (contraste, atributos aria faltantes, orden de focus), pero su valor escala con la cantidad de componentes interactivos y la diversidad de usuarios. Un sistema operativo interno con un único perfil de usuario no es el contexto donde estas herramientas generan mayor retorno.
 
-**Decisión derivada:** No se incluyen librerías de accesibilidad en el MVP. Se usa semántica HTML correcta (labels en formularios, roles implícitos) como práctica base.
+Lo que sí se incluyó como práctica base: semántica HTML correcta (`<label>` asociado a cada input, roles implícitos, navegación por teclado funcional en formularios).
+
+**Decisión derivada:** No se agregan librerías de accesibilidad. La semántica HTML correcta cubre los requisitos de usabilidad para el perfil de usuario del sistema.
 
 ---
 
 ### Intercambio 8 — Internacionalización
 
-**Desarrollador (más avanzado el desarrollo):**
+**Desarrollador:**
 > "ok, now, we have a lot of time to refine this system, what you think if we use a lang library to avoid using hardcoded strings on labels?"
 
-**Claude** evaluó `next-intl` o `react-i18next` para internacionalización:
-- La pauta no menciona soporte multi-idioma
-- El sistema es claramente para el mercado argentino (pesos ARS, ciudades argentinas en seed data)
-- Agregar i18n requeriría refactorizar todos los componentes existentes
+**Claude** evaluó la propuesta: `next-intl` o `react-i18next` resuelven el problema de strings dispersos en componentes, pero introducen una indirección (claves → traducciones) que solo justifica su complejidad cuando existe más de un idioma destino o un equipo de traducción separado.
 
-**Propuesta de Claude:** No agregar i18n. El costo de refactorizar supera el beneficio para un MVP de un solo idioma. Strings hardcodeados en español son la decisión correcta para este scope.
+El argumento real en contra no es el esfuerzo de implementación — agregar i18n es mecánico y Claude puede hacerlo — sino que un sistema de logística operativa para el mercado argentino no tiene un caso de uso multi-idioma concreto. Agregar la infraestructura sin el caso de uso es over-engineering: el sistema quedaría más complejo de leer sin ningún usuario que se beneficie de la segunda lengua.
+
+**Propuesta de Claude:** Mantener strings en español directamente en los componentes. Si el producto evolucionara hacia multi-idioma, la migración es incremental — se extrae un key por componente a medida que se necesita.
 
 **Desarrollador:** Aceptó.
 
-**Decisión derivada:** Sin i18n en el MVP. Todos los textos en español directamente en los componentes.
+**Decisión derivada:** Sin i18n. Los strings en español hardcodeados son la decisión correcta para el dominio y audiencia de este sistema.
 
 ---
 
