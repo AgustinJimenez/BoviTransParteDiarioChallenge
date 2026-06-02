@@ -1,4 +1,4 @@
-import NewTruckForm from "@/components/domain/NewTruckForm";
+import NewTruckForm from "@/components/organisms/NewTruckForm";
 import { Truck } from "lucide-react";
 
 export default function NewTruckPage() {

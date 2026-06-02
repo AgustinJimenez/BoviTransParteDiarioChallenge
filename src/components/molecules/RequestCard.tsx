@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Phone, Truck } from "lucide-react";
-import { StatusBadge } from "@/components/ui/Badge";
+import { StatusBadge } from "@/components/atoms/Badge";
 import { cn } from "@/lib/utils";
 import type { TransportRequest } from "@/types";
 

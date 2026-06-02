@@ -1,4 +1,4 @@
-# PRUEBA TÉCNICA SENIOR: DESARROLLO ASISTIDO POR IA - MVP "BOVITRANS"
+# PRUEBA TÉCNICA SENIOR: DESARROLLO ASISTIDO POR IA - MVP "BoviApp"
 
 ---
 
@@ -26,9 +26,9 @@ Esta prueba está calibrada para ingenieros con más de 5 años de experiencia y
 
 ---
 
-## 3. DESCRIPCIÓN DEL PROYECTO (MVP - BOVITRANS)
+## 3. DESCRIPCIÓN DEL PROYECTO (MVP - BoviApp)
 
-**BoviTrans** es una plataforma logística diseñada para digitalizar y optimizar el transporte terrestre de ganado vacuno. En el sector ganadero, la coordinación de traslados suele ser caótica y propensa a errores de cálculo en costos y capacidades. Este software busca unificar a los operadores logísticos con los clientes que necesitan mover animales de un punto geográfico a otro, garantizando que los viajes sean seguros, eficientes y financieramente viables.
+**BoviApp** es una plataforma logística diseñada para digitalizar y optimizar el transporte terrestre de ganado vacuno. En el sector ganadero, la coordinación de traslados suele ser caótica y propensa a errores de cálculo en costos y capacidades. Este software busca unificar a los operadores logísticos con los clientes que necesitan mover animales de un punto geográfico a otro, garantizando que los viajes sean seguros, eficientes y financieramente viables.
 
 El núcleo de la aplicación de cara al operador logístico es un **Panel Principal (Dashboard)** interactivo. En esta vista central deben converger todas las solicitudes de transporte entrantes. Cada tarjeta o registro de solicitud debe detallar la información del solicitante, la cantidad exacta de cabezas de ganado a mover, y los puntos geográficos de origen y destino. Para facilitar la toma de decisiones, la interfaz debe integrar un mapa que trace visualmente la ruta, calcule los kilómetros totales de distancia y proyecte el costo total de combustible del viaje de manera dinámica en función del camión que se pretenda asignar.
 
@@ -50,9 +50,9 @@ Costo Combustible = Distancia (Km) × Consumo del Vehículo (L/Km) × Precio de 
 
 Antes de escribir código o diseñar la base de datos, debes sentarte con **Claude** y realizar el análisis funcional del proyecto basándote en la descripción del punto anterior.
 
-1. **Configura tu entorno de IA:** Crea un archivo `.claude/skills.json` o `.claude/custom_instructions.md` en tu repositorio que le enseñe a Claude a actuar como tu Analista de Negocios y Arquitecto de Software para BoviTrans.
+1. **Configura tu entorno de IA:** Crea un archivo `.claude/skills.json` o `.claude/custom_instructions.md` en tu repositorio que le enseñe a Claude a actuar como tu Analista de Negocios y Arquitecto de Software para BoviApp.
 
-2. **Generación de Requerimientos:** Solicita a Claude que, a partir de la descripción de BoviTrans, diseñe:
+2. **Generación de Requerimientos:** Solicita a Claude que, a partir de la descripción de BoviApp, diseñe:
    - Las **Épicas** del proyecto.
    - Las **Historias de Usuario (US)** detalladas (con formato *Como [rol], quiero [acción], para [beneficio]*).
    - Los **Criterios de Aceptación** detallados para cada US (formato *Dado que... Cuando... Entonces...*).
@@ -95,5 +95,5 @@ Utiliza a Claude para generar un archivo `DOCUMENTACION.md` sumamente riguroso q
 - **Plazo de Entrega:** Tienes exactamente **8 días** corridos para completar el desafío a partir de la fecha de recepción de esta pauta.
 - **Formato de Entrega:**
   1. Repositorio de GitHub público (brindar URL para el acceso a los revisores asignados).
-  2. El desarrollo debe realizarse en una rama de características (ej. `feature/bovitrans-mvp`) y se debe abrir un **Pull Request (PR)** hacia la rama `main`.
+  2. El desarrollo debe realizarse en una rama de características (ej. `feature/BoviApp-mvp`) y se debe abrir un **Pull Request (PR)** hacia la rama `main`.
   3. El PR debe contar con una descripción rica donde expliques tus decisiones arquitectónicas y cómo te apoyaste en Claude para optimizar tus tiempos de entrega.

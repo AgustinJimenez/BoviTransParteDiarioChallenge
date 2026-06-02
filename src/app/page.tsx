@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import DashboardClient from "@/components/domain/DashboardClient";
+import DashboardClient from "@/components/organisms/DashboardClient";
 import type { TransportRequest } from "@/types";
 
 export const dynamic = "force-dynamic";

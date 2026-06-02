@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { X, MapPin, Ruler, Fuel, Phone, User } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { StatusBadge } from "@/components/ui/Badge";
-import RouteMap from "./RouteMap";
+import { useEffect, useState } from "react";
+import { X, Ruler, Fuel, Phone, User } from "lucide-react";
+import { Button } from "@/components/atoms/Button";
+import { StatusBadge } from "@/components/atoms/Badge";
+import RouteMap from "@/components/molecules/RouteMap";
 import TruckSelector from "./TruckSelector";
-import CapacityAlert from "./CapacityAlert";
+import CapacityAlert from "@/components/molecules/CapacityAlert";
 import { calculateFuelCost } from "@/lib/calculations";
 import type { TransportRequest, Truck } from "@/types";
 
@@ -26,33 +26,35 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
   const [error, setError] = useState<string | null>(null);
   const [capacityWarning, setCapacityWarning] = useState<{ exceeded: boolean; tripsNeeded: number } | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [reqRes, trucksRes, priceRes] = await Promise.all([
-        fetch(`/api/transport-requests/${requestId}`),
-        fetch("/api/trucks?active=true"),
-        fetch("/api/config/fuel-price"),
-      ]);
-      const [reqData, trucksData, priceData] = await Promise.all([
-        reqRes.json(), trucksRes.json(), priceRes.json(),
-      ]);
-      if (reqData.data) setRequest(reqData.data);
-      if (trucksData.data) setTrucks(trucksData.data);
-      if (priceData.data) setFuelPrice(priceData.data.price);
-    } finally {
-      setLoading(false);
-    }
-  }, [requestId]);
-
-  useEffect(() => { load(); }, [load]);
-
-  // Pre-select current truck if already assigned
   useEffect(() => {
-    if (request?.assignedTruck) {
-      setSelectedTruck(request.assignedTruck);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const [reqRes, trucksRes, priceRes] = await Promise.all([
+          fetch(`/api/transport-requests/${requestId}`),
+          fetch("/api/trucks?active=true"),
+          fetch("/api/config/fuel-price"),
+        ]);
+        const [reqData, trucksData, priceData] = await Promise.all([
+          reqRes.json(), trucksRes.json(), priceRes.json(),
+        ]);
+        if (cancelled) return;
+
+        if (reqData.data) {
+          setRequest(reqData.data);
+          setSelectedTruck(reqData.data.assignedTruck ?? null);
+        }
+        if (trucksData.data) setTrucks(trucksData.data);
+        if (priceData.data) setFuelPrice(priceData.data.price);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [request]);
+
+    void load();
+    return () => { cancelled = true; };
+  }, [requestId]);
 
   async function handleAssign() {
     if (!selectedTruck || !request) return;

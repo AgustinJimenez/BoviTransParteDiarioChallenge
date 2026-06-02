@@ -4,8 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, Truck as TruckIcon } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import TruckCard from "@/components/domain/TruckCard";
+import { Button } from "@/components/atoms/Button";
+import TruckCard from "@/components/molecules/TruckCard";
 import type { Truck } from "@/types";
 
 export default function FleetPage() {
@@ -14,14 +14,20 @@ export default function FleetPage() {
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadTrucks() {
-    const res = await fetch("/api/trucks");
-    const data = await res.json();
-    if (data.data) setTrucks(data.data);
-    setLoading(false);
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { loadTrucks(); }, []);
+    async function loadTrucks() {
+      const res = await fetch("/api/trucks");
+      const data = await res.json();
+      if (cancelled) return;
+      if (data.data) setTrucks(data.data);
+      setLoading(false);
+    }
+
+    void loadTrucks();
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleToggle(truck: Truck) {
     const res = await fetch(`/api/trucks/${truck.id}`, { method: "PATCH" });

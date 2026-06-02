@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ClipboardList } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import RequestCard from "./RequestCard";
+import { Button } from "@/components/atoms/Button";
+import RequestCard from "@/components/molecules/RequestCard";
 import RequestDetailPanel from "./RequestDetailPanel";
 import NewRequestModal from "./NewRequestModal";
 import type { TransportRequest } from "@/types";

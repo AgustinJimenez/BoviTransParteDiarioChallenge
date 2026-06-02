@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/atoms/Button";
+import { Input } from "@/components/atoms/Input";
 
 const schema = z.object({
   requesterName: z.string().min(1, "El nombre es requerido"),

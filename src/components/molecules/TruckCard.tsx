@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Truck as TruckIcon, ToggleLeft, ToggleRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/Badge";
+import { Badge } from "@/components/atoms/Badge";
 import type { Truck } from "@/types";
 
 interface Props {

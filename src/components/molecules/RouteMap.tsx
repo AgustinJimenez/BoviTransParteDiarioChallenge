@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { MapPin } from "lucide-react";
 
-const MapInner = dynamic(() => import("./MapInner"), {
+const MapInner = dynamic(() => import("@/components/organisms/MapInner"), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-full bg-gray-100 rounded-xl text-gray-400 text-sm gap-2">
