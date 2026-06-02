@@ -1,0 +1,93 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, ClipboardList } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import RequestCard from "./RequestCard";
+import RequestDetailPanel from "./RequestDetailPanel";
+import NewRequestModal from "./NewRequestModal";
+import type { TransportRequest } from "@/types";
+
+interface Props {
+  requests: TransportRequest[];
+  stats: { pending: number; assigned: number; completed: number };
+}
+
+export default function DashboardClient({ requests, stats }: Props) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showNewModal, setShowNewModal] = useState(false);
+
+  function refresh() {
+    startTransition(() => router.refresh());
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[
+          { label: "Pendientes", value: stats.pending, color: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
+          { label: "Asignados",  value: stats.assigned,  color: "text-sky-700",   bg: "bg-sky-50 border-sky-100" },
+          { label: "Completados",value: stats.completed, color: "text-emerald-700",bg: "bg-emerald-50 border-emerald-100" },
+        ].map(({ label, value, color, bg }) => (
+          <div key={label} className={`rounded-xl border p-4 ${bg}`}>
+            <p className="text-xs font-medium text-gray-500">{label}</p>
+            <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Title + CTA */}
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-xl font-bold text-gray-900">Solicitudes de Transporte</h1>
+        <Button onClick={() => setShowNewModal(true)}>
+          <Plus className="w-4 h-4" />
+          Nueva solicitud
+        </Button>
+      </div>
+
+      {/* Cards grid */}
+      {requests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+          <ClipboardList className="w-12 h-12" />
+          <p className="text-lg font-medium">No hay solicitudes</p>
+          <p className="text-sm">Creá la primera solicitud de transporte</p>
+          <Button onClick={() => setShowNewModal(true)} className="mt-2">
+            <Plus className="w-4 h-4" /> Nueva solicitud
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {requests.map((r) => (
+            <RequestCard
+              key={r.id}
+              request={r}
+              selected={selectedId === r.id}
+              onClick={() => setSelectedId(selectedId === r.id ? null : r.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Detail panel */}
+      {selectedId && (
+        <RequestDetailPanel
+          requestId={selectedId}
+          onClose={() => setSelectedId(null)}
+          onAssigned={() => { refresh(); }}
+        />
+      )}
+
+      {/* New request modal */}
+      {showNewModal && (
+        <NewRequestModal
+          onClose={() => setShowNewModal(false)}
+          onCreated={() => { refresh(); }}
+        />
+      )}
+    </div>
+  );
+}
