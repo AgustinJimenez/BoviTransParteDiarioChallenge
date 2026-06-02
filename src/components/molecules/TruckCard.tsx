@@ -47,7 +47,7 @@ export default function TruckCard({ truck, onToggle }: Props) {
             onClick={handleToggle}
             disabled={loading}
             title={truck.isActive ? t("deactivate") : t("activate")}
-            className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
           >
             {loading
               ? <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />

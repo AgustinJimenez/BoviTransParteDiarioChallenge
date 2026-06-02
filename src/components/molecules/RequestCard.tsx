@@ -27,7 +27,7 @@ export default function RequestCard({ request, onClick, selected }: Props) {
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left bg-white rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all duration-150 overflow-hidden",
+        "w-full text-left bg-white rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all duration-150 overflow-hidden cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
         statusBorder[request.status] ?? "border-l-gray-300",
         selected && "ring-2 ring-emerald-500 ring-offset-1"
