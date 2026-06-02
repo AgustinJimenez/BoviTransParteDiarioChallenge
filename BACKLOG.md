@@ -620,17 +620,15 @@
 
 **Claude** analizó el valor real de cada tipo de test para este sistema:
 
-- **Tests unitarios:** la única lógica de negocio pura es la fórmula de combustible y los cálculos de capacidad — ambas son funciones matemáticas deterministas de 3-4 líneas. Testearlas aporta poco sobre leerlas directamente.
-- **Tests de integración:** los endpoints dependen de Prisma + PostgreSQL + servicios externos (Nominatim, OSRM). Un test de integración real requeriría una base de datos de test, mocks de los servicios externos, y mantenimiento continuo del setup — complejidad desproporcionada para 6 endpoints con lógica lineal.
-- **El riesgo real** en este sistema no está en la lógica de negocio sino en la integración con Prisma v7 (breaking changes), Leaflet SSR, y Zod v4 — todos problemas que los tests no habrían detectado antes de la ejecución real.
+- **Tests unitarios:** la única lógica de negocio pura es la fórmula de combustible y los cálculos de capacidad — ambas son funciones matemáticas deterministas de 3-4 líneas.
+- **Tests de integración:** los endpoints dependen de Prisma + PostgreSQL + servicios externos (Nominatim, OSRM). Requeriría base de datos de test, mocks de servicios externos, y mantenimiento continuo — complejidad desproporcionada para 6 endpoints con lógica lineal.
+- **El riesgo real** en este sistema no está en la lógica de negocio sino en la integración con Prisma v7, Leaflet SSR y Zod v4 — todos problemas que los tests no habrían detectado antes de la ejecución real.
 
-**Propuesta de Claude:** No incluir tests automatizados. En cambio:
-- Aislar la fórmula de combustible en `src/lib/calculations.ts` como función pura (testeable cuando el proyecto lo justifique)
-- Documentar un plan de pruebas manual en `docs/TEST_PLAN.md` con casos de borde explícitos
+**Decisión implementada:** Tests unitarios con **Vitest** sobre `src/lib/calculations.ts` (27 tests). No se incluyen tests de integración ni de componentes — la función de cálculo es la única lógica de negocio pura con suficiente complejidad de casos borde para justificarlos. El plan de pruebas manual en `docs/TEST_PLAN.md` cubre los flujos de integración.
 
-**Desarrollador:** Aceptó.
+**Desarrollador:** Decidió implementar los tests al tener tiempo disponible y poder demostrar buenas prácticas.
 
-**Decisión derivada:** Zero tests automatizados en el MVP. La lógica de negocio está aislada como funciones puras para facilitar tests futuros sin refactoring.
+**Decisión derivada:** `npm test` corre 27 tests en ~70ms. Los tests verifican la fórmula de combustible, casos borde de capacidad (límite exacto, exceso por uno, números grandes), y la función Haversine con coordenadas argentinas reales.
 
 ---
 
@@ -679,15 +677,16 @@ Lo que sí se incluyó como práctica base: semántica HTML correcta (`<label>` 
 **Desarrollador:**
 > "ok, now, we have a lot of time to refine this system, what you think if we use a lang library to avoid using hardcoded strings on labels?"
 
-**Claude** evaluó la propuesta: `next-intl` o `react-i18next` resuelven el problema de strings dispersos en componentes, pero introducen una indirección (claves → traducciones) que solo justifica su complejidad cuando existe más de un idioma destino o un equipo de traducción separado.
+**Claude** evaluó la propuesta: el beneficio principal de centralizar strings en un archivo no es la traducción en sí, sino la mantenibilidad — un único lugar donde buscar y modificar cualquier texto de la UI, y la posibilidad de detectar strings faltantes antes del deploy.
 
-El argumento real en contra no es el esfuerzo de implementación — agregar i18n es mecánico y Claude puede hacerlo — sino que un sistema de logística operativa para el mercado argentino no tiene un caso de uso multi-idioma concreto. Agregar la infraestructura sin el caso de uso es over-engineering: el sistema quedaría más complejo de leer sin ningún usuario que se beneficie de la segunda lengua.
+**Decisión implementada:** `next-intl v4` con todos los strings centralizados en `messages/es.json` organizado por namespaces (`nav`, `dashboard`, `fleet`, `requestDetail`, etc.). Se agregaron dos capas de verificación automática:
 
-**Propuesta de Claude:** Mantener strings en español directamente en los componentes. Si el producto evolucionara hacia multi-idioma, la migración es incremental — se extrae un key por componente a medida que se necesita.
+1. **ESLint** (`eslint-plugin-i18next`) — detecta strings hardcodeados en JSX en tiempo de lint
+2. **TypeScript** (augmentación de `AppConfig`) — usar una key inexistente en `es.json` es un error de compilación
 
-**Desarrollador:** Aceptó.
+**Desarrollador:** Decidió implementarlo al tener tiempo disponible.
 
-**Decisión derivada:** Sin i18n. Los strings en español hardcodeados son la decisión correcta para el dominio y audiencia de este sistema.
+**Decisión derivada:** `npm run lint` detecta strings hardcodeados. `npm run type-check` detecta keys inexistentes. Ambas verificaciones corren en CI automáticamente junto con `npm test`.
 
 ---
 
@@ -699,6 +698,6 @@ Este modo de trabajo tiene implicancias concretas:
 
 1. **Lo que Claude aportó:** velocidad de ejecución, detección proactiva de problemas (Prisma v7 breaking changes, rate limiting de Nominatim, footprint de Docker), y consistencia entre módulos.
 
-2. **Lo que el desarrollador aportó:** criterio de priorización, decisiones de scope ("no necesitamos tests", "no necesitamos i18n"), y validación de que las propuestas eran apropiadas para el contexto del negocio.
+2. **Lo que el desarrollador aportó:** criterio de priorización, decisiones de scope (qué implementar, qué descartar), y validación de que las propuestas eran apropiadas para el contexto del negocio.
 
 3. **Lo que ninguno puede reemplazar al otro:** las decisiones como "la alerta de capacidad advierte pero no bloquea" requieren entender tanto el dominio de negocio (el operador puede planificar múltiples viajes) como las implicancias técnicas (bloquear en UI vs bloquear en API). Ese juicio emergió de la conversación, no de ninguno de los dos de forma aislada.
