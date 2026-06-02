@@ -602,11 +602,14 @@
 **Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura orientada al dominio:
 
 - Atomic Design completo: introduce una jerarquía de cinco niveles que cobra sentido en design systems compartidos entre múltiples productos o equipos. Para una aplicación de dominio acotado con dos módulos y un solo equipo, genera abstracciones sin destinatario real.
-- **Alternativa propuesta:** `components/ui/` para primitivos presentacionales (Button, Badge, Input) y `components/domain/` para componentes con lógica de negocio (RequestCard, TruckSelector, CapacityAlert).
+**Decisión implementada:** Atomic Design completo con tres niveles:
+- `components/atoms/` — Button, Badge, Input
+- `components/molecules/` — RequestCard, TruckCard, CapacityAlert, RouteMap
+- `components/organisms/` — DashboardClient, RequestDetailPanel, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Navbar
 
-**Desarrollador:** Aceptó la propuesta.
+**Desarrollador:** Decidió implementar Atomic Design completo para demostrar arquitectura escalable.
 
-**Decisión derivada:** La separación `ui/` vs `domain/` captura la distinción que importa — presentación vs lógica de negocio — sin capas intermedias que no aportan valor en una aplicación de este scope. Si el producto creciera a múltiples módulos con componentes compartidos, la migración a Atomic Design sería incremental y no destructiva.
+**Decisión derivada:** La jerarquía atoms → molecules → organisms refleja el nivel de composición y complejidad de cada componente. Los átomos no conocen el dominio, las moléculas lo representan de forma simple, los organismos encapsulan estado y lógica de negocio. Las páginas en `app/` actúan como templates que componen organismos.
 
 ---
 

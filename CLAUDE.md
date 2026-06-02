@@ -6,7 +6,7 @@ GIT: Conventional commits (feat/fix/chore/docs/refactor). Branch: feature/bovitr
 
 API RESPONSES: always { data: T | null, error: string | null }. HTTP codes: 200, 201, 400, 404, 409, 422, 500. Always convert Prisma Decimal fields to Number() before returning JSON.
 
-COMPONENTS: components/ui/ = pure presentational primitives (Button, Badge, Input). components/domain/ = domain components with business logic but no direct API calls. Client-side fetching goes inside useEffect in the component that needs it.
+COMPONENTS: Atomic Design — components/atoms/ = pure presentational primitives (Button, Badge, Input). components/molecules/ = simple domain composites without direct API calls (RequestCard, TruckCard, CapacityAlert, RouteMap). components/organisms/ = complex stateful components with business logic (DashboardClient, RequestDetailPanel, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Navbar). Client-side fetching goes inside useEffect in the component that needs it.
 
 DOCKER: OrbStack auto-patches the Docker socket — no DOCKER_HOST needed. Use "docker compose" (v2, no hyphen). docker/init.sql runs automatically on first container start.
 

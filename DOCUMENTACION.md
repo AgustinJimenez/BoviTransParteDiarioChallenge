@@ -108,20 +108,22 @@ model TransportRequest {
 
 ### 2.5 Estructura de Componentes
 
-Inspirada en Atomic Design, sin su jerarquía estricta:
+Implementa Atomic Design con tres niveles:
 
 ```
 src/components/
-├── ui/         → Primitivos sin lógica de negocio
-│                 Button, Badge/StatusBadge, Input
-└── domain/     → Componentes con lógica de dominio
-                  RequestCard, RequestDetailPanel,
-                  TruckSelector, CapacityAlert,
-                  RouteMap, NewRequestModal,
-                  DashboardClient, TruckCard, NewTruckForm
+├── atoms/       → Primitivos sin lógica de negocio
+│                  Button, Badge/StatusBadge, Input
+├── molecules/   → Composites simples de dominio
+│                  RequestCard, TruckCard,
+│                  CapacityAlert, RouteMap
+└── organisms/   → Componentes complejos con estado y lógica de negocio
+                   DashboardClient, RequestDetailPanel,
+                   NewRequestModal, NewTruckForm,
+                   TruckSelector, MapInner, Navbar
 ```
 
-`components/ui/` equivale a átomos/moléculas. `components/domain/` a organismos. Las páginas en `app/` actúan como templates.
+Las páginas en `app/` actúan como templates — componen organismos sin lógica propia.
 
 ---
 
