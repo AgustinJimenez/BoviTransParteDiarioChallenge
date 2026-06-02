@@ -736,6 +736,59 @@ Durante el desarrollo, la app corría dentro de Docker (`docker compose up --bui
 
 ---
 
+### Intercambio 11 — Filtrado del dashboard con persistencia en URL
+
+**Desarrollador:**
+> "ok, let's do it then" (refiriéndose a implementar filtros en el dashboard)
+
+**Requerimientos definidos en la conversación:**
+- Filtros por estado (PENDING, ASSIGNED, COMPLETED, CANCELLED) y búsqueda de texto libre
+- Los filtros deben vivir en la URL (`?status=PENDING&search=Juan`) para persistir al navegar y volver
+- Búsqueda contra los campos visibles en el card: nombre, teléfono, origen, destino
+- Sin tabla `requesters` separada — los campos inline son suficientes para el scope del MVP
+
+**Decisión implementada:** Filtrado server-side con dos queries paralelas:
+1. Query sin filtros → stats globales (los contadores siempre muestran el total real)
+2. Query con filtros Prisma (`contains insensitive`) → cards del grid
+
+`FilterBar` es un client component que actualiza la URL con `router.push({ scroll: false })` y debounce de 300ms en el campo de texto. No usa `useSearchParams()` — recibe los filtros actuales como props desde `page.tsx` para evitar el boundary de `Suspense`. Estado vacío diferenciado: "Sin resultados para los filtros aplicados" vs "No hay solicitudes" cuando la DB está vacía.
+
+**Smoke test vía Chrome MCP:** Filtro por estado → URL `?status=PENDING`, 2 cards, stats intactos. Búsqueda "Córdoba" → 2 resultados (origen + destino). Navegar y volver → filtros restaurados desde URL. Búsqueda sin resultados → empty state correcto.
+
+---
+
+### Intercambio 12 — Cursor pointer en elementos interactivos
+
+**Desarrollador:**
+> "cursor pointer when hover on the items" / "no es solo eso, btn nueva solicitud, filtros btns"
+
+**Decisión implementada:** `cursor-pointer` agregado al atom `Button` (cubre todos los botones del sistema automáticamente) y a los chips del `FilterBar`. Los `RequestCard` ya tenían el fix en el mismo intercambio inicial.
+
+---
+
+### Intercambio 13 — Regla ESLint: prohibir ternarios anidados
+
+**Desarrollador:**
+> "podemos poner una regla en el linter para no tener inline el ?:"
+
+**Decisión implementada:** Reglas `no-nested-ternary` y `no-unneeded-ternary` agregadas a `eslint.config.mjs`. Las 5 violaciones existentes se refactorizaron extrayendo funciones render (`renderCards()`, `renderContent()`, `renderToggleIcon()`, `formatFuelDisplay()`) en lugar de ternarios encadenados. A partir de este punto cualquier ternario anidado nuevo rompe el pipeline de lint.
+
+---
+
+### Intercambio 14 — Issues de accesibilidad detectados por axe-core en runtime
+
+**Desarrollador:**
+> "there are lint issues"
+
+Los issues no eran de ESLint sino del overlay de Next.js reportando violaciones detectadas por `@axe-core/react` en runtime. Dos problemas de contraste WCAG AA:
+
+1. **Botón de filtro activo** (`bg-emerald-600 text-white`) — ratio 3.65:1, mínimo requerido 4.5:1 → corregido a `bg-emerald-800`
+2. **Texto secundario** `text-gray-400` en fecha y teléfono de los cards — ratio 2.6:1 → corregido a `text-gray-500` (~4.6:1)
+
+**Decisión derivada:** axe-core en runtime detectó problemas que el linter estático no hubiera encontrado. La combinación de `eslint-plugin-jsx-a11y` (estático) + `@axe-core/react` (runtime) cubre distintas capas de validación de accesibilidad.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
