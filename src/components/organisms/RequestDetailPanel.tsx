@@ -206,7 +206,12 @@ export default function RequestDetailPanel({ requestId, onClose, onAssigned }: P
                 {/* Fuel formula breakdown */}
                 {selectedTruck && request.distanceKm && previewCost != null && (
                   <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
-                    {Number(request.distanceKm).toFixed(1)} km × {selectedTruck.fuelConsumption} L/km × ${fuelPrice.toLocaleString("es-AR")}/L = ${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+                    {t("fuelFormula", {
+                      distance: Number(request.distanceKm).toFixed(1),
+                      consumption: selectedTruck.fuelConsumption,
+                      price: fuelPrice.toLocaleString("es-AR"),
+                      total: previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }),
+                    })}
                   </div>
                 )}
               </div>

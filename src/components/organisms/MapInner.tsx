@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { useTranslations } from "next-intl";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -40,6 +41,7 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
 }
 
 export default function MapInner({ originLat, originLng, destinationLat, destinationLng, originLabel, destinationLabel }: Props) {
+  const t = useTranslations("map");
   const origin: [number, number] = [originLat, originLng];
   const destination: [number, number] = [destinationLat, destinationLng];
 
@@ -56,10 +58,10 @@ export default function MapInner({ originLat, originLng, destinationLat, destina
       />
       <FitBounds positions={[origin, destination]} />
       <Marker position={origin} icon={originIcon}>
-        <Popup><strong>Origen</strong><br />{originLabel}</Popup>
+        <Popup><strong>{t("origin")}</strong><br />{originLabel}</Popup>
       </Marker>
       <Marker position={destination} icon={destIcon}>
-        <Popup><strong>Destino</strong><br />{destinationLabel}</Popup>
+        <Popup><strong>{t("destination")}</strong><br />{destinationLabel}</Popup>
       </Marker>
       <Polyline
         positions={[origin, destination]}

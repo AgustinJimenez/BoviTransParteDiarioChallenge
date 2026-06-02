@@ -26,6 +26,7 @@
     "distance": "Distancia",
     "fuelEstimate": "Combustible est.",
     "sectionAssignment": "Asignación de Camión",
+    "fuelFormula": "{distance} km × {consumption} L/km × ${price}/L = ${total}",
     "loadError": "No se pudo cargar la solicitud.",
     "assignedWithWarning": "⚠️ Asignado con advertencia: se requieren {trips} viajes.",
     "completedBanner": "✓ Solicitud completada",
@@ -64,6 +65,8 @@
     "register": "Registrar camión",
     "emptyTitle": "Sin camiones registrados",
     "emptySubtitle": "Registrá el primer camión de tu flota",
+    "newTitle": "Registrar Camión",
+    "newDisclaimer": "Los datos técnicos del vehículo no podrán editarse una vez registrados.",
     "sectionActive": "Activos",
     "sectionInactive": "Inactivos"
   },
@@ -91,6 +94,12 @@
     "consumptionHint": "Litros consumidos por kilómetro recorrido",
     "cancel": "Cancelar",
     "submit": "Registrar camión"
+  },
+  "map": {
+    "loading": "Cargando mapa...",
+    "noCoordinates": "No se pudieron obtener las coordenadas",
+    "origin": "Origen",
+    "destination": "Destino"
   },
   "settings": {
     "title": "Configuración",
