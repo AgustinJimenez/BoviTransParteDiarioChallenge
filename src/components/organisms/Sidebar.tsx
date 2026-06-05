@@ -101,7 +101,7 @@ const Sidebar = () => {
   return (
     <>
       {/* ── Mobile top bar ─────────────────────────────────────────────── */}
-      <div className="lg:hidden fixed top-0 inset-x-0 h-14 z-40 bg-emerald-900 flex items-center justify-between px-4 shadow-md">
+      <header className="lg:hidden fixed top-0 inset-x-0 h-14 z-40 bg-emerald-900 flex items-center justify-between px-4 shadow-md">
         <span className="text-white font-bold text-lg tracking-tight leading-none">
           Bovi<span className="text-amber-400">Trans</span>
         </span>
@@ -112,7 +112,7 @@ const Sidebar = () => {
         >
           <Menu className="w-5 h-5" />
         </button>
-      </div>
+      </header>
 
       {/* ── Mobile backdrop ─────────────────────────────────────────────── */}
       {isMobileOpen && (
