@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
+import { formatInternationalPhone } from "@/lib/phoneFormat";
 
 const schema = z.object({
   requesterName: z.string().min(1, "El nombre es requerido"),
@@ -96,22 +97,18 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
             <Controller
               name="requesterPhone"
               control={control}
-              render={({ field }) => {
-                const displayValue = (field.value ?? "").replace(/^\+/, "");
-                return (
-                  <Input
-                    leftAddon="+"
-                    label={t("phoneLabel")}
-                    placeholder={t("phonePlaceholder")}
-                    hint={t("phoneHint")}
-                    value={displayValue}
-                    onChange={(e) => field.onChange(e.target.value ? `+${e.target.value}` : "")}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                );
-              }}
+              render={({ field }) => (
+                <Input
+                  label={t("phoneLabel")}
+                  placeholder={t("phonePlaceholder")}
+                  hint={t("phoneHint")}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(formatInternationalPhone(e.target.value))}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
             />
             <Input label={t("cattleLabel")} type="number" min={1} placeholder="30" error={errors.cattleCount?.message} {...register("cattleCount", { valueAsNumber: true })} />
             <Input label={t("originLabel")} placeholder={t("originPlaceholder")} error={errors.origin?.message} {...register("origin")} />
