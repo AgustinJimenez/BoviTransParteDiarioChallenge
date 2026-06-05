@@ -101,7 +101,10 @@ const Sidebar = () => {
   return (
     <>
       {/* ── Mobile top bar ─────────────────────────────────────────────── */}
-      <div className="lg:hidden fixed top-0 inset-x-0 h-14 z-40 bg-emerald-900 flex items-center px-4 gap-3 shadow-md">
+      <div className="lg:hidden fixed top-0 inset-x-0 h-14 z-40 bg-emerald-900 flex items-center justify-between px-4 shadow-md">
+        <span className="text-white font-bold text-lg tracking-tight leading-none">
+          Bovi<span className="text-amber-400">Trans</span>
+        </span>
         <button
           onClick={() => setIsMobileOpen(true)}
           aria-label={t("openMenu")}
@@ -109,9 +112,6 @@ const Sidebar = () => {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <span className="text-white font-bold text-lg tracking-tight leading-none">
-          Bovi<span className="text-amber-400">Trans</span>
-        </span>
       </div>
 
       {/* ── Mobile backdrop ─────────────────────────────────────────────── */}
