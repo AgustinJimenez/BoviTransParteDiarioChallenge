@@ -139,6 +139,44 @@ describe("POST /api/transport-requests", () => {
     }));
     expect(res.status).toBe(400);
   });
+
+  it("accepts optional coordinate fields and returns them as numbers", async () => {
+    const res = await POST(makeReq({
+      requesterName: "Coord Test",
+      cattleCount: 10,
+      origin: "Encarnacion, Paraguay",
+      originLat: -27.3364,
+      originLng: -55.8675,
+      destination: "Asunción, Paraguay",
+      destinationLat: -25.2867,
+      destinationLng: -57.6478,
+    }));
+    const json = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(typeof json.data.originLat).toBe("number");
+    expect(typeof json.data.originLng).toBe("number");
+    expect(typeof json.data.destinationLat).toBe("number");
+    expect(typeof json.data.destinationLng).toBe("number");
+    expect(json.data.originLat).toBeCloseTo(-27.3364, 4);
+    expect(json.data.destinationLng).toBeCloseTo(-57.6478, 4);
+  });
+
+  it("returns null coordinates when not provided", async () => {
+    const res = await POST(makeReq({
+      requesterName: "No Coords",
+      cattleCount: 5,
+      origin: "Rosario",
+      destination: "Córdoba",
+    }));
+    const json = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(json.data.originLat).toBeNull();
+    expect(json.data.originLng).toBeNull();
+    expect(json.data.destinationLat).toBeNull();
+    expect(json.data.destinationLng).toBeNull();
+  });
 });
 
 describe("GET /api/transport-requests — combined filters", () => {
