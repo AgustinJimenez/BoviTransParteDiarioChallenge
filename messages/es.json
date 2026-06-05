@@ -67,9 +67,9 @@
     "phoneHint": "Opcional",
     "cattleLabel": "Cabezas de ganado",
     "originLabel": "Origen",
-    "originPlaceholder": "Rosario, Santa Fe",
+    "originPlaceholder": "Tocá para seleccionar en el mapa",
     "destinationLabel": "Destino",
-    "destinationPlaceholder": "Córdoba Capital",
+    "destinationPlaceholder": "Tocá para seleccionar en el mapa",
     "cancel": "Cancelar",
     "submit": "Crear solicitud"
   },
@@ -109,6 +109,17 @@
     "consumptionHint": "Litros consumidos por kilómetro recorrido",
     "cancel": "Cancelar",
     "submit": "Registrar camión"
+  },
+  "locationPicker": {
+    "selectOrigin": "Seleccionar origen",
+    "selectDestination": "Seleccionar destino",
+    "searchPlaceholder": "Buscar ciudad, dirección...",
+    "searching": "Buscando...",
+    "noResults": "Sin resultados",
+    "dragHint": "Tocá el mapa o arrastrá el pin para ajustar",
+    "confirm": "Confirmar ubicación",
+    "close": "Cerrar",
+    "markerTitle": "Arrastrá para mover"
   },
   "map": {
     "loading": "Cargando mapa...",

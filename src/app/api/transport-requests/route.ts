@@ -10,7 +10,11 @@ const CreateRequestSchema = z.object({
   requesterPhone: z.string().optional(),
   cattleCount: z.number().int().min(1, "La cantidad de ganado debe ser mayor a 0"),
   origin: z.string().min(1, "El origen es requerido"),
+  originLat: z.number().optional(),
+  originLng: z.number().optional(),
   destination: z.string().min(1, "El destino es requerido"),
+  destinationLat: z.number().optional(),
+  destinationLng: z.number().optional(),
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
