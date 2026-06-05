@@ -34,6 +34,7 @@ interface RequestModalHeaderProps {
 interface RequestModalFormActionsProps {
   onClose: () => void;
   isSubmitting: boolean;
+  isValid: boolean;
   cancelLabel: string;
   submitLabel: string;
 }
@@ -55,10 +56,10 @@ const RequestModalHeader = ({ title, subtitle, onClose }: RequestModalHeaderProp
   </div>
 );
 
-const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLabel }: RequestModalFormActionsProps) => (
+const RequestModalFormActions = ({ onClose, isSubmitting, isValid, cancelLabel, submitLabel }: RequestModalFormActionsProps) => (
   <div className="flex gap-3 pt-1">
     <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{cancelLabel}</Button>
-    <Button type="submit" loading={isSubmitting} className="flex-1">{submitLabel}</Button>
+    <Button type="submit" loading={isSubmitting} disabled={!isValid} className="flex-1">{submitLabel}</Button>
   </div>
 );
 
@@ -67,8 +68,9 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
   const tPicker = useTranslations("locationPicker");
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting, isValid } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    mode: "onChange",
   });
 
   const originName = watch("origin");
@@ -159,6 +161,7 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
             <RequestModalFormActions
               onClose={onClose}
               isSubmitting={isSubmitting}
+              isValid={isValid}
               cancelLabel={t("cancel")}
               submitLabel={t("submit")}
             />
