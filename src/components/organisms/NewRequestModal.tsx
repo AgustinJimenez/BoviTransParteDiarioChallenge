@@ -97,18 +97,28 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
             <Controller
               name="requesterPhone"
               control={control}
-              render={({ field }) => (
-                <Input
-                  label={t("phoneLabel")}
-                  placeholder={t("phonePlaceholder")}
-                  hint={t("phoneHint")}
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange(formatArgentinePhone(e.target.value))}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
-              )}
+              render={({ field }) => {
+                const PHONE_PREFIX = "+54 9 ";
+                const displayValue = (field.value ?? "").startsWith(PHONE_PREFIX)
+                  ? (field.value ?? "").slice(PHONE_PREFIX.length)
+                  : "";
+                return (
+                  <Input
+                    leftAddon="+54 9"
+                    label={t("phoneLabel")}
+                    placeholder={t("phonePlaceholder")}
+                    hint={t("phoneHint")}
+                    value={displayValue}
+                    onChange={(e) => {
+                      const localDigits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      field.onChange(localDigits ? formatArgentinePhone(localDigits) : "");
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                );
+              }}
             />
             <Input label={t("cattleLabel")} type="number" min={1} placeholder="30" error={errors.cattleCount?.message} {...register("cattleCount", { valueAsNumber: true })} />
             <Input label={t("originLabel")} placeholder={t("originPlaceholder")} error={errors.origin?.message} {...register("origin")} />
