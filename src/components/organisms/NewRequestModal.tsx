@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { formatInternationalPhone } from "@/lib/phoneFormat";
-import LocationPickerModal from "@/components/organisms/LocationPickerModal";
+import LocationPickerInline from "@/components/organisms/LocationPickerInline";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -54,7 +54,7 @@ interface NewRequestModalProps {
 }
 
 const RequestModalHeader = ({ title, subtitle, onClose }: RequestModalHeaderProps) => (
-  <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+  <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
     <div>
       <h2 className="text-lg font-bold text-gray-900">{title}</h2>
       <p className="text-sm text-gray-500">{subtitle}</p>
@@ -136,15 +136,16 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
     setPickerTarget(null);
   };
 
-  const pickerTitle = pickerTarget === "origin" ? tPicker("selectOrigin") : tPicker("selectDestination");
+  const originPickerLabel = tPicker("selectOrigin");
+  const destinationPickerLabel = tPicker("selectDestination");
 
   return (
     <>
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+        <div className="w-full sm:max-w-md bg-white sm:rounded-2xl shadow-2xl flex flex-col max-h-[92dvh]">
           <RequestModalHeader title={t("title")} subtitle={t("subtitle")} onClose={onClose} />
-          <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4 overflow-y-auto">
             <Input
               label={t("nameLabel")}
               placeholder={t("namePlaceholder")}
@@ -175,20 +176,45 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
               error={errors.cattleCount?.message}
               {...register("cattleCount", { valueAsNumber: true })}
             />
-            <LocationField
-              label={t("originLabel")}
-              value={originName ?? ""}
-              error={errors.origin?.message}
-              placeholder={t("originPlaceholder")}
-              onClick={() => setPickerTarget("origin")}
-            />
-            <LocationField
-              label={t("destinationLabel")}
-              value={destinationName ?? ""}
-              error={errors.destination?.message}
-              placeholder={t("destinationPlaceholder")}
-              onClick={() => setPickerTarget("destination")}
-            />
+
+            {pickerTarget === "origin" ? (
+              <LocationPickerInline
+                label={originPickerLabel}
+                initialLat={originLat}
+                initialLng={originLng}
+                initialName={originName}
+                onConfirm={handlePickerConfirm}
+                onCancel={() => setPickerTarget(null)}
+              />
+            ) : (
+              <LocationField
+                label={t("originLabel")}
+                value={originName ?? ""}
+                error={errors.origin?.message}
+                placeholder={t("originPlaceholder")}
+                onClick={() => setPickerTarget("origin")}
+              />
+            )}
+
+            {pickerTarget === "destination" ? (
+              <LocationPickerInline
+                label={destinationPickerLabel}
+                initialLat={destinationLat}
+                initialLng={destinationLng}
+                initialName={destinationName}
+                onConfirm={handlePickerConfirm}
+                onCancel={() => setPickerTarget(null)}
+              />
+            ) : (
+              <LocationField
+                label={t("destinationLabel")}
+                value={destinationName ?? ""}
+                error={errors.destination?.message}
+                placeholder={t("destinationPlaceholder")}
+                onClick={() => setPickerTarget("destination")}
+              />
+            )}
+
             {serverError && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{serverError}</p>}
             <RequestModalFormActions
               onClose={onClose}
@@ -199,19 +225,8 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
           </form>
         </div>
       </div>
-
-      {pickerTarget && (
-        <LocationPickerModal
-          title={pickerTitle}
-          initialLat={pickerTarget === "origin" ? originLat : destinationLat}
-          initialLng={pickerTarget === "origin" ? originLng : destinationLng}
-          initialName={pickerTarget === "origin" ? originName : destinationName}
-          onConfirm={handlePickerConfirm}
-          onClose={() => setPickerTarget(null)}
-        />
-      )}
     </>
   );
-}
+};
 
 export default NewRequestModal;
