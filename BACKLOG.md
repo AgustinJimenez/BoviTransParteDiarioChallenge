@@ -958,6 +958,47 @@ Se creó `src/lib/__tests__/phoneFormat.test.ts` con 20 tests en 5 grupos: input
 
 ---
 
+### Intercambio 31 — Tests de integración con base de datos real
+
+**Desarrollador:**
+> "do we have integration tests?"
+> "must have .env for that? cannot be hardcoded? it's just a test tmp db"
+
+Se implementó una capa de tests de integración con Vitest contra una DB `bovitrans_test` real (no mocks). La URL está hardcodeada en `vitest.integration.config.ts` — decisión explícita para evitar riesgo de correr contra la DB de desarrollo. Se incluyó `TRUNCATE ... RESTART IDENTITY CASCADE` en `beforeEach` para aislamiento entre tests.
+
+---
+
+### Intercambio 32 — Tests E2E con Playwright
+
+**Desarrollador:**
+> "and we need to make another section for the browser base one, right?"
+> "are we having quality rules on the tests code? like not having hardcoded selector ids but proper test ids for selectors?"
+
+Se configuró Playwright contra `bovitrans_e2e` DB en puerto 3001 con `next build && next start` (no `next dev` — Next.js 16 no permite dos instancias concurrentes). Reglas de calidad: `eslint-plugin-playwright` con `no-raw-locators` y `prefer-web-first-assertions`. Selectores estables via `data-testid` attributes.
+
+---
+
+### Intercambio 33 — Sidebar hamburger en mobile: drawer desde la derecha
+
+**Desarrollador:**
+> "i think the sidebar must be closed in mobile, and we must add a hamburg icon button on the left top area to allow the user to open it in a sort of modal that covers the screen showing the items"
+> "i realized, it must be actually the right side to have the hamburger icon"
+> "the sidebar must come from the right side too"
+
+Se reemplazó el sidebar siempre visible en mobile por un patrón de drawer: top bar fijo con marca a la izquierda y hamburger a la derecha, backdrop oscuro al abrir, panel que desliza desde la derecha. El sidebar desktop no cambia (sticky, colapsable). Los nav links cierran el drawer al navegar.
+
+---
+
+### Intercambio 34 — Axe-core: contenido fuera de landmarks
+
+**Desarrollador:**
+> "there are lint errors"
+> "can we note this on the claude file? to check it if the page is open after a ui change?"
+
+El top bar mobile usaba `<div>` — el texto "BoviTrans" dentro de un no-landmark dispara la regla axe `region`. Fix: cambiar a `<header>` (landmark `banner`). Se agregó instrucción a `CLAUDE.md`: revisar la consola del browser por errores axe después de cualquier cambio de UI.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
