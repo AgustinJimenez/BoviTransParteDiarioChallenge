@@ -4,13 +4,12 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, MapPin } from "lucide-react";
+import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
 import { formatInternationalPhone } from "@/lib/phoneFormat";
 import LocationPickerInline from "@/components/organisms/LocationPickerInline";
-import { cn } from "@/lib/utils";
 
 const schema = z.object({
   requesterName: z.string().min(1, "El nombre es requerido"),
@@ -25,7 +24,6 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
-type PickerTarget = "origin" | "destination" | null;
 
 interface RequestModalHeaderProps {
   title: string;
@@ -38,14 +36,6 @@ interface RequestModalFormActionsProps {
   isSubmitting: boolean;
   cancelLabel: string;
   submitLabel: string;
-}
-
-interface LocationFieldProps {
-  label: string;
-  value: string;
-  error?: string;
-  placeholder: string;
-  onClick: () => void;
 }
 
 interface NewRequestModalProps {
@@ -72,32 +62,10 @@ const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLab
   </div>
 );
 
-const LocationField = ({ label, value, error, placeholder, onClick }: LocationFieldProps) => (
-  <div className="flex flex-col gap-1">
-    <span className="text-sm font-medium text-gray-700">{label}</span>
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-2 w-full rounded-lg border px-3 py-2 text-sm text-left transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
-        error ? "border-red-400 bg-red-50" : "border-gray-300 bg-white hover:border-emerald-400"
-      )}
-    >
-      <MapPin className={cn("w-4 h-4 shrink-0", value ? "text-emerald-600" : "text-gray-400")} />
-      <span className={cn("truncate", value ? "text-gray-900" : "text-gray-400")}>
-        {value || placeholder}
-      </span>
-    </button>
-    {error && <p className="text-xs text-red-600">{error}</p>}
-  </div>
-);
-
 const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
   const t = useTranslations("newRequest");
   const tPicker = useTranslations("locationPicker");
   const [serverError, setServerError] = useState<string | null>(null);
-  const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
 
   const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -123,21 +91,8 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
     onClose();
   };
 
-  const handlePickerConfirm = (lat: number, lng: number, displayName: string) => {
-    if (pickerTarget === "origin") {
-      setValue("origin", displayName, { shouldValidate: true });
-      setValue("originLat", lat);
-      setValue("originLng", lng);
-    } else {
-      setValue("destination", displayName, { shouldValidate: true });
-      setValue("destinationLat", lat);
-      setValue("destinationLng", lng);
-    }
-    setPickerTarget(null);
-  };
-
-  const originPickerLabel = tPicker("selectOrigin");
-  const destinationPickerLabel = tPicker("selectDestination");
+  const originLabel = tPicker("selectOrigin");
+  const destinationLabel = tPicker("selectDestination");
 
   return (
     <>
@@ -176,45 +131,30 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
               error={errors.cattleCount?.message}
               {...register("cattleCount", { valueAsNumber: true })}
             />
-
-            {pickerTarget === "origin" ? (
-              <LocationPickerInline
-                label={originPickerLabel}
-                initialLat={originLat}
-                initialLng={originLng}
-                initialName={originName}
-                onConfirm={handlePickerConfirm}
-                onCancel={() => setPickerTarget(null)}
-              />
-            ) : (
-              <LocationField
-                label={t("originLabel")}
-                value={originName ?? ""}
-                error={errors.origin?.message}
-                placeholder={t("originPlaceholder")}
-                onClick={() => setPickerTarget("origin")}
-              />
-            )}
-
-            {pickerTarget === "destination" ? (
-              <LocationPickerInline
-                label={destinationPickerLabel}
-                initialLat={destinationLat}
-                initialLng={destinationLng}
-                initialName={destinationName}
-                onConfirm={handlePickerConfirm}
-                onCancel={() => setPickerTarget(null)}
-              />
-            ) : (
-              <LocationField
-                label={t("destinationLabel")}
-                value={destinationName ?? ""}
-                error={errors.destination?.message}
-                placeholder={t("destinationPlaceholder")}
-                onClick={() => setPickerTarget("destination")}
-              />
-            )}
-
+            <LocationPickerInline
+              label={originLabel}
+              initialLat={originLat}
+              initialLng={originLng}
+              initialName={originName}
+              onConfirm={(lat, lng, displayName) => {
+                setValue("origin", displayName, { shouldValidate: true });
+                setValue("originLat", lat);
+                setValue("originLng", lng);
+              }}
+            />
+            {errors.origin && <p className="text-xs text-red-600 -mt-3">{errors.origin.message}</p>}
+            <LocationPickerInline
+              label={destinationLabel}
+              initialLat={destinationLat}
+              initialLng={destinationLng}
+              initialName={destinationName}
+              onConfirm={(lat, lng, displayName) => {
+                setValue("destination", displayName, { shouldValidate: true });
+                setValue("destinationLat", lat);
+                setValue("destinationLng", lng);
+              }}
+            />
+            {errors.destination && <p className="text-xs text-red-600 -mt-3">{errors.destination.message}</p>}
             {serverError && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{serverError}</p>}
             <RequestModalFormActions
               onClose={onClose}

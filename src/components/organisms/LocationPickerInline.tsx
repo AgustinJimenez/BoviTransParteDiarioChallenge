@@ -15,7 +15,7 @@ interface LocationPickerInlineProps {
   initialLng?: number;
   initialName?: string;
   onConfirm: (lat: number, lng: number, displayName: string) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 interface InlineSuggestionsProps {
@@ -155,7 +155,9 @@ const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onCo
       <p className="text-xs text-gray-400 text-center">{t("dragHint")}</p>
 
       <div className="flex gap-2">
-        <Button type="button" variant="secondary" onClick={onCancel} className="flex-1">{t("close")}</Button>
+        {onCancel && (
+          <Button type="button" variant="secondary" onClick={onCancel} className="flex-1">{t("close")}</Button>
+        )}
         <Button type="button" onClick={() => onConfirm(lat, lng, displayName || query)} className="flex-1">{t("confirm")}</Button>
       </div>
     </div>
