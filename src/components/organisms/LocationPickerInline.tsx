@@ -6,7 +6,6 @@ import { Search, MapPin, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { searchLocations, reverseGeocode } from "@/lib/geocoding";
 import type { LocationSuggestion } from "@/lib/geocoding";
-import { Button } from "@/components/atoms/Button";
 import { cn } from "@/lib/utils";
 
 interface LocationPickerInlineProps {
@@ -14,8 +13,7 @@ interface LocationPickerInlineProps {
   initialLat?: number;
   initialLng?: number;
   initialName?: string;
-  onConfirm: (lat: number, lng: number, displayName: string) => void;
-  onCancel?: () => void;
+  onChange: (lat: number, lng: number, displayName: string) => void;
 }
 
 interface InlineSuggestionsProps {
@@ -59,12 +57,11 @@ const InlineSuggestions = ({ suggestions, isSearching, searchingLabel, onSelect 
   );
 };
 
-const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onConfirm, onCancel }: LocationPickerInlineProps) => {
+const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onChange }: LocationPickerInlineProps) => {
   const t = useTranslations("locationPicker");
 
   const [lat, setLat] = useState(initialLat ?? DEFAULT_LAT);
   const [lng, setLng] = useState(initialLng ?? DEFAULT_LNG);
-  const [displayName, setDisplayName] = useState(initialName ?? "");
   const [query, setQuery] = useState(initialName ?? "");
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -90,11 +87,11 @@ const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onCo
   const handleSelectSuggestion = (s: LocationSuggestion) => {
     setLat(s.lat);
     setLng(s.lng);
-    setDisplayName(s.displayName);
     setQuery(s.displayName);
     setSuggestions([]);
     setShowSuggestions(false);
     setFlyVersion(v => v + 1);
+    onChange(s.lat, s.lng, s.displayName);
   };
 
   const handlePositionChange = useCallback((newLat: number, newLng: number) => {
@@ -105,9 +102,11 @@ const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onCo
     clearTimeout(reverseTimer.current);
     reverseTimer.current = setTimeout(async () => {
       const name = await reverseGeocode(newLat, newLng);
-      if (name) { setDisplayName(name); setQuery(name); }
+      const resolved = name ?? `${newLat.toFixed(5)}, ${newLng.toFixed(5)}`;
+      setQuery(resolved);
+      onChange(newLat, newLng, resolved);
     }, 600);
-  }, []);
+  }, [onChange]);
 
   useEffect(() => () => {
     clearTimeout(searchTimer.current);
@@ -127,8 +126,9 @@ const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onCo
           onFocus={() => setShowSuggestions(true)}
           placeholder={t("searchPlaceholder")}
           className={cn(
-            "w-full rounded-xl border border-emerald-400 bg-white pl-9 pr-4 py-2 text-sm text-gray-900",
-            "placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            "w-full rounded-xl border border-gray-300 bg-white pl-9 pr-4 py-2 text-sm text-gray-900",
+            "placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500",
+            query && "border-emerald-400"
           )}
         />
       </div>
@@ -153,13 +153,6 @@ const LocationPickerInline = ({ label, initialLat, initialLng, initialName, onCo
       </div>
 
       <p className="text-xs text-gray-400 text-center">{t("dragHint")}</p>
-
-      <div className="flex gap-2">
-        {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel} className="flex-1">{t("close")}</Button>
-        )}
-        <Button type="button" onClick={() => onConfirm(lat, lng, displayName || query)} className="flex-1">{t("confirm")}</Button>
-      </div>
     </div>
   );
 };

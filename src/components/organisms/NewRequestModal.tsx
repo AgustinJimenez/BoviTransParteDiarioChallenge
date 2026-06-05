@@ -138,7 +138,7 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
               initialLat={originLat}
               initialLng={originLng}
               initialName={originName}
-              onConfirm={(lat, lng, displayName) => {
+              onChange={(lat, lng, displayName) => {
                 setValue("origin", displayName, { shouldValidate: true });
                 setValue("originLat", lat);
                 setValue("originLng", lng);
@@ -150,7 +150,7 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
               initialLat={destinationLat}
               initialLng={destinationLng}
               initialName={destinationName}
-              onConfirm={(lat, lng, displayName) => {
+              onChange={(lat, lng, displayName) => {
                 setValue("destination", displayName, { shouldValidate: true });
                 setValue("destinationLat", lat);
                 setValue("destinationLng", lng);
