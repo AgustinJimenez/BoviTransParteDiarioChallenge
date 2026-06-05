@@ -127,8 +127,9 @@ const Sidebar = () => {
       <aside className={cn(
         "fixed lg:sticky top-0 h-screen z-50 flex flex-col bg-emerald-900 shrink-0",
         "transition-transform lg:transition-[width] duration-200",
-        // Mobile: slide in/out from left
-        isMobileOpen ? "translate-x-0" : "-translate-x-full",
+        // Mobile: slide in/out from right
+        "right-0 lg:right-auto lg:left-0",
+        isMobileOpen ? "translate-x-0" : "translate-x-full",
         "lg:translate-x-0",
         // Mobile sidebar is always full-width with labels
         "w-64",
