@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 const MapLoadingFallback = () => {
   const t = useTranslations("map");
   return (
-    <div className="flex items-center justify-center h-full bg-gray-100 rounded-xl text-gray-400 text-sm gap-2">
-      <div className="animate-pulse w-4 h-4 bg-gray-300 rounded-full" />
+    <div className="flex items-center justify-center h-full bg-gray-100 rounded-xl text-gray-600 text-sm gap-2">
+      <div className="animate-pulse w-4 h-4 bg-gray-400 rounded-full" />
       {t("loading")}
     </div>
   );
@@ -33,7 +33,7 @@ const RouteMap = ({ originLat, originLng, destinationLat, destinationLng, origin
 
   if (!originLat || !originLng || !destinationLat || !destinationLng) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-400 gap-2 text-sm">
+      <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-600 gap-2 text-sm">
         <MapPin className="w-6 h-6" />
         <p>{t("noCoordinates")}</p>
         <p className="text-xs text-gray-500">{origin} → {destination}</p>

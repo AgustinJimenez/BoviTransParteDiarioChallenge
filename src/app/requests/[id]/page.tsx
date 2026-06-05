@@ -86,10 +86,13 @@ const RouteStopIndicator = () => (
 );
 
 const RequestDetailHeader = ({ status, date }: RequestDetailHeaderProps) => (
-  <div className="mt-6 mb-8 flex items-center gap-3 flex-wrap">
-    <StatusBadge status={status} />
-    <span className="text-gray-300">·</span>
-    <span className="text-sm text-gray-500">{date}</span>
+  <div className="mt-6 mb-8 flex items-center justify-between gap-3">
+    <BackButton />
+    <div className="flex items-center gap-3">
+      <StatusBadge status={status} />
+      <span className="text-gray-300">·</span>
+      <span className="text-sm text-gray-500">{date}</span>
+    </div>
   </div>
 );
 
@@ -138,7 +141,7 @@ const RequestRequesterCard = ({ request, sectionLabel }: RequestRequesterCardPro
     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{sectionLabel}</p>
     <div className="flex items-center gap-2 text-gray-800">
       <User className="w-4 h-4 text-gray-400" />
-      <span className="font-semibold">{request.requesterName}</span>
+      <h1 className="font-semibold text-base">{request.requesterName}</h1>
     </div>
     {request.requesterPhone && (
       <div className="flex items-center gap-2 text-gray-600 text-sm">
@@ -211,8 +214,6 @@ const RequestDetailPage = async ({ params }: RequestDetailPageProps) => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <BackButton />
-
       <RequestDetailHeader status={request.status} date={date} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

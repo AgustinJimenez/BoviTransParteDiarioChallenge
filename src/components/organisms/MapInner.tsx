@@ -61,10 +61,10 @@ const MapInner = ({ originLat, originLng, destinationLat, destinationLng, origin
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds positions={[origin, destination]} />
-      <Marker position={origin} icon={originIcon}>
+      <Marker position={origin} icon={originIcon} title={`${t("origin")}: ${originLabel}`}>
         <Popup><strong>{t("origin")}</strong><br />{originLabel}</Popup>
       </Marker>
-      <Marker position={destination} icon={destIcon}>
+      <Marker position={destination} icon={destIcon} title={`${t("destination")}: ${destinationLabel}`}>
         <Popup><strong>{t("destination")}</strong><br />{destinationLabel}</Popup>
       </Marker>
       <Polyline
