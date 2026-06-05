@@ -86,13 +86,11 @@ const RouteStopIndicator = () => (
 );
 
 const RequestDetailHeader = ({ status, date }: RequestDetailHeaderProps) => (
-  <div className="mt-6 mb-8 flex items-center justify-between gap-3">
+  <div className="mt-6 mb-8 flex items-center gap-4">
     <BackButton />
-    <div className="flex items-center gap-3">
-      <StatusBadge status={status} />
-      <span className="text-gray-300">·</span>
-      <span className="text-sm text-gray-500">{date}</span>
-    </div>
+    <StatusBadge status={status} />
+    <span className="text-gray-300">·</span>
+    <span className="text-sm text-gray-500">{date}</span>
   </div>
 );
 
