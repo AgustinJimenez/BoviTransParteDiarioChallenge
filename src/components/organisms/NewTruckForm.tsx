@@ -25,7 +25,7 @@ const NewTruckForm = () => {
     resolver: zodResolver(schema),
   });
 
-  async function onSubmit(data: FormData) {
+  const onSubmit = async (data: FormData) => {
     setServerError(null);
     const res = await fetch("/api/trucks", {
       method: "POST",

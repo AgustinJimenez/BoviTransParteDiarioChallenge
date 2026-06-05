@@ -7,7 +7,43 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/atoms/Badge";
 import type { Truck } from "@/types";
 
-const TruckCardIcon = ({ isActive }: { isActive: boolean }) => {
+interface TruckCardIconProps {
+  isActive: boolean;
+}
+
+interface ToggleButtonIconProps {
+  loading: boolean;
+  isActive: boolean;
+}
+
+interface TruckCardToggleButtonProps {
+  isActive: boolean;
+  loading: boolean;
+  onToggle: () => void;
+  deactivateLabel: string;
+  activateLabel: string;
+}
+
+interface TruckCardHeaderProps {
+  truck: Truck;
+  loading: boolean;
+  onToggle: () => void;
+  t: ReturnType<typeof useTranslations>;
+}
+
+interface TruckCardStatsProps {
+  maxCapacity: number;
+  fuelConsumption: number;
+  capacityLabel: string;
+  consumptionLabel: string;
+}
+
+interface TruckCardProps {
+  truck: Truck;
+  onToggle: (truck: Truck) => Promise<void>;
+}
+
+const TruckCardIcon = ({ isActive }: TruckCardIconProps) => {
   return (
     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isActive ? "bg-emerald-100" : "bg-gray-100")}>
       <TruckIcon className={cn("w-5 h-5", isActive ? "text-emerald-700" : "text-gray-400")} />
@@ -15,37 +51,24 @@ const TruckCardIcon = ({ isActive }: { isActive: boolean }) => {
   );
 }
 
-const TruckCardToggleButton = ({ isActive, loading, onToggle, deactivateLabel, activateLabel }: {
-  isActive: boolean;
-  loading: boolean;
-  onToggle: () => void;
-  deactivateLabel: string;
-  activateLabel: string;
-}) => {
-  function renderIcon() {
-    if (loading) return <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />;
-    if (isActive) return <ToggleRight className="w-7 h-7 text-emerald-600" />;
-    return <ToggleLeft className="w-7 h-7" />;
-  }
-
-  return (
-    <button
-      onClick={onToggle}
-      disabled={loading}
-      title={isActive ? deactivateLabel : activateLabel}
-      className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
-    >
-      {renderIcon()}
-    </button>
-  );
+const ToggleButtonIcon = ({ loading, isActive }: ToggleButtonIconProps) => {
+  if (loading) return <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />;
+  if (isActive) return <ToggleRight className="w-7 h-7 text-emerald-600" />;
+  return <ToggleLeft className="w-7 h-7" />;
 }
 
-const TruckCardHeader = ({ truck, loading, onToggle, t }: {
-  truck: Truck;
-  loading: boolean;
-  onToggle: () => void;
-  t: ReturnType<typeof useTranslations>;
-}) => {
+const TruckCardToggleButton = ({ isActive, loading, onToggle, deactivateLabel, activateLabel }: TruckCardToggleButtonProps) => (
+  <button
+    onClick={onToggle}
+    disabled={loading}
+    title={isActive ? deactivateLabel : activateLabel}
+    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
+  >
+    <ToggleButtonIcon loading={loading} isActive={isActive} />
+  </button>
+)
+
+const TruckCardHeader = ({ truck, loading, onToggle, t }: TruckCardHeaderProps) => {
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3">
@@ -68,12 +91,7 @@ const TruckCardHeader = ({ truck, loading, onToggle, t }: {
   );
 }
 
-const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumptionLabel }: {
-  maxCapacity: number;
-  fuelConsumption: number;
-  capacityLabel: string;
-  consumptionLabel: string;
-}) => {
+const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumptionLabel }: TruckCardStatsProps) => {
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="bg-gray-50 rounded-xl p-3 text-center">
@@ -88,16 +106,11 @@ const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumpti
   );
 }
 
-interface Props {
-  truck: Truck;
-  onToggle: (truck: Truck) => Promise<void>;
-}
-
-const TruckCard = ({ truck, onToggle }: Props) => {
+const TruckCard = ({ truck, onToggle }: TruckCardProps) => {
   const t = useTranslations("truckCard");
   const [loading, setLoading] = useState(false);
 
-  async function handleToggle() {
+  const handleToggle = async () => {
     setLoading(true);
     try { await onToggle(truck); } finally { setLoading(false); }
   }

@@ -7,6 +7,26 @@ import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RequestStatus } from "@/types";
 
+interface FilterSearchInputProps {
+  value: string;
+  placeholder: string;
+  onChange: (v: string) => void;
+  onClear: () => void;
+}
+
+interface FilterStatusChipsProps {
+  localStatus: RequestStatus | null;
+  hasFilters: boolean;
+  onStatusClick: (s: RequestStatus | null) => void;
+  onClear: () => void;
+  t: ReturnType<typeof useTranslations>;
+}
+
+interface FilterBarProps {
+  currentStatus: RequestStatus | null;
+  currentSearch: string | null;
+}
+
 const STATUSES: { value: RequestStatus; key: string }[] = [
   { value: "PENDING",   key: "statusPending" },
   { value: "ASSIGNED",  key: "statusAssigned" },
@@ -14,17 +34,15 @@ const STATUSES: { value: RequestStatus; key: string }[] = [
   { value: "CANCELLED", key: "statusCancelled" },
 ];
 
-const FilterSearchInput = ({ value, placeholder, onChange, onClear }: {
-  value: string;
-  placeholder: string;
-  onChange: (v: string) => void;
-  onClear: () => void;
-}) => {
+const FilterSearchInput = ({ value, placeholder, onChange, onClear }: FilterSearchInputProps) => {
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       <input
         type="text"
+        name="search"
+        data-testid="search-input"
+        aria-label={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -39,13 +57,7 @@ const FilterSearchInput = ({ value, placeholder, onChange, onClear }: {
   );
 }
 
-const FilterStatusChips = ({ localStatus, hasFilters, onStatusClick, onClear, t }: {
-  localStatus: RequestStatus | null;
-  hasFilters: boolean;
-  onStatusClick: (s: RequestStatus | null) => void;
-  onClear: () => void;
-  t: ReturnType<typeof useTranslations>;
-}) => {
+const FilterStatusChips = ({ localStatus, hasFilters, onStatusClick, onClear, t }: FilterStatusChipsProps) => {
   const chipClass = (active: boolean) => cn(
     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
     active
@@ -73,12 +85,7 @@ const FilterStatusChips = ({ localStatus, hasFilters, onStatusClick, onClear, t 
   );
 }
 
-interface Props {
-  currentStatus: RequestStatus | null;
-  currentSearch: string | null;
-}
-
-const FilterBar = ({ currentStatus, currentSearch }: Props) => {
+const FilterBar = ({ currentStatus, currentSearch }: FilterBarProps) => {
   const t = useTranslations("filterBar");
   const router = useRouter();
   const pathname = usePathname();
@@ -87,7 +94,7 @@ const FilterBar = ({ currentStatus, currentSearch }: Props) => {
   const [localSearch, setLocalSearch] = useState(currentSearch ?? "");
   const isFirstRender = useRef(true);
 
-  function pushURL(status: RequestStatus | null, search: string) {
+  const pushURL = (status: RequestStatus | null, search: string) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
     if (search.trim()) params.set("search", search.trim());
@@ -95,13 +102,13 @@ const FilterBar = ({ currentStatus, currentSearch }: Props) => {
     router.push(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
   }
 
-  function handleStatusClick(s: RequestStatus | null) {
+  const handleStatusClick = (s: RequestStatus | null) => {
     const next = localStatus === s ? null : s;
     setLocalStatus(next);
     pushURL(next, localSearch);
   }
 
-  function handleClear() {
+  const handleClear = () => {
     setLocalStatus(null);
     setLocalSearch("");
     router.push(pathname, { scroll: false });

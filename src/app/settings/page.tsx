@@ -9,11 +9,13 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/atoms/Input";
 import { Button } from "@/components/atoms/Button";
 
-const SettingsPageHeader = ({ icon: Icon, title, subtitle }: {
+interface SettingsPageHeaderProps {
   icon: LucideIcon;
   title: string;
   subtitle: string;
-}) => {
+}
+
+const SettingsPageHeader = ({ icon: Icon, title, subtitle }: SettingsPageHeaderProps) => {
   return (
     <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-4">
       <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -53,7 +55,7 @@ const SettingsPage = () => {
       });
   }, [reset]);
 
-  async function onSubmit(data: FormData) {
+  const onSubmit = async (data: FormData) => {
     setServerError(null);
     setSaved(false);
     const res = await fetch("/api/config/fuel-price", {
@@ -105,7 +107,7 @@ const SettingsPage = () => {
           </form>
 
           <div className="border-t border-gray-100 pt-5">
-            <p className="text-xs text-gray-400 leading-relaxed">{t("disclaimer")}</p>
+            <p className="text-xs text-gray-500 leading-relaxed">{t("disclaimer")}</p>
           </div>
         </div>
       </div>

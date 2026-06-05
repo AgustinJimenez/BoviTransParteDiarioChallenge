@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
+import { formatArgentinePhone } from "@/lib/phoneFormat";
 
 const schema = z.object({
   requesterName: z.string().min(1, "El nombre es requerido"),
@@ -19,11 +20,26 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const RequestModalHeader = ({ title, subtitle, onClose }: {
+interface RequestModalHeaderProps {
   title: string;
   subtitle: string;
   onClose: () => void;
-}) => {
+}
+
+interface RequestModalFormActionsProps {
+  onClose: () => void;
+  isSubmitting: boolean;
+  cancelLabel: string;
+  submitLabel: string;
+}
+
+interface NewRequestModalProps {
+  onClose: () => void;
+  onCreated: () => void;
+}
+
+
+const RequestModalHeader = ({ title, subtitle, onClose }: RequestModalHeaderProps) => {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
       <div>
@@ -37,12 +53,7 @@ const RequestModalHeader = ({ title, subtitle, onClose }: {
   );
 }
 
-const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLabel }: {
-  onClose: () => void;
-  isSubmitting: boolean;
-  cancelLabel: string;
-  submitLabel: string;
-}) => {
+const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLabel }: RequestModalFormActionsProps) => {
   return (
     <div className="flex gap-3 pt-1">
       <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
@@ -55,19 +66,14 @@ const RequestModalFormActions = ({ onClose, isSubmitting, cancelLabel, submitLab
   );
 }
 
-interface Props {
-  onClose: () => void;
-  onCreated: () => void;
-}
-
-const NewRequestModal = ({ onClose, onCreated }: Props) => {
+const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
   const t = useTranslations("newRequest");
   const [serverError, setServerError] = useState<string | null>(null);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  async function onSubmit(data: FormData) {
+  const onSubmit = async (data: FormData) => {
     setServerError(null);
     const res = await fetch("/api/transport-requests", {
       method: "POST",
@@ -88,7 +94,22 @@ const NewRequestModal = ({ onClose, onCreated }: Props) => {
           <RequestModalHeader title={t("title")} subtitle={t("subtitle")} onClose={onClose} />
           <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
             <Input label={t("nameLabel")} placeholder={t("namePlaceholder")} error={errors.requesterName?.message} {...register("requesterName")} />
-            <Input label={t("phoneLabel")} placeholder={t("phonePlaceholder")} hint={t("phoneHint")} {...register("requesterPhone")} />
+            <Controller
+              name="requesterPhone"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  label={t("phoneLabel")}
+                  placeholder={t("phonePlaceholder")}
+                  hint={t("phoneHint")}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(formatArgentinePhone(e.target.value))}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
+            />
             <Input label={t("cattleLabel")} type="number" min={1} placeholder="30" error={errors.cattleCount?.message} {...register("cattleCount", { valueAsNumber: true })} />
             <Input label={t("originLabel")} placeholder={t("originPlaceholder")} error={errors.origin?.message} {...register("origin")} />
             <Input label={t("destinationLabel")} placeholder={t("destinationPlaceholder")} error={errors.destination?.message} {...register("destination")} />

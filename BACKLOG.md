@@ -794,6 +794,170 @@ Los issues no eran de ESLint sino del overlay de Next.js reportando violaciones 
 
 ---
 
+### Intercambio 15 — Decomposición de secciones JSX en sub-componentes nombrados
+
+**Desarrollador:**
+> "for example on src/components/molecules/RequestCard.tsx i saw you have some comments like `{/* Route */}`, instead of having it like that, make them components"
+> "revisa los demás componentes, el nombre de los componentes debe indicar que son, tienen que ser individualizados, cada sección"
+
+**Decisión implementada:** Todos los comentarios de sección (`{/* Route */}`, `{/* Header */}`, etc.) se eliminaron y cada bloque se extrajo como sub-componente nombrado dentro del mismo archivo. Por ejemplo, `RequestCard` pasó a tener `CardHeader`, `CardRequester`, `CardCattleCount`, `CardRoute`, `CardAssignedTruck`. Lo mismo en `RequestDetailPanel` (13 sub-componentes), `TruckCard`, `Navbar`, `DashboardClient`, `NewRequestModal`, y las páginas `fleet/page.tsx` y `settings/page.tsx`. Los comentarios de sección en JSX son documentación que se desactualiza; los nombres de componentes son contratos que el compilador verifica.
+
+---
+
+### Intercambio 16 — Arrow functions para componentes y funciones internas; regla ESLint
+
+**Desarrollador:**
+> "i prefer to declare the components as const arrow func, not as 'function ComponentName'"
+> "can this be a lint rule?"
+> "the functions inside the components too, 'function handleClear' to be const"
+
+**Decisión implementada:** Dos reglas ESLint agregadas a `eslint.config.mjs`, ambas scoped a `src/**/*.tsx`:
+- `react/function-component-definition: { namedComponents: "arrow-function" }` — todos los componentes deben ser `const X = () =>`.
+- `func-style: ["error", "expression"]` — todas las funciones internas (`handleClear`, `handleToggle`, `pushURL`, etc.) deben ser `const`. Scoped solo a `.tsx` para no romper los `export async function GET` de las rutas de API de Next.js, que requieren named exports.
+
+La conversión se aplicó en los 9 archivos `.tsx` con violaciones existentes.
+
+---
+
+### Intercambio 17 — Ramas JSX condicionales como sub-componentes; documentación en CLAUDE.md
+
+**Desarrollador:**
+> "can we specify this on the claude file? also, i noticed, inside the components, there are some conditions, and some returns jsx, can we make them components? is possible to make it a lint rule or something?"
+
+**Decisión implementada:** Las funciones `render*()` que retornaban JSX (`renderCards`, `renderContent`, `renderIcon`) se eliminaron y cada rama se convirtió en un sub-componente nombrado: `DashboardCardGrid`, `DashboardNoResults`, `DashboardEmptyState`, `FleetLoadingState`, `FleetEmptyState`, `FleetTruckGrid`, `ToggleButtonIcon`. Lo mismo con los bloques condicionales en `CapacityAlert`: `CapacityOkAlert`, `CapacityTightAlert`, `CapacityExceededAlert`.
+
+No existe una regla ESLint estándar que detecte el patrón `renderX()`. La más cercana, `react/no-unstable-nested-components`, solo captura definiciones de componentes dentro del render, no llamadas a funciones que retornan JSX. La convención se documentó en `CLAUDE.md` como regla de code review.
+
+---
+
+### Intercambio 18 — Named prop interfaces; ESLint consistent-type-definitions
+
+**Desarrollador:**
+> "we are not isolating the props for each function, we are using objects instead of types or interfaces, like `const CompName = ({a: type, b: type}) => {}`, we need to declare the proptypes, maybe in a dedicated file for types, if possible lint rules"
+
+**Decisión implementada:** Todos los tipos de props inline se extrajeron a interfaces nombradas con convención `ComponentNameProps`. Regla ESLint agregada: `@typescript-eslint/consistent-type-definitions: ["error", "interface"]`, que obliga a usar `interface` en lugar de `type` para definiciones de objetos. No existe regla ESLint que detecte tipos inline en parámetros de función — se documenta como regla de code review en `CLAUDE.md`.
+
+**Sobre el archivo dedicado:** Las interfaces de props de sub-componentes se mantienen co-localizadas en el mismo archivo (no en un `types.ts` separado). Los tipos compartidos de dominio (`Truck`, `TransportRequest`, etc.) ya están en `src/types/index.ts`. Mover props privadas a un archivo separado agrega indirección sin beneficio: `PanelBackdropProps` solo tiene sentido en el contexto de `RequestDetailPanel.tsx`.
+
+---
+
+### Intercambio 19 — Interfaces agrupadas al inicio del archivo
+
+**Desarrollador:**
+> "i see you declared interfaces alongside the components, is not better a dedicated file for this somewhere else? what you think?"
+> "ok, at least lets declare them at the top side"
+
+**Decisión implementada:** Todas las interfaces de un archivo se agrupan juntas al inicio, inmediatamente después del bloque de imports, antes de cualquier constante o componente. Estructura de archivo: `imports → interfaces → constants/helpers → components`. Se actualizó `CLAUDE.md` con esta convención.
+
+---
+
+### Intercambio 20 — Página de detalle en lugar de sidebar o modal
+
+**Desarrollador:**
+> "when I click on a transport request card, is not better to display a modal instead of a sidebar for the details?"
+> "maybe better a details page"
+
+**Decisión implementada:** Se reemplazó el `RequestDetailPanel` (sidebar deslizante) por una ruta dedicada `/requests/[id]`. El server component de la página realiza directamente las queries de Prisma (incluyendo el enriquecimiento de geocodificación y routing que antes hacía la API), y pasa los datos serializados a `RequestAssignmentClient` (client component) para la interacción de asignación. `RequestCard` pasó de `<button onClick>` a `<Link href="/requests/[id]">`. `DashboardClient` eliminó el estado `selectedId` y el rendering del panel lateral.
+
+**Ventajas sobre sidebar/modal:** URL compartible, botón atrás del navegador funciona naturalmente, el mapa dispone de toda la pantalla (antes estaba limitado a 480px de ancho), y el layout de dos columnas separa mejor la información estática (ruta, solicitante, carga) de la acción interactiva (asignación de camión).
+
+---
+
+### Intercambio 21 — Botón volver: solo ícono, preserva parámetros de URL
+
+**Desarrollador:**
+> "the goback button, just the icon, and it must do go back, is not keeping the url params"
+
+**Decisión implementada:** El botón volver cambió de `<Link href="/">` (siempre navega a `/` sin query params) a un `<BackButton>` client component co-localizado en `src/app/requests/[id]/BackButton.tsx` que usa `router.back()`. Esto preserva los filtros activos (`?status=PENDING&search=Juan`) cuando el usuario vuelve al dashboard. Solo muestra el ícono `ArrowLeft` sin texto.
+
+---
+
+### Intercambio 22 — Sidebar colapsable en lugar de top header
+
+**Desarrollador:**
+> "what you think is better, to have the top header? or a collapsable left sidebar?"
+> "i think it could grow, that is why, for scalability"
+
+**Decisión implementada:** Se reemplazó el top `Navbar` por un `Sidebar` colapsable (`src/components/organisms/Sidebar.tsx`). El estado de colapso persiste en `localStorage` mediante un lazy initializer en `useState` (evita el patrón `setState` dentro de `useEffect` que falla la regla `react-hooks/set-state-in-effect`). Mobile: sidebar siempre visible icon-only (`w-16`). Desktop: toggleable entre icon-only (`w-16`) y expandido (`w-56`) con transición CSS en `width`. El layout cambió de `flex-col` (top nav + content) a `flex-row` (sidebar + content).
+
+---
+
+### Intercambio 23 — Issues de contraste detectados por axe-core (segunda ronda)
+
+**Desarrollador:**
+> "lint error" (console error en browser)
+
+Los nuevos componentes introducidos (página de detalle, `RequestAssignmentClient`, sidebar) usaban `text-gray-400` sobre fondos blancos. Se hizo un sweep completo: todas las instancias de `text-gray-400` en texto legible (labels, secciones, disclaimers, empty states) se migraron a `text-gray-500` (~4.6:1). Los íconos decorativos se mantuvieron en `text-gray-400` ya que no necesitan cumplir contraste WCAG. También se corrigió el input de búsqueda (`FilterBar`) que carecía de `name` y `aria-label`.
+
+---
+
+### Intercambio 24 — UUIDs de seed datos con formato realista
+
+**Desarrollador:**
+> "the id is b2c3d4e5-0004-0004-0004-000000000004?"
+> "yeah, maybe we must use same id format for both, seed and the actual one"
+
+Los UUIDs del seed en `docker/init.sql` eran estructurados y predecibles (`b2c3d4e5-0004-0004-0004-000000000004`). Se reemplazaron por UUIDs v4 de aspecto aleatorio manteniendo consistencia en las referencias de FK entre trucks y transport_requests. Requirió `docker compose down -v && docker compose up -d` para reinicializar el volumen.
+
+---
+
+### Intercambio 25 — Bulk seed de 500 solicitudes para pruebas de carga
+
+**Desarrollador:**
+> "can you add more seeds? we need to test how the cards render when there are thousands of them, maybe even use faker in loop or something"
+
+Se agregó un bloque `DO $$` en `init.sql` que genera 500 solicitudes adicionales usando `gen_random_uuid()`, arrays de 30 nombres, 20 ciudades argentinas con coordenadas reales, y distribución ponderada de estados (más PENDING que otros). Sin dependencias externas — solo PL/pgSQL nativo de PostgreSQL.
+
+---
+
+### Intercambio 26 — Infinite scroll con VirtuosoGrid
+
+**Desarrollador:**
+> "can we have some sort of infinite scroll virtual list?"
+
+**Decisión implementada:** El dashboard pasó de cargar todas las solicitudes en el server component a carga paginada en el cliente. Tres cambios coordinados:
+1. `GET /api/transport-requests` — agregados `page`, `limit`, `search` con filtrado de texto completo. Retorna `{ items, hasMore, total }`.
+2. `src/app/page.tsx` — ahora solo obtiene stats globales vía Prisma (consulta liviana).
+3. `DashboardClient` — fetching paginado con `useCallback` + `AbortController` (cancelación en cambio de filtros) + `VirtuosoGrid` con `useWindowScroll` para virtualización del grid.
+
+---
+
+### Intercambio 27 — Altura fija en RequestCard
+
+**Desarrollador:**
+> "sometimes the cards are short, it must have probably fixed height to avoid this"
+
+Se agregó `h-52` (208px) y `flex flex-col` a `RequestCard`. La sección del camión se ancla al fondo con `mt-auto`, de modo que todas las cards tienen la misma altura independientemente de si tienen teléfono o camión asignado. Altura fija también mejora la precisión de scroll de VirtuosoGrid.
+
+---
+
+### Intercambio 28 — Placeholder "Sin camión asignado"
+
+**Desarrollador:**
+> "the last item inside the card is the truck assigned? when that is not assigned we are currently not showing anything, looks empty"
+
+`CardAssignedTruck` retornaba `null` cuando no había camión, dejando el fondo de la card vacío. Se agregó un pill gris con el ícono de camión y el texto "Sin camión asignado" usando la misma estructura visual que el pill sky-blue del camión asignado, pero en tono muted.
+
+---
+
+### Intercambio 29 — Formateo de teléfono mientras el usuario escribe
+
+**Desarrollador:**
+> "el form de nueva solicitud, el field de telefono de contacto, debe de ser formateado mientras el usuario escribe"
+
+**Decisión implementada:** Se extrajo `formatArgentinePhone` a `src/lib/phoneFormat.ts` (función pura, sin dependencias). Formatea progresivamente como `+54 9 XXX XXX-XXXX` mientras el usuario tipea, stripping prefijos de país que el usuario pudiera escribir (`54`, `549`, `9`). En `NewRequestModal`, el campo pasó de `register("requesterPhone")` a `Controller` de react-hook-form con `onChange` que aplica el formatter.
+
+---
+
+### Intercambio 30 — Unit tests para formateo de teléfono
+
+**Desarrollador:**
+> "must you make it a isolated component and have a unit test?"
+
+Se creó `src/lib/__tests__/phoneFormat.test.ts` con 20 tests en 5 grupos: input vacío, formateo progresivo, stripping de prefijos, truncado a 10 dígitos, y ejemplos reales de los seed data. El total de tests pasó de 27 a 47.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.

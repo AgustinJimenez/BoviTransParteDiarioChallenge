@@ -6,6 +6,19 @@ import { useTranslations } from "next-intl";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+interface MapInnerProps {
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
+  originLabel: string;
+  destinationLabel: string;
+}
+
+interface FitBoundsProps {
+  positions: [number, number][];
+}
+
 // Fix default Leaflet marker icons in Next.js
 const originIcon = L.divIcon({
   className: "",
@@ -21,16 +34,7 @@ const destIcon = L.divIcon({
   iconAnchor: [7, 7],
 });
 
-interface Props {
-  originLat: number;
-  originLng: number;
-  destinationLat: number;
-  destinationLng: number;
-  originLabel: string;
-  destinationLabel: string;
-}
-
-const FitBounds = ({ positions }: { positions: [number, number][] }) => {
+const FitBounds = ({ positions }: FitBoundsProps) => {
   const map = useMap();
   useEffect(() => {
     if (positions.length >= 2) {
@@ -40,7 +44,7 @@ const FitBounds = ({ positions }: { positions: [number, number][] }) => {
   return null;
 }
 
-const MapInner = ({ originLat, originLng, destinationLat, destinationLng, originLabel, destinationLabel }: Props) => {
+const MapInner = ({ originLat, originLng, destinationLat, destinationLng, originLabel, destinationLabel }: MapInnerProps) => {
   const t = useTranslations("map");
   const origin: [number, number] = [originLat, originLng];
   const destination: [number, number] = [destinationLat, destinationLng];

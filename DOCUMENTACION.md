@@ -77,9 +77,19 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 | Decisión | Alternativas consideradas | Justificación |
 |---|---|---|
 | **Vitest** | Jest, Mocha | Nativo a Vite/ESM, sin config de Babel, 10× más rápido que Jest en proyectos TypeScript. |
-| **Tests solo en `src/lib/`** | Tests de integración, E2E | La lógica de negocio pura (fórmulas matemáticas) es el único lugar donde los tests unitarios detectan regresiones antes que la ejecución. Las integraciones externas (Prisma v7, Leaflet, OSRM) se validan en el smoke test manual. |
+| **Playwright** | Cypress, Puppeteer | Soporte nativo de múltiples browsers, API moderna, integración con Next.js via `webServer`. |
 | **eslint-plugin-i18next** | Revisión manual de strings | Detecta strings hardcodeados en JSX en tiempo de lint, antes de que lleguen a producción. |
 | **TypeScript strict + AppConfig** | Ninguna verificación de i18n | Usar una key inexistente en `messages/es.json` es un error de compilación, no un runtime error. |
+
+**Estrategia de tests en tres capas:**
+
+| Capa | Herramienta | Qué testea | Comando |
+|---|---|---|---|
+| **Unitaria** | Vitest | Funciones puras (`calculations.ts`, `phoneFormat.ts`) | `npm test` |
+| **Integración API** | Vitest + DB real | Route handlers completos contra `bovitrans_test` | `npm run test:integration` |
+| **E2E browser** | Playwright | Flujos completos en browser contra `bovitrans_e2e` | `npm run test:e2e` |
+
+Los tests de integración llaman a los route handlers directamente (sin servidor HTTP) construyendo un `NextRequest` mock. Cada test trunca las tablas antes de ejecutarse para garantizar aislamiento. Los tests E2E corren contra un servidor de producción Next.js en puerto 3001 con una DB efímera, coexistiendo con el dev server en puerto 3000.
 
 ### 2.3 Stack Backend y Datos
 
@@ -126,14 +136,17 @@ src/components/
 │                  Button, Badge/StatusBadge, Input
 ├── molecules/   → Composites simples de dominio
 │                  RequestCard, TruckCard,
-│                  CapacityAlert, RouteMap
+│                  CapacityAlert, RouteMap, FilterBar
 └── organisms/   → Componentes complejos con estado y lógica de negocio
-                   DashboardClient, RequestDetailPanel,
-                   NewRequestModal, NewTruckForm,
-                   TruckSelector, MapInner, Navbar
+                   DashboardClient, NewRequestModal, NewTruckForm,
+                   TruckSelector, MapInner, Sidebar
 ```
 
-Las páginas en `app/` actúan como templates — componen organismos sin lógica propia.
+Las páginas en `app/` actúan como templates — componen organismos sin lógica propia. Convenciones internas:
+- Todos los componentes y funciones internas son arrow functions (`const X = () =>`)
+- Props declaradas como interfaces nombradas (`ComponentNameProps`) agrupadas al inicio del archivo
+- Cada sección JSX es un sub-componente nombrado (no comentarios de sección)
+- No se usan funciones `renderX()` que retornen JSX — se extraen como componentes
 
 ---
 
@@ -306,7 +319,26 @@ Alterna el estado `isActive` del camión. Si se desactiva un camión con solicit
 
 #### `GET /api/transport-requests`
 
-Lista todas las solicitudes con el camión asignado (JOIN). Acepta `?status=PENDING|ASSIGNED|COMPLETED|CANCELLED`.
+Lista las solicitudes con paginación y filtros. Parámetros:
+
+| Parámetro | Tipo | Descripción |
+|---|---|---|
+| `page` | number | Página (default: 1) |
+| `limit` | number | Registros por página (default: 24, máx: 100) |
+| `status` | string | Filtro por estado: `PENDING`, `ASSIGNED`, `COMPLETED`, `CANCELLED` |
+| `search` | string | Búsqueda de texto en nombre, teléfono, origen y destino |
+
+**Response 200:**
+```json
+{
+  "data": {
+    "items": [...],
+    "hasMore": true,
+    "total": 505
+  },
+  "error": null
+}
+```
 
 #### `POST /api/transport-requests`
 
@@ -385,7 +417,8 @@ Actualiza el precio. Usa `upsert` por si el registro no existe aún.
 
 | Ruta | Tipo | Descripción |
 |---|---|---|
-| `/` | Server Component + Client shell | Dashboard con estadísticas, grilla de solicitudes y panel de detalle |
+| `/` | Server Component + Client shell | Dashboard con estadísticas, grilla paginada con infinite scroll |
+| `/requests/[id]` | Server Component + Client section | Detalle de solicitud con mapa y asignación de camión |
 | `/fleet` | Client Component | Listado de camiones activos/inactivos con toggle de estado |
 | `/fleet/new` | Server + Client form | Formulario de registro de camión |
 | `/settings` | Client Component | Configuración de precio de combustible |
@@ -394,23 +427,31 @@ Actualiza el precio. Usa `upsert` por si el registro no existe aún.
 
 ```
 DashboardPage (Server)
-  → fetcha solicitudes via Prisma directamente
-  → serializa Decimal → number (Prisma v7 quirk)
+  → fetcha solo stats globales via Prisma (sin filtrar)
   └── DashboardClient (Client)
        ├── Stats bar (pendientes / asignados / completados)
-       ├── RequestCard[] → onClick → setSelectedId
-       ├── NewRequestModal (formulario react-hook-form)
-       └── RequestDetailPanel (cuando hay selectedId)
-            ├── fetch GET /api/transport-requests/:id
-            │     (geocodifica + calcula distancia si faltan)
-            ├── fetch GET /api/trucks?active=true
-            ├── fetch GET /api/config/fuel-price
-            ├── RouteMap (Leaflet, dynamic import ssr:false)
-            │     → MapInner.tsx con marcadores SVG custom
-            ├── TruckSelector → cálculo de costo client-side reactivo
-            ├── CapacityAlert (ok / tight / exceeded + tripsNeeded)
-            └── PATCH /api/.../assign → refresh via router.refresh()
+       ├── FilterBar → actualiza URL params → re-fetcha via API
+       ├── VirtuosoGrid (virtual list, 24 items/página, infinite scroll)
+       │    └── RequestCard (Link → /requests/:id)
+       └── NewRequestModal (formulario react-hook-form)
+
+RequestDetailPage (Server) ← /requests/:id
+  → fetcha solicitud + geocodifica/calcula distancia si faltan
+  → fetcha camiones activos + precio combustible en paralelo
+  ├── RequestRouteSection: mapa (Leaflet) + distancia
+  ├── RequestRequesterCard + RequestCargoCard
+  └── RequestAssignmentClient (Client)
+       ├── TruckSelector → cálculo de costo client-side reactivo
+       ├── CapacityAlert (ok / tight / exceeded + tripsNeeded)
+       └── PATCH /api/.../assign → router.refresh()
 ```
+
+### Navegación — Sidebar
+
+La navegación es un sidebar colapsable (`src/components/organisms/Sidebar.tsx`):
+- **Mobile:** siempre visible en modo icon-only (`w-16`)
+- **Desktop:** toggleable entre icon-only (`w-16`) y expandido (`w-56`)
+- El estado de colapso se persiste en `localStorage` via lazy initializer de `useState`
 
 ### Integración de Mapas (Leaflet)
 
@@ -516,7 +557,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-**Datos semilla:** `docker/init.sql` se ejecuta automáticamente en el primer inicio del contenedor de DB. Incluye 4 camiones, 5 solicitudes y el precio de combustible.
+**Datos semilla:** `docker/init.sql` se ejecuta automáticamente en el primer inicio del contenedor de DB. Incluye 4 camiones, 5 solicitudes base y 500 solicitudes adicionales generadas con PL/pgSQL para pruebas de carga. El archivo `docker/e2e-seed.sql` contiene solo las 5 solicitudes base y se usa para los tests E2E.
 
 ---
 
@@ -578,12 +619,30 @@ npm run lint
 # Verificar keys de i18n inexistentes (TypeScript)
 npm run type-check
 
-# Tests unitarios
+# Tests unitarios (funciones puras, sin DB)
 npm test
 
 # Tests con coverage
 npm run test:coverage
+
+# Tests de integración API (requiere Docker DB corriendo)
+npm run test:integration
+
+# Tests E2E browser (requiere build previo, levanta servidor en :3001)
+npm run test:e2e
+
+# Tests E2E con UI interactiva de Playwright
+npm run test:e2e:ui
 ```
+
+**Bases de datos de test:**
+
+| Base | Usada por | Creada por |
+|---|---|---|
+| `bovitrans_test` | Tests de integración | `src/integration/globalSetup.ts` |
+| `bovitrans_e2e` | Tests E2E Playwright | `tests/e2e/globalSetup.ts` |
+
+Ambas se crean y destruyen automáticamente al inicio/fin de cada suite.
 
 ### Colima (macOS sin Docker Desktop)
 

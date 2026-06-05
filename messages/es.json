@@ -2,7 +2,9 @@
   "nav": {
     "dashboard": "Dashboard",
     "fleet": "Flotas",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "collapse": "Colapsar menú",
+    "expand": "Expandir menú"
   },
   "filterBar": {
     "searchPlaceholder": "Buscar por nombre, teléfono o ciudad...",
@@ -24,7 +26,8 @@
     "emptySubtitle": "Creá la primera solicitud de transporte"
   },
   "requestCard": {
-    "cattleUnit": "cabezas de ganado"
+    "cattleUnit": "cabezas de ganado",
+    "noTruck": "Sin camión asignado"
   },
   "requestDetail": {
     "sectionRequester": "Solicitante",

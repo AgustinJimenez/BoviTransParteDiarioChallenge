@@ -8,6 +8,13 @@ API RESPONSES: always { data: T | null, error: string | null }. HTTP codes: 200,
 
 COMPONENTS: Atomic Design — components/atoms/ = pure presentational primitives (Button, Badge, Input). components/molecules/ = simple domain composites without direct API calls (RequestCard, TruckCard, CapacityAlert, RouteMap). components/organisms/ = complex stateful components with business logic (DashboardClient, RequestDetailPanel, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Navbar). Client-side fetching goes inside useEffect in the component that needs it.
 
+COMPONENT STYLE RULES (enforced by ESLint in .tsx files):
+- All components and internal functions must be arrow functions (const X = () => ...). No function declarations. Rule: react/function-component-definition + func-style expression.
+- No render*() helper functions. Every JSX branch is a named sub-component (e.g. FleetLoadingState, DashboardEmptyState). Conditional branches in a return are fine; render functions that return JSX are not. There is no ESLint rule for this — enforce via code review.
+- Every component's props must be declared as a named interface (ComponentNameProps). No inline object types in function parameters: `({ a, b }: { a: string })` is wrong; `({ a, b }: FooProps)` is correct. Rule: @typescript-eslint/consistent-type-definitions enforces interface over type. No ESLint rule catches the inline pattern — enforce via code review.
+- All interfaces in a file are grouped together at the top, right after the import block (before any constants or components). File structure: imports → interfaces → constants/helpers → components.
+- Component prop interfaces stay co-located in the same file (not in a separate types file). Shared domain types (Truck, TransportRequest, etc.) live in src/types/index.ts.
+
 DOCKER: OrbStack auto-patches the Docker socket — no DOCKER_HOST needed. Use "docker compose" (v2, no hyphen). docker/init.sql runs automatically on first container start.
 
 PRISMA V7 GOTCHAS — READ BEFORE TOUCHING SCHEMA:

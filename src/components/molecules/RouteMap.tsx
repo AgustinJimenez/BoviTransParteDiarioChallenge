@@ -36,7 +36,7 @@ const RouteMap = ({ originLat, originLng, destinationLat, destinationLng, origin
       <div className="flex flex-col items-center justify-center h-full bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-400 gap-2 text-sm">
         <MapPin className="w-6 h-6" />
         <p>{t("noCoordinates")}</p>
-        <p className="text-xs text-gray-400">{origin} → {destination}</p>
+        <p className="text-xs text-gray-500">{origin} → {destination}</p>
       </div>
     );
   }

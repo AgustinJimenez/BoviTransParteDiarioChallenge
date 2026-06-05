@@ -68,7 +68,7 @@ const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, cu
 
               {fuelCost != null && (
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-gray-400">{t("fuelLabel")}</p>
+                  <p className="text-xs text-gray-500">{t("fuelLabel")}</p>
                   <p className={cn("text-sm font-bold", selected ? "text-emerald-700" : "text-gray-700")}>
                     ${fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
                   </p>

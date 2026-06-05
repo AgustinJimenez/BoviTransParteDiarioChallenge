@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import i18next from "eslint-plugin-i18next";
+import playwright from "eslint-plugin-playwright";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -17,6 +18,19 @@ const eslintConfig = defineConfig([
     rules: {
       "no-nested-ternary": "error",
       "no-unneeded-ternary": "error",
+      "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    },
+  },
+  {
+    // Arrow functions inside components — scoped to .tsx to avoid breaking Next.js API route exports
+    files: ["src/**/*.tsx"],
+    rules: {
+      "func-style": ["error", "expression"],
+    },
+  },
+  {
+    files: ["src/**/*.tsx"],
+    rules: {
       "react/function-component-definition": ["error", {
         namedComponents: "arrow-function",
         unnamedComponents: "arrow-function",
@@ -69,7 +83,7 @@ const eslintConfig = defineConfig([
             // Placeholder dash for missing values
             "^—$",
             // Pure symbols / punctuation
-            "^[·\\-→✓⚠️×$/]+$",
+            "^[·\\-→✓⚠️×$/#]+$",
             // Brand name parts
             "^Bovi$", "^Trans$",
             // Purely numeric
@@ -81,4 +95,22 @@ const eslintConfig = defineConfig([
   },
 ]);
 
-export default eslintConfig;
+// Playwright E2E test quality rules — separate from the main config array
+// (flat/recommended must not be nested inside defineConfig)
+const playwrightConfig = {
+  files: ["tests/e2e/**/*.spec.ts"],
+  plugins: { playwright },
+  rules: {
+    ...playwright.configs["flat/recommended"].rules,
+    // Prefer getByTestId/getByRole/getByLabel over raw CSS selectors
+    "playwright/no-raw-locators": "error",
+    // Avoid arbitrary waits — use waitForResponse, waitForLoadState, or toBeVisible
+    "playwright/no-wait-for-timeout": "warn",
+    // Prefer web-first assertions (toBeVisible vs isVisible())
+    "playwright/prefer-web-first-assertions": "error",
+    // No { force: true } — fix the underlying issue instead
+    "playwright/no-force-option": "error",
+  },
+};
+
+export default [...eslintConfig, playwrightConfig];
