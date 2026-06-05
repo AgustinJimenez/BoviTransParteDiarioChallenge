@@ -72,9 +72,9 @@ const DashboardTitleBar = ({ onNewRequest, t }: DashboardTitleBarProps) => {
   return (
     <div className="flex items-center justify-between mb-5">
       <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-      <Button onClick={onNewRequest}>
+      <Button onClick={onNewRequest} aria-label={t("newRequest")}>
         <Plus className="w-4 h-4" />
-        {t("newRequest")}
+        <span className="hidden sm:inline">{t("newRequest")}</span>
       </Button>
     </div>
   );

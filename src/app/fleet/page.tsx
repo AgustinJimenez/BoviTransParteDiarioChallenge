@@ -75,9 +75,9 @@ const FleetPageHeader = ({ activeCount, inactiveCount, t }: FleetPageHeaderProps
         </p>
       </div>
       <Link href="/fleet/new">
-        <Button>
+        <Button aria-label={t("register")}>
           <Plus className="w-4 h-4" />
-          {t("register")}
+          <span className="hidden sm:inline">{t("register")}</span>
         </Button>
       </Link>
     </div>

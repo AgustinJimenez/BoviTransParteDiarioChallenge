@@ -6,7 +6,7 @@ GIT: Conventional commits (feat/fix/chore/docs/refactor). Branch: feature/bovitr
 
 API RESPONSES: always { data: T | null, error: string | null }. HTTP codes: 200, 201, 400, 404, 409, 422, 500. Always convert Prisma Decimal fields to Number() before returning JSON.
 
-COMPONENTS: Atomic Design — components/atoms/ = pure presentational primitives (Button, Badge, Input). components/molecules/ = simple domain composites without direct API calls (RequestCard, TruckCard, CapacityAlert, RouteMap). components/organisms/ = complex stateful components with business logic (DashboardClient, RequestDetailPanel, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Navbar). Client-side fetching goes inside useEffect in the component that needs it.
+COMPONENTS: Atomic Design — components/atoms/ = pure presentational primitives (Button, Badge, Input). components/molecules/ = simple domain composites without direct API calls (RequestCard, TruckCard, CapacityAlert, RouteMap, FilterBar). components/organisms/ = complex stateful components with business logic (DashboardClient, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Sidebar). Client-side fetching goes inside useEffect in the component that needs it. Navigation is a collapsible Sidebar (not a top navbar). Detail view is a server page at /requests/[id], not a panel.
 
 COMPONENT STYLE RULES (enforced by ESLint in .tsx files):
 - All components and internal functions must be arrow functions (const X = () => ...). No function declarations. Rule: react/function-component-definition + func-style expression.
@@ -24,7 +24,13 @@ PRISMA V7 GOTCHAS — READ BEFORE TOUCHING SCHEMA:
 
 ZOD V4 + REACT-HOOK-FORM: do not use z.coerce.number() — type mismatch with the resolver. Use z.number() and add { valueAsNumber: true } to register() for number inputs.
 
-TESTS: unit tests with Vitest in src/lib/__tests__/. Run with npm test. Coverage with npm run test:coverage. Only pure functions are tested (calculations.ts). No integration or component tests — the risk surface is in external integrations (Prisma v7, Leaflet, OSRM), not in business logic.
+TESTS — three layers:
+- Unit (npm test): pure functions in src/lib/__tests__/ — calculations.ts, phoneFormat.ts
+- Integration (npm run test:integration): API route handlers against bovitrans_test DB — src/integration/
+- E2E (npm run test:e2e): Playwright browser tests against bovitrans_e2e DB — tests/e2e/
+E2E uses `next build && next start -p 3001` because Next.js 16 locks against two concurrent `next dev` instances. Playwright rule: no raw CSS selectors — use getByTestId(), getByRole(), getByLabel(). Structural elements have data-testid (e.g. data-testid="request-card", data-testid="search-input").
+
+ESLINT GOTCHA: react-hooks/set-state-in-effect does call-graph analysis — it flags any function called from useEffect that transitively calls setState, even after awaits. Legitimate data-fetching patterns need // eslint-disable-line react-hooks/set-state-in-effect with a comment explaining why.
 
 I18N: all UI strings live in messages/es.json, organized by namespace (nav, dashboard, fleet, etc.). Client components use useTranslations("namespace"), server components use await getTranslations("namespace"). Adding a hardcoded string in JSX is a lint error (eslint-plugin-i18next). Using a key that doesn't exist in es.json is a TypeScript error (AppConfig augmentation in src/types/next-intl.d.ts).
 
@@ -32,7 +38,11 @@ LEAFLET: always dynamic import with ssr:false. Import leaflet CSS inside MapInne
 
 KEY FILES:
 - src/lib/calculations.ts — fuel cost formula, single source of truth
+- src/lib/phoneFormat.ts — Argentine phone formatter (+54 9 XXX XXX-XXXX)
 - prisma/schema.prisma — all models have explicit @map annotations
-- docker/init.sql — schema DDL + seed data (4 trucks, 5 requests, fuel price)
+- docker/init.sql — schema DDL + 500-record bulk seed for load testing
+- docker/e2e-seed.sql — minimal 30-record seed for E2E tests
+- vitest.integration.config.ts — integration test config (bovitrans_test DB, hardcoded)
+- playwright.config.ts — E2E config (bovitrans_e2e DB, port 3001, next start)
 - BACKLOG.md — epics, user stories, acceptance criteria, prompts used (graded)
 - DOCUMENTACION.md — architecture decisions, API reference, how to run

@@ -62,6 +62,7 @@ const TruckCardToggleButton = ({ isActive, loading, onToggle, deactivateLabel, a
     onClick={onToggle}
     disabled={loading}
     title={isActive ? deactivateLabel : activateLabel}
+    aria-label={isActive ? deactivateLabel : activateLabel}
     className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
   >
     <ToggleButtonIcon loading={loading} isActive={isActive} />
@@ -95,12 +96,12 @@ const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumpti
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="bg-gray-50 rounded-xl p-3 text-center">
-        <p className="text-2xl font-bold text-emerald-700">{maxCapacity}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{capacityLabel}</p>
+        <p className="text-2xl font-bold text-emerald-950">{maxCapacity}</p>
+        <p className="text-xs text-gray-900 mt-0.5">{capacityLabel}</p>
       </div>
       <div className="bg-gray-50 rounded-xl p-3 text-center">
-        <p className="text-2xl font-bold text-gray-700">{fuelConsumption}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{consumptionLabel}</p>
+        <p className="text-2xl font-bold text-gray-800">{fuelConsumption}</p>
+        <p className="text-xs text-gray-900 mt-0.5">{consumptionLabel}</p>
       </div>
     </div>
   );

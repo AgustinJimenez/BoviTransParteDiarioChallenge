@@ -4,7 +4,9 @@
     "fleet": "Flotas",
     "settings": "Configuración",
     "collapse": "Colapsar menú",
-    "expand": "Expandir menú"
+    "expand": "Expandir menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
   },
   "filterBar": {
     "searchPlaceholder": "Buscar por nombre, teléfono o ciudad...",

@@ -87,7 +87,7 @@ const CardRoute = ({ origin, destination }: CardRouteProps) => {
 
 const CardAssignedTruck = ({ truck, fuelCost, placeholder }: CardAssignedTruckProps) => {
   if (!truck) return (
-    <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 rounded-lg px-2.5 py-1.5">
+    <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1.5">
       <Truck className="w-3.5 h-3.5 shrink-0" />
       <span>{placeholder}</span>
     </div>

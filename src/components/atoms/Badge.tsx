@@ -15,11 +15,13 @@ const statusConfig: Record<RequestStatus, { label: string; className: string }> 
   PENDING:   { label: "Pendiente",  className: "bg-amber-100 text-amber-800 ring-amber-200" },
   ASSIGNED:  { label: "Asignado",   className: "bg-sky-100 text-sky-800 ring-sky-200" },
   COMPLETED: { label: "Completado", className: "bg-emerald-100 text-emerald-800 ring-emerald-200" },
-  CANCELLED: { label: "Cancelado",  className: "bg-gray-100 text-gray-500 ring-gray-200" },
+  CANCELLED: { label: "Cancelado",  className: "bg-gray-100 text-gray-600 ring-gray-200" },
 };
 
+// Gray badge uses bg-white so that even axe-core's P3→sRGB misconversion
+// of the text color gives ≥ 4.5:1 on the pure-white background.
 const variantMap = {
-  gray:  "bg-gray-100 text-gray-700",
+  gray:  "bg-white text-gray-900 ring-1 ring-gray-300",
   green: "bg-emerald-100 text-emerald-800",
   amber: "bg-amber-100 text-amber-800",
   sky:   "bg-sky-100 text-sky-800",

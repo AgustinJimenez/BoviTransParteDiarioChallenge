@@ -25,7 +25,7 @@ const RootLayout = async ({ children }: RootLayoutProps) => {
         <NextIntlClientProvider messages={messages}>
           <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pt-14 lg:pt-0">{children}</main>
           </div>
           {process.env.NODE_ENV !== "production" && <AxeDevTools />}
         </NextIntlClientProvider>
