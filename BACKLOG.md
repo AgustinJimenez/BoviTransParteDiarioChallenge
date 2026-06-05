@@ -964,7 +964,7 @@ Se creó `src/lib/__tests__/phoneFormat.test.ts` con 20 tests en 5 grupos: input
 > "do we have integration tests?"
 > "must have .env for that? cannot be hardcoded? it's just a test tmp db"
 
-Se implementó una capa de tests de integración con Vitest contra una DB `bovitrans_test` real (no mocks). La URL está hardcodeada en `vitest.integration.config.ts` — decisión explícita para evitar riesgo de correr contra la DB de desarrollo. Se incluyó `TRUNCATE ... RESTART IDENTITY CASCADE` en `beforeEach` para aislamiento entre tests.
+Se implementó una capa de tests de integración con Vitest contra una DB `bovitrans_test` real, sin mocks. La URL está hardcodeada en `vitest.integration.config.ts` — decisión explícita para evitar el riesgo de correr accidentalmente contra la DB de desarrollo. Se incluyó `TRUNCATE ... RESTART IDENTITY CASCADE` en `beforeEach` para garantizar el aislamiento entre tests.
 
 ---
 
@@ -974,7 +974,7 @@ Se implementó una capa de tests de integración con Vitest contra una DB `bovit
 > "and we need to make another section for the browser base one, right?"
 > "are we having quality rules on the tests code? like not having hardcoded selector ids but proper test ids for selectors?"
 
-Se configuró Playwright contra `bovitrans_e2e` DB en puerto 3001 con `next build && next start` (no `next dev` — Next.js 16 no permite dos instancias concurrentes). Reglas de calidad: `eslint-plugin-playwright` con `no-raw-locators` y `prefer-web-first-assertions`. Selectores estables via `data-testid` attributes.
+Se configuró Playwright contra la DB `bovitrans_e2e` en el puerto 3001, usando `next build && next start` en lugar de `next dev`, ya que Next.js 16 no permite dos instancias de desarrollo concurrentes. Se agregaron reglas de calidad con `eslint-plugin-playwright`: `no-raw-locators` y `prefer-web-first-assertions`. Los selectores se estabilizan mediante atributos `data-testid`.
 
 ---
 
@@ -985,7 +985,7 @@ Se configuró Playwright contra `bovitrans_e2e` DB en puerto 3001 con `next buil
 > "i realized, it must be actually the right side to have the hamburger icon"
 > "the sidebar must come from the right side too"
 
-Se reemplazó el sidebar siempre visible en mobile por un patrón de drawer: top bar fijo con marca a la izquierda y hamburger a la derecha, backdrop oscuro al abrir, panel que desliza desde la derecha. El sidebar desktop no cambia (sticky, colapsable). Los nav links cierran el drawer al navegar.
+Se reemplazó el sidebar siempre visible en mobile por un patrón de drawer: top bar fijo con la marca a la izquierda y el hamburger a la derecha, backdrop oscuro al abrir, y panel que desliza desde la derecha. El sidebar en desktop no cambia (sticky y colapsable). Los nav links cierran el drawer al navegar.
 
 ---
 
@@ -995,7 +995,7 @@ Se reemplazó el sidebar siempre visible en mobile por un patrón de drawer: top
 > "there are lint errors"
 > "can we note this on the claude file? to check it if the page is open after a ui change?"
 
-El top bar mobile usaba `<div>` — el texto "BoviTrans" dentro de un no-landmark dispara la regla axe `region`. Fix: cambiar a `<header>` (landmark `banner`). Se agregó instrucción a `CLAUDE.md`: revisar la consola del browser por errores axe después de cualquier cambio de UI.
+El top bar mobile usaba `<div>`, lo que hacía que el texto "BoviTrans" quedara fuera de un landmark y disparara la regla axe `region`. La solución fue cambiar el elemento a `<header>`, que es el landmark `banner`. Se agregó una instrucción en `CLAUDE.md`: revisar la consola del browser en busca de errores axe después de cualquier cambio de UI.
 
 ---
 
