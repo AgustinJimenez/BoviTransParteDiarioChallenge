@@ -8,7 +8,6 @@ import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
-import { formatArgentinePhone } from "@/lib/phoneFormat";
 
 const schema = z.object({
   requesterName: z.string().min(1, "El nombre es requerido"),
@@ -98,21 +97,15 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
               name="requesterPhone"
               control={control}
               render={({ field }) => {
-                const PHONE_PREFIX = "+54 9 ";
-                const displayValue = (field.value ?? "").startsWith(PHONE_PREFIX)
-                  ? (field.value ?? "").slice(PHONE_PREFIX.length)
-                  : "";
+                const displayValue = (field.value ?? "").replace(/^\+/, "");
                 return (
                   <Input
-                    leftAddon="+54 9"
+                    leftAddon="+"
                     label={t("phoneLabel")}
                     placeholder={t("phonePlaceholder")}
                     hint={t("phoneHint")}
                     value={displayValue}
-                    onChange={(e) => {
-                      const localDigits = e.target.value.replace(/\D/g, "").slice(0, 10);
-                      field.onChange(localDigits ? formatArgentinePhone(localDigits) : "");
-                    }}
+                    onChange={(e) => field.onChange(e.target.value ? `+${e.target.value}` : "")}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref}
