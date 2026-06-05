@@ -36,7 +36,7 @@ const CC2 = new Set([
 ]);
 
 export const formatInternationalPhone = (raw: string): string => {
-  const digits = raw.replace(/\D/g, "");
+  const digits = raw.replace(/\D/g, "").slice(0, 15); // E.164 max 15 digits
   if (!digits) return "";
 
   if (digits.length >= 3 && CC3.has(digits.slice(0, 3))) {
