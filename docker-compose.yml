@@ -2,10 +2,11 @@ services:
   db:
     image: postgres:15-alpine
     container_name: bovitrans_db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-bovitrans}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bovitrans_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-bovitrans}
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.example
+        required: true
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -24,8 +25,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: bovitrans_app
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.example
+        required: true
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-bovitrans}:${POSTGRES_PASSWORD:-bovitrans_pass}@db:5432/${POSTGRES_DB:-bovitrans}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bovitrans}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bovitrans}?schema=public
       NODE_ENV: production
     ports:
       - "3000:3000"
