@@ -85,8 +85,8 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 
 | Capa | Herramienta | Qué testea | Tests | Comando |
 |---|---|---|---|---|
-| **Unitaria** | Vitest | Funciones puras (`calculations.ts`, `phoneFormat.ts`) | 66 | `npm test` |
-| **Integración API** | Vitest + DB real | Route handlers completos contra `bovitrans_test` | 22 | `npx vitest run --config vitest.integration.config.ts` |
+| **Unitaria** | Vitest | Funciones puras (`calculations.ts`, `phoneFormat.ts`, `format.ts`) | 87 | `npm test` |
+| **Integración API** | Vitest + DB real | Route handlers completos contra `bovitrans_test` | 31 | `npx vitest run --config vitest.integration.config.ts` |
 | **E2E browser** | Playwright | Flujos completos en browser contra `bovitrans_e2e` | — | `npm run test:e2e` |
 
 Los tests de integración llaman a los route handlers directamente (sin servidor HTTP) construyendo un `NextRequest` mock. Cada test trunca las tablas antes de ejecutarse para garantizar aislamiento. Los tests E2E corren contra un servidor de producción Next.js en puerto 3001 con una DB efímera, coexistiendo con el dev server en puerto 3000.
@@ -147,6 +147,19 @@ src/components/
 
 `LocationPickerInner` — envuelve los componentes de react-leaflet que requieren el DOM (`DraggableMarker`, `MapFly`, `MapClickHandler`). Se importa con `dynamic(..., { ssr: false })` desde `LocationPickerInline`. Los marcadores son `L.divIcon` con SVG inline para evitar el problema de rutas rotas del ícono por defecto de Leaflet en Next.js.
 
+### Helpers de formateo — `src/lib/format.ts`
+
+Fuente única de verdad para el formateo numérico en la UI. Todas las funciones usan locale `es-AR` (punto = miles, coma = decimales):
+
+| Función | Salida | Ejemplo |
+|---|---|---|
+| `fmtDistance(km)` | hasta 2 decimales, sin trailing zeros | `310,5` |
+| `fmtConsumption(lPerKm)` | siempre 2 decimales | `0,45` |
+| `fmtCost(gs)` | entero con separador de miles | `1.047.938` |
+| `fmtPrice(gs)` | entero con separador de miles | `7.500` |
+
+Ningún componente formatea números directamente con `.toLocaleString()` — todo pasa por estas funciones.
+
 Las páginas en `app/` actúan como templates — componen organismos sin lógica propia. Convenciones internas:
 - Todos los componentes y funciones internas son arrow functions (`const X = () =>`)
 - Props declaradas como interfaces nombradas (`ComponentNameProps`) agrupadas al inicio del archivo
@@ -182,7 +195,7 @@ Las páginas en `app/` actúan como templates — componen organismos sin lógic
 │ system_config │
 ├───────────────┤
 │ key (PK)      │   Registro inicial:
-│ value         │   fuel_price_per_liter = '1250'
+│ value         │   fuel_price_per_liter = '7500'
 │ updated_at    │
 └───────────────┘
 ```
@@ -232,7 +245,7 @@ Las páginas en `app/` actúan como templates — componen organismos sin lógic
 | `value` | VARCHAR(500) | NOT NULL | Valor como string (parseado en la app) |
 | `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
 
-Registro inicial: `fuel_price_per_liter = '1250'`
+Registro inicial: `fuel_price_per_liter = '7500'` (Gs. 7.500/litro — precio diesel Paraguay)
 
 ### Fórmula de costo de combustible
 
@@ -402,6 +415,25 @@ Asigna un camión a una solicitud. Realiza:
 
 **Responses:** `200` · `400` · `404` · `422` (camión inactivo o solicitud completada)
 
+#### `PATCH /api/transport-requests/:id/status`
+
+Avanza el estado de una solicitud según la máquina de estados definida.
+
+**Body:** `{ "status": "COMPLETED" | "CANCELLED" }`
+
+**Transiciones válidas:**
+
+| Estado actual | Estados destino permitidos |
+|---|---|
+| `PENDING` | `CANCELLED` |
+| `ASSIGNED` | `COMPLETED`, `CANCELLED` |
+| `COMPLETED` | — (terminal) |
+| `CANCELLED` | — (terminal) |
+
+**Responses:** `200` · `400` (status inválido o ausente) · `404` (solicitud no encontrada) · `422` (transición no permitida)
+
+**Nota:** Este endpoint no modifica `assignedTruck` — el historial de asignación se preserva aunque la solicitud quede cancelada o completada.
+
 ---
 
 ### Config
@@ -451,10 +483,15 @@ RequestDetailPage (Server) ← /requests/:id
   → fetcha camiones activos + precio combustible en paralelo
   ├── RequestRouteSection: mapa (Leaflet) + distancia
   ├── RequestRequesterCard + RequestCargoCard
-  └── RequestAssignmentClient (Client)
-       ├── TruckSelector → cálculo de costo client-side reactivo
-       ├── CapacityAlert (ok / tight / exceeded + tripsNeeded)
-       └── PATCH /api/.../assign → router.refresh()
+  ├── RequestAssignmentClient (Client) — solo si isActionable (PENDING/ASSIGNED)
+  │    ├── TruckSelector → cálculo de costo client-side reactivo
+  │    ├── CapacityAlert (ok / tight / exceeded + tripsNeeded)
+  │    └── PATCH /api/.../assign → router.refresh()
+  ├── RequestStatusActions (Client) — solo si isActionable
+  │    ├── "Marcar como completado" → PATCH /api/.../status {COMPLETED}
+  │    └── "Cancelar solicitud"    → PATCH /api/.../status {CANCELLED}
+  └── RequestCompletedAssignment — solo si !isActionable && assignedTruck
+       └── muestra datos de asignación en modo lectura (camión, distancia, costo)
 ```
 
 ### Navegación — Sidebar
@@ -502,8 +539,10 @@ La polilínea entre origen y destino es una línea recta (no sigue carreteras). 
 El costo de combustible se actualiza instantáneamente al seleccionar un camión sin hacer ningún request al servidor. Todos los datos necesarios (distancia, consumo, precio) están disponibles en el cliente al momento de abrir el panel. La fórmula se ejecuta en `lib/calculations.ts` y el resultado se muestra con su desglose:
 
 ```
-405.4 km × 0.45 L/km × $1.250/L = $228.043
+310,5 km × 0,45 L/km × Gs. 7.500/L = Gs. 1.047.938
 ```
+
+El formateo de números usa locale `es-AR` (puntos como separador de miles, comas como decimal) mediante las funciones de `src/lib/format.ts` (`fmtDistance`, `fmtConsumption`, `fmtCost`, `fmtPrice`), que son la única fuente de verdad del formateo numérico en la UI.
 
 ### Alerta de Capacidad
 
@@ -515,7 +554,7 @@ Tres estados visuales:
 | Tight | `cattleCount > maxCapacity × 0.9` | Ámbar |
 | Exceeded | `cattleCount > maxCapacity` | Rojo |
 
-En estado `Exceeded` se muestra: número de viajes necesarios (`Math.ceil(cattleCount / maxCapacity)`) y el camión alternativo con mayor capacidad disponible en la flota activa.
+En estado `Exceeded` se muestra: número de viajes necesarios (`Math.ceil(cattleCount / maxCapacity)`) y el camión alternativo sugerido. La sugerencia prioriza el camión con **menor capacidad que aún puede atender el pedido completo** (mínimo suficiente); si ninguno tiene capacidad suficiente, se sugiere el de mayor capacidad disponible.
 
 ---
 

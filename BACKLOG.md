@@ -1061,6 +1061,124 @@ El schema `CreateRequestSchema` (Zod) en `src/app/api/transport-requests/route.t
 
 ---
 
+### Intercambio 40 — Helpers de formateo unificados para números
+
+**Desarrollador:**
+> "en la pagina de detalles, los precios, estan con separador de miles en puntos y decimales en comas?"
+> "can you check where else is being used? we must use probably an unified function or helper"
+
+**Diagnóstico:** El sistema usaba `toLocaleString("es-AR", ...)` con opciones distintas en cada archivo, lo que generaba inconsistencias. En la página de detalle, la distancia aparecía como "392,95 km" en la sección de ruta pero "393,0 km" en la fórmula de combustible, ya que cada llamada usaba opciones de decimales distintas.
+
+**Decisión implementada:** Se creó `src/lib/format.ts` como única fuente de verdad para todos los números formateados:
+- `fmtDistance(km)` — hasta 2 decimales sin trailing zeros (`392,95`, `310`)
+- `fmtConsumption(lPerKm)` — siempre 2 decimales (`0,45`, `0,40`)
+- `fmtCost(gs)` — sin decimales (`1.078.043`)
+- `fmtPrice(gs)` — sin decimales (`7.500`)
+
+Se migró cada `toLocaleString("es-AR", ...)` en los 5 archivos que lo usaban: `RequestAssignmentClient.tsx`, `page.tsx`, `RequestCard.tsx`, `TruckCard.tsx`, `TruckSelector.tsx`. Cualquier cambio futuro en la forma de mostrar números solo requiere editar un archivo.
+
+---
+
+### Intercambio 41 — Moneda Guaraníes y contexto paraguayo en los seed data
+
+**Desarrollador:**
+> "what currency are you using?"
+> "guaranies, but, the cost, are you using some realistic values?"
+
+El sistema usaba pesos argentinos (`$`) y un precio de combustible de 1.250 ARS/L con ciudades argentinas. BoviTrans es una plataforma paraguaya.
+
+**Decisión implementada:**
+- Símbolo de moneda cambiado de `$` a `Gs.` en toda la UI
+- `system_config.fuel_price_per_liter`: 1250 → **7500** (Gs./L, precio real del diésel en Paraguay 2025)
+- `docker/init.sql` y `docker/e2e-seed.sql` actualizados con 20 ciudades paraguayas (Asunción, Encarnación, Ciudad del Este, Concepción, Villarrica, y otras) con coordenadas reales
+- Teléfonos de seed: `+54 9 ...` (Argentina) → `+595 9XX ...` (Paraguay)
+- Costos de combustible de los 5 pedidos base recalculados con el nuevo precio
+- Se reinicializó el volumen Docker (`docker compose down -v && up`) para re-seedear
+
+---
+
+### Intercambio 42 — Detalle de costo visible en pedidos COMPLETADOS
+
+**Desarrollador:**
+> "en las completas no puedo ver los detalles del costo"
+
+**Diagnóstico:** La flag `isActionable = status !== "COMPLETED" && status !== "CANCELLED"` ocultaba toda la sección de asignación para pedidos completados. El usuario solo veía el badge "✓ Solicitud completada" sin ningún detalle del costo ni del camión.
+
+**Error encontrado:** Al intentar pasar la fórmula de combustible como string interpolado con `t("fuelFormula")` sin argumentos, next-intl lanzaba `FORMATTING_ERROR` porque la key tiene variables `{distance}`, `{consumption}`, etc. y el cliente las exige todas.
+
+**Fix del error:** La fórmula se computa íntegramente en el server component (donde están los valores) y se pasa como `formattedFormula: string | null` al componente hijo — que la renderiza directamente sin llamar a `t()`.
+
+**Decisión implementada:** Se creó `RequestCompletedAssignment` — un componente server de solo lectura que muestra para pedidos COMPLETED: precio de combustible por litro, costo total, fórmula desglosada, datos del camión asignado, y el banner de completado. El icono `Truck` de lucide-react se importa como `TruckIcon` para evitar colisión de nombres con el tipo de dominio `Truck`.
+
+---
+
+### Intercambio 43 — Fix en sugerencia de camión alternativo (capacidad excedida)
+
+**Desarrollador:**
+> [captura mostrando que se sugiere el camión de 50 cuando debería sugerirse el de 40 para un pedido de 34 cabezas]
+
+**Diagnóstico:** La lógica de `suggestedTruck` en `RequestAssignmentClient.tsx` ordenaba los camiones por capacidad **descendente** y tomaba el primero — siempre el mayor. Lo correcto es sugerir el camión de capacidad mínima suficiente para el pedido.
+
+**Decisión implementada:** Nueva lógica en tres pasos:
+1. Filtrar camiones con `maxCapacity >= cattleCount`
+2. De esos, ordenar ascendente y tomar el primero (mínimo suficiente)
+3. Si ninguno cubre el total, fallback al mayor disponible
+
+Ejemplo: pedido de 34 cabezas, camiones disponibles de 20, 30, 40 y 50 → sugiere el de **40** (mínimo que cabe), no el de 50.
+
+---
+
+### Intercambio 44 — Transiciones de estado: Completar y Cancelar
+
+**Desarrollador:**
+> "ok, y una vez que ya esta asignado, cuales son los sgtes estados en el que el pedido puede avanzar?"
+> "si, en la pagina de detalles, agreguemos dos botones para que el usuario cambie el estado"
+
+**Diagnóstico:** Los estados `COMPLETED` y `CANCELLED` existían en el enum pero ningún endpoint ni botón los activaba. Un pedido asignado quedaba atascado indefinidamente.
+
+**Decisión implementada:**
+
+Máquina de estados implementada:
+- `PENDING → CANCELLED`
+- `ASSIGNED → COMPLETED`
+- `ASSIGNED → CANCELLED`
+
+1. **`PATCH /api/transport-requests/[id]/status`** — nuevo endpoint que valida la transición permitida según el estado actual y retorna 422 si no corresponde.
+2. **`RequestStatusActions`** — client component co-localizado en `/requests/[id]/`. Muestra "Marcar como completado" (verde, solo si ASSIGNED) y "Cancelar solicitud" (borde rojo). Ambos bloquean el otro mientras están cargando. Usa `router.refresh()` para que el server component recargue el nuevo estado. El botón "Completar" usa `variant="primary"` del atom `Button` (emerald-700) para garantizar contraste WCAG AA — emerald-600 (#009966) falla con texto blanco (ratio 3.65:1).
+
+---
+
+### Intercambio 45 — Lint, contraste y migración de strings a i18n
+
+**Desarrollador:**
+> "check lint, mcp chrome error"
+
+**Diagnóstico:** 7 errores de `i18next/no-literal-string` por strings hardcodeados en JSX (`"Gs. {price}/L"`, `"Gs. {cost}"`, `"Cap. {capacity} cab. · {consumption} L/km"`). Error de contraste axe-core: botón "Completar" usaba `bg-emerald-600` (#009966), ratio 3.65:1 con texto blanco (mínimo WCAG AA: 4.5:1). Dos warnings de variables no usadas (`RequestCompletedBanner` y `distanceKm`).
+
+**Decisión implementada:**
+- Nuevas keys en `messages/es.json`: `fuelPricePerLiter`, `fuelCostValue`, `truckStats` en `requestDetail`; `fuelCostValue` en `requestCard` y `truckSelector`
+- `RequestCompletedAssignment` refactorizado para recibir strings pre-formateados como props (`fuelPriceLabel`, `fuelCostLabel`, `truckStatsLabel`) en lugar de números raw — evita llamar a `t()` dentro de un server component que no tiene acceso directo a la función
+- `CardAssignedTruck` en `RequestCard` pasó de `fuelCost: number` a `fuelCostLabel: string | null` por la misma razón (sub-componente sin acceso a `t`)
+- `RequestCompletedBanner` eliminado (muerto tras crear `RequestCompletedAssignment`)
+- Botón "Completar": `bg-emerald-600` → `variant="primary"` (emerald-700, ratio ~5.3:1 ✓)
+
+---
+
+### Intercambio 46 — Costo visible en pedidos CANCELADOS; mensaje para cancelados sin camión
+
+**Desarrollador:**
+> "en esta solicitud cancelada, no se ven los precios"
+> "cuando se cancela un pedido pendiente, hay que mencionar que no tiene asignacion, ahora solo muestra en blanco"
+
+**Diagnóstico:** `RequestCompletedAssignment` solo se mostraba para `status === "COMPLETED"`. Un pedido cancelado que tenía camión asignado (ASSIGNED → CANCELLED) no mostraba ningún detalle. Además, un pedido cancelado desde PENDING (sin camión) mostraba la sección vacía sin ningún mensaje.
+
+**Decisión implementada:**
+- La condición cambió de `request.status === "COMPLETED"` a `!isActionable && request.assignedTruck` — cubre tanto COMPLETED como CANCELLED con camión
+- `completedBannerLabel` pasó a ser `string | null`; se renderiza el banner verde solo cuando `status === "COMPLETED"`, para CANCELLED se pasa `null`
+- Para CANCELLED sin camión: se agrega un mensaje en gris `"Solicitud cancelada sin camión asignado."` usando la nueva key `cancelledNoAssignment` en `messages/es.json`
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.

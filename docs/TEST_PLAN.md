@@ -17,6 +17,7 @@
 | [TP-06](#tp-06-verificación-de-fórmula-de-combustible) | Verificación de fórmula de combustible |
 | [TP-07](#tp-07-gestión-de-flota--crud-de-camiones) | Gestión de flota — CRUD de camiones |
 | [TP-08](#tp-08-configuración--precio-de-combustible) | Configuración — Precio de combustible |
+| [TP-09](#tp-09-transiciones-de-estado) | Transiciones de estado (Completar / Cancelar) |
 
 ---
 
@@ -35,19 +36,19 @@ El sistema arranca con los siguientes datos cargados automáticamente en `docker
 
 ### Solicitudes
 
-| Solicitante | Cabezas | Origen | Destino | Estado | Camión |
-|---|---|---|---|---|---|
-| Juan Pérez | 25 | Rosario, Santa Fe | Córdoba Capital | PENDING | — |
-| María González | 45 | Buenos Aires | Mar del Plata | PENDING | — |
-| Carlos Rodríguez | 18 | Córdoba Capital | Mendoza Capital | ASSIGNED | AB-123-CD |
-| Ana Martínez | 15 | La Plata | Bahía Blanca | ASSIGNED | EF-456-GH |
-| Roberto Silva | 35 | Salta Capital | Tucumán Capital | COMPLETED | IJ-789-KL |
+| Solicitante | Cabezas | Origen | Destino | Estado | Camión | Distancia |
+|---|---|---|---|---|---|---|
+| Carlos Méndez | 25 | Concepción, Paraguay | Asunción, Paraguay | ASSIGNED | AB-123-CD | 310,5 km |
+| Lucía Fernández | 45 | Encarnación, Paraguay | Ciudad del Este | ASSIGNED | EF-456-GH | 290,4 km |
+| Diego Ríos | 18 | Villarrica, Paraguay | Asunción, Paraguay | PENDING | — | — |
+| Ana González | 15 | Pedro Juan Caballero | Concepción, Paraguay | PENDING | — | — |
+| Roberto Ibarra | 35 | Pilar, Paraguay | Asunción, Paraguay | COMPLETED | IJ-789-KL | — |
 
 ### Configuración
 
 | Clave | Valor |
 |---|---|
-| fuel_price_per_liter | $1.250 ARS/litro |
+| fuel_price_per_liter | Gs. 7.500/litro (precio diesel Paraguay) |
 
 ---
 
@@ -106,7 +107,7 @@ El sistema arranca con los siguientes datos cargados automáticamente en `docker
 
 **Pasos:**
 1. Desde el dashboard, abrir el modal/formulario de nueva solicitud
-2. Completar: Nombre = "Pedro López", Teléfono = "+54 9 11 555-0000", Cabezas = 10, Origen = "Rosario, Santa Fe", Destino = "Buenos Aires"
+2. Completar: Nombre = "Pedro López", Teléfono = "+595 985 246 653", Cabezas = 10, Origen = "Encarnación, Paraguay", Destino = "Asunción, Paraguay"
 3. Confirmar envío
 
 **Resultado esperado:**
@@ -450,11 +451,16 @@ El sistema arranca con los siguientes datos cargados automáticamente en `docker
 
 ### TC-506 — Sugerencia de camión alternativo
 
-**Escenario:** Solicitud con 45 cabezas. Camiones activos: EF-456-GH (20), AB-123-CD (30), IJ-789-KL (40). Ninguno tiene capacidad suficiente excepto IJ-789-KL que aún excede (40 < 45).
+**Escenario A:** Solicitud con 25 cabezas. El camión seleccionado es EF-456-GH (20). Otros activos: AB-123-CD (30), IJ-789-KL (40).
 
 **Resultado esperado:**
-- La UI sugiere el camión con mayor capacidad disponible (IJ-789-KL) como mejor alternativa
-- Si ningún camión tiene capacidad suficiente, la sugerencia señala el de mayor capacidad disponible
+- La UI sugiere AB-123-CD (30 cabezas) — el de **menor capacidad que aún puede atender el pedido**
+- No sugiere IJ-789-KL aunque tenga mayor capacidad (el mínimo suficiente es preferible)
+
+**Escenario B:** Solicitud con 45 cabezas. Camiones activos: EF-456-GH (20), AB-123-CD (30), IJ-789-KL (40). Ninguno tiene capacidad suficiente (todos < 45).
+
+**Resultado esperado:**
+- La UI sugiere IJ-789-KL (40 cabezas) — el de **mayor capacidad disponible** como fallback
 
 ---
 
@@ -465,35 +471,36 @@ El sistema arranca con los siguientes datos cargados automáticamente en `docker
 
 ### TC-601 — Verificación matemática directa
 
-**Escenario de referencia:**
+**Escenario de referencia (datos semilla):**
 
 | Variable | Valor |
 |---|---|
-| Distancia | 100 km |
-| Consumo (camión AB-123-CD) | 0.45 L/km |
-| Precio combustible | $1.250 ARS/litro |
+| Ruta | Concepción → Asunción |
+| Distancia | 310,5 km |
+| Consumo (camión AB-123-CD) | 0,45 L/km |
+| Precio combustible | Gs. 7.500/litro |
 
 **Cálculo esperado:**
 
 ```
-Costo = 100 × 0.45 × 1.250
-Costo = 45 × 1.250
-Costo = $56.250 ARS
+Costo = 310,5 × 0,45 × 7.500
+Costo = 139,725 × 7.500
+Costo = Gs. 1.047.938 (redondeado)
 ```
 
-**Cómo verificar:** Crear una solicitud con origen y destino a aprox. 100 km de distancia, asignar AB-123-CD, y confirmar que el costo mostrado coincide con la fórmula.
+**Cómo verificar:** Abrir el detalle de la solicitud Concepción → Asunción (asignada a AB-123-CD) y confirmar que el costo mostrado es `Gs. 1.047.938`.
 
 ---
 
 ### TC-602 — El precio de combustible afecta el costo
 
 **Pasos:**
-1. Anotar el costo de combustible de una asignación existente
-2. Ir a Configuración y cambiar el precio de $1.250 a $2.500 (doble)
+1. Anotar el costo de combustible de una asignación existente (ej: Gs. 1.047.938 para Concepción → Asunción)
+2. Ir a Configuración y cambiar el precio de Gs. 7.500 a Gs. 15.000 (doble)
 3. Crear una nueva solicitud con la misma ruta y asignar el mismo camión
 
 **Resultado esperado:**
-- El costo de la nueva asignación es exactamente el doble del original
+- El costo de la nueva asignación es exactamente el doble del original (aprox. Gs. 2.095.875)
 - La fórmula escala linealmente con el precio
 
 ---
@@ -511,11 +518,11 @@ Costo = $56.250 ARS
 
 ### TC-604 — Ruta larga intercity
 
-**Escenario:** Buenos Aires → Mendoza (aprox. 1.050 km por ruta)
+**Escenario:** Pedro Juan Caballero → Asunción (aprox. 475 km por ruta)
 
-Con camión IJ-789-KL (0.55 L/km) a $1.250/litro:
+Con camión IJ-789-KL (0,55 L/km) a Gs. 7.500/litro:
 ```
-Esperado ≈ 1.050 × 0.55 × 1.250 ≈ $721.875 ARS
+Esperado ≈ 475 × 0,55 × 7.500 ≈ Gs. 1.959.375
 ```
 
 **Resultado esperado:**
@@ -683,7 +690,7 @@ Esperado ≈ 1.050 × 0.55 × 1.250 ≈ $721.875 ARS
 1. Navegar a `/settings`
 
 **Resultado esperado:**
-- Se muestra el precio actual: $1.250/litro (valor semilla)
+- Se muestra el precio actual: Gs. 7.500/litro (valor semilla)
 - Se muestra la fecha de última modificación
 
 ---
@@ -691,11 +698,11 @@ Esperado ≈ 1.050 × 0.55 × 1.250 ≈ $721.875 ARS
 ### TC-802 — Actualizar precio válido
 
 **Pasos:**
-1. Cambiar el precio a $1.500
+1. Cambiar el precio a Gs. 8.000
 2. Confirmar
 
 **Resultado esperado:**
-- HTTP 200, el precio guardado es $1.500
+- HTTP 200, el precio guardado es Gs. 8.000
 - La página refleja el nuevo valor inmediatamente
 
 ---
@@ -750,7 +757,107 @@ Esperado ≈ 1.050 × 0.55 × 1.250 ≈ $721.875 ARS
 
 **Resultado esperado:**
 - La API crea la clave con `upsert` (CREATE en primera vez, UPDATE en siguientes)
-- El GET retorna el valor por defecto de $1.250 si no existe la clave en DB
+- El GET retorna el valor por defecto de Gs. 7.500 si no existe la clave en DB
+
+---
+
+---
+
+## TP-09: Transiciones de Estado
+
+> La página de detalle muestra botones de acción para solicitudes en estado `PENDING` o `ASSIGNED`. Las solicitudes en estados terminales (`COMPLETED`, `CANCELLED`) muestran la información en modo lectura.
+
+### Máquina de estados
+
+| Desde | Botón "Marcar como completado" | Botón "Cancelar solicitud" |
+|---|---|---|
+| `PENDING` | No visible | Visible |
+| `ASSIGNED` | Visible | Visible |
+| `COMPLETED` | No visible (estado terminal) | No visible |
+| `CANCELLED` | No visible (estado terminal) | No visible |
+
+---
+
+### TC-901 — Cancelar solicitud PENDING
+
+**Pasos:**
+1. Abrir el detalle de una solicitud en estado PENDING (ej: Diego Ríos)
+2. Hacer clic en "Cancelar solicitud"
+3. Confirmar
+
+**Resultado esperado:**
+- HTTP 200 de `PATCH /api/transport-requests/{id}/status`
+- El badge cambia a CANCELLED (gris)
+- Los botones de acción desaparecen
+- El panel de asignación muestra el mensaje "Solicitud cancelada sin camión asignado."
+- No hay crash ni error visible
+
+---
+
+### TC-902 — Marcar como completado solicitud ASSIGNED
+
+**Pasos:**
+1. Abrir el detalle de Carlos Méndez (ASSIGNED, con AB-123-CD)
+2. Hacer clic en "Marcar como completado"
+3. Confirmar
+
+**Resultado esperado:**
+- HTTP 200
+- El badge cambia a COMPLETED (verde)
+- Los botones de acción desaparecen
+- Se muestra la sección de asignación en modo lectura con los datos del camión, distancia y costo
+- No se puede volver a ASSIGNED ni a ningún otro estado
+
+---
+
+### TC-903 — Cancelar solicitud ASSIGNED
+
+**Pasos:**
+1. Abrir el detalle de Lucía Fernández (ASSIGNED, con EF-456-GH)
+2. Hacer clic en "Cancelar solicitud"
+
+**Resultado esperado:**
+- HTTP 200
+- El badge cambia a CANCELLED
+- La sección de asignación muestra los datos del camión (EF-456-GH) en modo lectura — el historial se preserva
+- Mensaje NO es "sin camión asignado" — se ven los datos del camión que estuvo asignado
+
+---
+
+### TC-904 — Transición inválida bloqueada por la API
+
+**Pasos (vía API directa):**
+1. Intentar `PATCH /api/transport-requests/{id}/status` con `{ status: "COMPLETED" }` sobre una solicitud PENDING
+
+**Resultado esperado:**
+- HTTP 422 con mensaje de error
+- El estado no cambia
+
+---
+
+### TC-905 — Solicitud COMPLETED no muestra botones
+
+**Pasos:**
+1. Abrir el detalle de Roberto Ibarra (COMPLETED)
+
+**Resultado esperado:**
+- No aparecen botones "Marcar como completado" ni "Cancelar solicitud"
+- Se muestra la información del camión asignado en modo lectura
+- La UI refleja el estado terminal correctamente
+
+---
+
+### TC-906 — Solicitud CANCELLED sin asignación previa
+
+**Pasos:**
+1. Cancelar una solicitud PENDING (sin asignar camión antes)
+2. Volver a abrir el detalle
+
+**Resultado esperado:**
+- Badge CANCELLED (gris)
+- No aparecen botones de acción
+- En la sección inferior se muestra el mensaje: "Solicitud cancelada sin camión asignado."
+- No hay sección en blanco ni error visual
 
 ---
 
@@ -765,6 +872,8 @@ Esperado ≈ 1.050 × 0.55 × 1.250 ≈ $721.875 ARS
 | Flota | Camión inactivo aparece disponible para asignar | Alta | TC-403, TC-708 |
 | Fórmula | Cambio en `calculations.ts` no propagado a UI | Alta | TC-601 a TC-605 |
 | Prisma | Campos Decimal no convertidos a Number antes de JSON | Alta | TC-301, TC-401 |
+| Estado | Transición inválida no bloqueada por la API | Alta | TC-904 |
+| Estado | Botones visibles en solicitudes en estado terminal | Media | TC-905 |
 
 ---
 
@@ -779,4 +888,7 @@ Para considerar el MVP listo para entrega, todos los siguientes deben estar en v
 - [ ] TC-702: Se puede registrar un nuevo camión
 - [ ] TC-709: La desactivación de camión con solicitudes activas genera advertencia (sin bloquear)
 - [ ] TC-802: El precio de combustible se actualiza correctamente
+- [ ] TC-902: Se puede marcar como completada una solicitud ASSIGNED
+- [ ] TC-901: Se puede cancelar una solicitud PENDING
+- [ ] TC-905: Una solicitud COMPLETED no muestra botones de acción
 - [ ] TC-301: El mapa carga con marcadores en origen y destino
