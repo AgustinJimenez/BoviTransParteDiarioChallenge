@@ -29,7 +29,8 @@
   },
   "requestCard": {
     "cattleUnit": "cabezas de ganado",
-    "noTruck": "Sin camión asignado"
+    "noTruck": "Sin camión asignado",
+    "fuelCostValue": "Gs. {cost}"
   },
   "requestDetail": {
     "sectionRequester": "Solicitante",
@@ -47,7 +48,14 @@
     "completedBanner": "✓ Solicitud completada",
     "close": "Cerrar",
     "reassign": "Reasignar",
-    "assign": "Asignar camión"
+    "assign": "Asignar camión",
+    "fuelPricePerLiter": "Gs. {price}/L",
+    "fuelCostValue": "Gs. {cost}",
+    "truckStats": "Cap. {capacity} cab. · {consumption} L/km",
+    "cancelledNoAssignment": "Solicitud cancelada sin camión asignado.",
+    "sectionActions": "Acciones",
+    "markCompleted": "Marcar como completado",
+    "markCancelled": "Cancelar solicitud"
   },
   "capacityAlert": {
     "ok": "Capacidad suficiente — quedan <b>{free}</b> lugares disponibles.",
@@ -97,6 +105,7 @@
     "empty": "No hay camiones activos disponibles.",
     "current": "Actual",
     "fuelLabel": "Combustible",
+    "fuelCostValue": "Gs. {cost}",
     "capacityHint": "Cap. {capacity} cab. · {consumption} L/km"
   },
   "newTruck": {

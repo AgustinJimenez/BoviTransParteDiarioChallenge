@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export const seedFuelPrice = async (price = 1250) => {
+export const seedFuelPrice = async (price = 7500) => {
   await prisma.systemConfig.create({ data: { key: "fuel_price_per_liter", value: String(price) } });
 };
 

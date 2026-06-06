@@ -5,6 +5,7 @@ import { Truck as TruckIcon, ToggleLeft, ToggleRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/atoms/Badge";
+import { fmtConsumption } from "@/lib/format";
 import type { Truck } from "@/types";
 
 interface TruckCardIconProps {
@@ -100,7 +101,7 @@ const TruckCardStats = ({ maxCapacity, fuelConsumption, capacityLabel, consumpti
         <p className="text-xs text-gray-900 mt-0.5">{capacityLabel}</p>
       </div>
       <div className="bg-gray-50 rounded-xl p-3 text-center">
-        <p className="text-2xl font-bold text-gray-800">{Number(fuelConsumption).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="text-2xl font-bold text-gray-800">{fmtConsumption(fuelConsumption)}</p>
         <p className="text-xs text-gray-900 mt-0.5">{consumptionLabel}</p>
       </div>
     </div>

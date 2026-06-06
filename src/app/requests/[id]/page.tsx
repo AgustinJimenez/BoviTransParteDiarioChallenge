@@ -5,10 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { geocodeLocation } from "@/lib/geocoding";
 import { getRoadDistanceKm } from "@/lib/routing";
+import { fmtDistance, fmtConsumption, fmtCost, fmtPrice } from "@/lib/format";
 import { StatusBadge } from "@/components/atoms/Badge";
 import RouteMap from "@/components/molecules/RouteMap";
 import BackButton from "./BackButton";
 import RequestAssignmentClient from "./RequestAssignmentClient";
+import RequestStatusActions from "./RequestStatusActions";
 import type { TransportRequest, Truck, RequestStatus } from "@/types";
 
 interface RequestDetailPageProps {
@@ -39,17 +41,15 @@ interface RequestCargoCardProps {
   cattleUnit: string;
 }
 
-interface RequestCompletedBannerProps {
-  label: string;
-}
-
 interface RequestCompletedAssignmentProps {
   request: TransportRequest;
-  fuelPrice: number;
+  fuelPriceLabel: string;
+  fuelCostLabel: string | null;
+  truckStatsLabel: string | null;
   sectionLabel: string;
   fuelEstimateLabel: string;
-  fuelFormula: string;
-  completedBannerLabel: string;
+  formattedFormula: string | null;
+  completedBannerLabel: string | null;
 }
 
 type RequestWithTruck = Prisma.TransportRequestGetPayload<{ include: { assignedTruck: true } }>;
@@ -135,7 +135,7 @@ const RequestRouteSection = ({ request, sectionLabel, originLabel, destinationLa
         <div>
           <p className="text-xs text-gray-500">{distanceLabel}</p>
           <p className="font-semibold text-gray-800 text-sm">
-            {Number(request.distanceKm).toLocaleString("es-AR")} km
+            {fmtDistance(Number(request.distanceKm))} km
           </p>
         </div>
       </div>
@@ -169,43 +169,29 @@ const RequestCargoCard = ({ cattleCount, sectionLabel, cattleUnit }: RequestCarg
   </div>
 );
 
-const RequestCompletedBanner = ({ label }: RequestCompletedBannerProps) => (
-  <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-4 text-sm text-emerald-700 text-center font-medium">
-    {label}
-  </div>
-);
-
-const RequestCompletedAssignment = ({ request, fuelPrice, sectionLabel, fuelEstimateLabel, fuelFormula, completedBannerLabel }: RequestCompletedAssignmentProps) => {
+const RequestCompletedAssignment = ({ request, fuelPriceLabel, fuelCostLabel, truckStatsLabel, sectionLabel, fuelEstimateLabel, formattedFormula, completedBannerLabel }: RequestCompletedAssignmentProps) => {
   const truck = request.assignedTruck;
-  const fuelCost = request.fuelCost;
-  const distanceKm = request.distanceKm;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{sectionLabel}</p>
-        <span className="text-xs text-gray-500">Gs. {fuelPrice.toLocaleString("es-AR")}/L</span>
+        <span className="text-xs text-gray-500">{fuelPriceLabel}</span>
       </div>
 
-      {fuelCost != null && (
+      {fuelCostLabel && (
         <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
           <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
           <div>
             <p className="text-xs text-gray-500">{fuelEstimateLabel}</p>
-            <p className="font-semibold text-gray-800 text-sm">
-              Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
-            </p>
+            <p className="font-semibold text-gray-800 text-sm">{fuelCostLabel}</p>
           </div>
         </div>
       )}
 
-      {truck && distanceKm != null && fuelCost != null && (
+      {formattedFormula && (
         <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
-          {fuelFormula
-            .replace("{distance}", distanceKm.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
-            .replace("{consumption}", truck.fuelConsumption.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
-            .replace("{price}", fuelPrice.toLocaleString("es-AR"))
-            .replace("{total}", fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }))}
+          {formattedFormula}
         </div>
       )}
 
@@ -216,16 +202,16 @@ const RequestCompletedAssignment = ({ request, fuelPrice, sectionLabel, fuelEsti
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">{truck.plate}</p>
-            <p className="text-xs text-gray-500">
-              Cap. {truck.maxCapacity} cab. · {truck.fuelConsumption.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/km
-            </p>
+            {truckStatsLabel && <p className="text-xs text-gray-500">{truckStatsLabel}</p>}
           </div>
         </div>
       )}
 
-      <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-3 text-sm text-emerald-700 text-center font-medium">
-        {completedBannerLabel}
-      </div>
+      {completedBannerLabel && (
+        <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-3 text-sm text-emerald-700 text-center font-medium">
+          {completedBannerLabel}
+        </div>
+      )}
     </div>
   );
 };
@@ -299,14 +285,33 @@ const RequestDetailPage = async ({ params }: RequestDetailPageProps) => {
           {isActionable && (
             <RequestAssignmentClient request={request} trucks={trucks} fuelPrice={fuelPrice} />
           )}
-          {request.status === "COMPLETED" && (
+          {isActionable && (
+            <RequestStatusActions requestId={request.id} status={request.status} />
+          )}
+          {request.status === "CANCELLED" && !request.assignedTruck && (
+            <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 text-sm text-gray-500 text-center">
+              {t("cancelledNoAssignment")}
+            </div>
+          )}
+          {!isActionable && request.assignedTruck && (
             <RequestCompletedAssignment
               request={request}
-              fuelPrice={fuelPrice}
+              fuelPriceLabel={t("fuelPricePerLiter", { price: fmtPrice(fuelPrice) })}
+              fuelCostLabel={request.fuelCost != null ? t("fuelCostValue", { cost: fmtCost(request.fuelCost) }) : null}
+              truckStatsLabel={t("truckStats", { capacity: request.assignedTruck.maxCapacity, consumption: fmtConsumption(request.assignedTruck.fuelConsumption) })}
               sectionLabel={t("sectionAssignment")}
               fuelEstimateLabel={t("fuelEstimate")}
-              fuelFormula={t("fuelFormula")}
-              completedBannerLabel={t("completedBanner")}
+              formattedFormula={
+                request.distanceKm != null && request.fuelCost != null
+                  ? t("fuelFormula", {
+                      distance: fmtDistance(request.distanceKm),
+                      consumption: fmtConsumption(request.assignedTruck.fuelConsumption),
+                      price: fmtPrice(fuelPrice),
+                      total: fmtCost(request.fuelCost),
+                    })
+                  : null
+              }
+              completedBannerLabel={request.status === "COMPLETED" ? t("completedBanner") : null}
             />
           )}
         </div>

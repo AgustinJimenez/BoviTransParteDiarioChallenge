@@ -38,9 +38,9 @@ describe("calculateFuelCost", () => {
     expect(calculateFuelCost(100, 0.45, 0)).toBe(0);
   });
 
-  it("uses seed-data values correctly — Salta to Tucumán", () => {
-    // Seed: 310.80 km, IJ-789-KL (0.55 L/km), $1250/L
-    expect(calculateFuelCost(310.80, 0.55, 1250)).toBeCloseTo(213_675, 0);
+  it("uses seed-data values correctly — Concepción → Asunción (Paraguay)", () => {
+    // Seed: 310.50 km, AB-123-CD (0.45 L/km), 7500 Gs/L
+    expect(calculateFuelCost(310.50, 0.45, 7500)).toBeCloseTo(1_047_937.5, 0);
   });
 });
 

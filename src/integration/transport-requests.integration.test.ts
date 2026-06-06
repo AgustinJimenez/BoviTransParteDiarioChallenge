@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "@/app/api/transport-requests/route";
+import { PATCH as patchStatus } from "@/app/api/transport-requests/[id]/status/route";
 import { createRequest, createTruck } from "./helpers";
 
 const url = (path: string) => `http://localhost${path}`;
@@ -192,5 +193,96 @@ describe("GET /api/transport-requests — combined filters", () => {
 
     expect(json.data.items).toHaveLength(1);
     expect(json.data.items[0].requesterName).toBe("Juan Pérez");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/transport-requests/[id]/status
+// ---------------------------------------------------------------------------
+
+describe("PATCH /api/transport-requests/[id]/status", () => {
+  const makeReq = (id: string, body: object) =>
+    new NextRequest(url(`/api/transport-requests/${id}/status`), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+  const params = (id: string) => Promise.resolve({ id });
+
+  it("PENDING → CANCELLED succeeds", async () => {
+    const req = await createRequest({ status: "PENDING" });
+    const res = await patchStatus(makeReq(req.id, { status: "CANCELLED" }), { params: params(req.id) });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.status).toBe("CANCELLED");
+    expect(json.error).toBeNull();
+  });
+
+  it("ASSIGNED → COMPLETED succeeds", async () => {
+    const truck = await createTruck();
+    const req = await createRequest({ status: "ASSIGNED", assignedTruckId: truck.id });
+    const res = await patchStatus(makeReq(req.id, { status: "COMPLETED" }), { params: params(req.id) });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.status).toBe("COMPLETED");
+  });
+
+  it("ASSIGNED → CANCELLED succeeds", async () => {
+    const truck = await createTruck();
+    const req = await createRequest({ status: "ASSIGNED", assignedTruckId: truck.id });
+    const res = await patchStatus(makeReq(req.id, { status: "CANCELLED" }), { params: params(req.id) });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.status).toBe("CANCELLED");
+  });
+
+  it("PENDING → COMPLETED is rejected with 422", async () => {
+    const req = await createRequest({ status: "PENDING" });
+    const res = await patchStatus(makeReq(req.id, { status: "COMPLETED" }), { params: params(req.id) });
+
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toBeTruthy();
+  });
+
+  it("COMPLETED → CANCELLED is rejected with 422", async () => {
+    const truck = await createTruck();
+    const req = await createRequest({ status: "COMPLETED", assignedTruckId: truck.id });
+    const res = await patchStatus(makeReq(req.id, { status: "CANCELLED" }), { params: params(req.id) });
+
+    expect(res.status).toBe(422);
+  });
+
+  it("CANCELLED → COMPLETED is rejected with 422", async () => {
+    const req = await createRequest({ status: "CANCELLED" });
+    const res = await patchStatus(makeReq(req.id, { status: "COMPLETED" }), { params: params(req.id) });
+
+    expect(res.status).toBe(422);
+  });
+
+  it("returns 404 for unknown request id", async () => {
+    const res = await patchStatus(
+      makeReq("00000000-0000-0000-0000-000000000000", { status: "CANCELLED" }),
+      { params: params("00000000-0000-0000-0000-000000000000") }
+    );
+
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for invalid status value", async () => {
+    const req = await createRequest({ status: "PENDING" });
+    const res = await patchStatus(makeReq(req.id, { status: "INVALID" }), { params: params(req.id) });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for missing status field", async () => {
+    const req = await createRequest({ status: "PENDING" });
+    const res = await patchStatus(makeReq(req.id, {}), { params: params(req.id) });
+
+    expect(res.status).toBe(400);
   });
 });

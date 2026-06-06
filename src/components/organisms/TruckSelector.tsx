@@ -4,6 +4,7 @@ import { Truck as TruckIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { calculateFuelCost } from "@/lib/calculations";
+import { fmtConsumption, fmtCost } from "@/lib/format";
 import type { Truck } from "@/types";
 
 interface Props {
@@ -61,7 +62,7 @@ const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, cu
                     )}
                   </div>
                   <p className="text-xs text-gray-500">
-                    {t("capacityHint", { capacity: truck.maxCapacity, consumption: Number(truck.fuelConsumption).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) })}
+                    {t("capacityHint", { capacity: truck.maxCapacity, consumption: fmtConsumption(truck.fuelConsumption) })}
                   </p>
                 </div>
               </div>
@@ -70,7 +71,7 @@ const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, cu
                 <div className="text-right shrink-0">
                   <p className="text-xs text-gray-500">{t("fuelLabel")}</p>
                   <p className={cn("text-sm font-bold", selected ? "text-emerald-700" : "text-gray-700")}>
-                    Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+                    {t("fuelCostValue", { cost: fmtCost(fuelCost) })}
                   </p>
                 </div>
               )}

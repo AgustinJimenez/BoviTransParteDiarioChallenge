@@ -5,6 +5,7 @@ import { ArrowRight, Phone, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { StatusBadge } from "@/components/atoms/Badge";
 import { cn } from "@/lib/utils";
+import { fmtCost } from "@/lib/format";
 import type { TransportRequest } from "@/types";
 
 interface CardHeaderProps {
@@ -29,7 +30,7 @@ interface CardRouteProps {
 
 interface CardAssignedTruckProps {
   truck: TransportRequest["assignedTruck"];
-  fuelCost: number | null;
+  fuelCostLabel: string | null;
   placeholder: string;
 }
 
@@ -85,7 +86,7 @@ const CardRoute = ({ origin, destination }: CardRouteProps) => {
   );
 }
 
-const CardAssignedTruck = ({ truck, fuelCost, placeholder }: CardAssignedTruckProps) => {
+const CardAssignedTruck = ({ truck, fuelCostLabel, placeholder }: CardAssignedTruckProps) => {
   if (!truck) return (
     <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1.5">
       <Truck className="w-3.5 h-3.5 shrink-0" />
@@ -96,10 +97,8 @@ const CardAssignedTruck = ({ truck, fuelCost, placeholder }: CardAssignedTruckPr
     <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
       <Truck className="w-3.5 h-3.5 shrink-0" />
       <span>{truck.plate}</span>
-      {fuelCost != null && (
-        <span className="ml-auto font-semibold">
-          Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
-        </span>
+      {fuelCostLabel && (
+        <span className="ml-auto font-semibold">{fuelCostLabel}</span>
       )}
     </div>
   );
@@ -125,7 +124,7 @@ const RequestCard = ({ request }: RequestCardProps) => {
         <CardCattleCount count={request.cattleCount} unit={t("cattleUnit")} />
         <CardRoute origin={request.origin} destination={request.destination} />
         <div className="mt-auto">
-          <CardAssignedTruck truck={request.assignedTruck} fuelCost={request.fuelCost} placeholder={t("noTruck")} />
+          <CardAssignedTruck truck={request.assignedTruck} fuelCostLabel={request.fuelCost != null ? t("fuelCostValue", { cost: fmtCost(request.fuelCost) }) : null} placeholder={t("noTruck")} />
         </div>
       </div>
     </Link>
