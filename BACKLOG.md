@@ -999,6 +999,68 @@ El top bar mobile usaba `<div>`, lo que hacía que el texto "BoviTrans" quedara 
 
 ---
 
+### Intercambio 35 — Formateo de teléfono internacional
+
+**Desarrollador:**
+> "El campo de teléfono debe soportar números internacionales, no solo argentinos. El contexto del negocio incluye Paraguay y Argentina."
+
+**Decisión implementada:** Se reescribió `src/lib/phoneFormat.ts` para exportar `formatInternationalPhone` junto con el existente `formatArgentinePhone` (mantenido por compatibilidad con datos seed). La nueva función usa detección greedy de código de país: primero prueba CC3 (3 dígitos — Paraguay +595, Bolivia +591, Ecuador +593, y otros), luego CC2 (2 dígitos — Argentina +54, Brasil +55, Chile +56, y otros), luego NANP (+1). Respeta el límite E.164 de 15 dígitos. Sin separadores adicionales entre el área y el número de abonado — solo `+CC subscriber`. El formulario de nueva solicitud pasó a usar `formatInternationalPhone`.
+
+**Tests agregados:** 19 tests nuevos en `src/lib/__tests__/phoneFormat.test.ts` cubriendo los tres bloques de detección de CC, límite E.164, y formateo progresivo mientras el usuario tipea. Total unitario: 66 tests.
+
+---
+
+### Intercambio 36 — Selector de ubicación inline en el formulario
+
+**Desarrollador:**
+> "No quiero que sea otro modal que ocupe toda la pantalla, solo un cuadrado dentro del form."
+> "Creo que podemos mostrar el mapa por default."
+
+**Contexto:** El formulario de nueva solicitud usaba un `LocationPickerModal` (fullscreen) que se abría al tocar los campos de origen/destino.
+
+**Decisión implementada:** Se creó `LocationPickerInline` — un widget auto-contenido que incluye: input de búsqueda con autocompletado Nominatim (debounce 500ms), lista de sugerencias en flujo (no absolute positioned, para no quedar cortada por el `overflow-y-auto` del modal), y mapa Leaflet de 208px de altura con pin arrastrable. Ambos widgets (origen y destino) son siempre visibles en el formulario sin requerir tap previo. `LocationPickerModal` sigue existiendo pero ya no se usa.
+
+---
+
+### Intercambio 37 — Auto-guardado en el selector de ubicación
+
+**Desarrollador** (pregunta de diseño presentada como opciones):
+> A) Auto-guardar en drag — el campo se actualiza sin confirmación explícita
+> B) Guardar solo al confirmar con botón
+
+**Desarrollador:** Eligió opción A — "Auto-guardar (sin botón)".
+
+**Decisión implementada:** La prop `onChange(lat, lng, displayName)` del widget se invoca en dos momentos:
+1. **Selección de sugerencia:** inmediatamente al hacer click en un resultado de Nominatim.
+2. **Fin de drag del pin:** reverse geocoding con Nominatim (debounce 600ms) y luego `onChange`. Si el geocoding falla, el `displayName` es `"${lat.toFixed(5)}, ${lng.toFixed(5)}"` para garantizar que siempre haya un valor legible.
+
+Se eliminaron los botones "Confirmar ubicación" y "Cerrar" del widget. No hay estado pendiente — cualquier movimiento del pin actualiza el form en tiempo real.
+
+---
+
+### Intercambio 38 — Botón de envío deshabilitado hasta campos completos
+
+**Desarrollador:**
+> "The submit button must be enabled only when the important fields are filled."
+
+**Decisión implementada:** Se configuró `mode: "onChange"` en `useForm` del `NewRequestModal`. Esto hace que `formState.isValid` se recalcule en cada cambio de campo. El botón "Crear solicitud" usa `disabled={!isValid}`. Para que la selección en el mapa también active la validación, se usa `setValue("origin", displayName, { shouldValidate: true })` — sin el flag `shouldValidate`, el cambio programático no dispara el recálculo de `isValid`.
+
+---
+
+### Intercambio 39 — Tests de integración de la API de solicitudes
+
+**Desarrollador:**
+> "I think we must update our unit/integration tests given the last couple of changes."
+
+**Decisión implementada:** Se agregaron dos tests de integración en `src/integration/transport-requests.integration.test.ts`:
+
+1. **"accepts optional coordinate fields and returns them as numbers"** — verifica que `POST /api/transport-requests` acepta `originLat`, `originLng`, `destinationLat`, `destinationLng` y los devuelve como `number` (no como `string` de Prisma Decimal).
+2. **"returns null coordinates when not provided"** — verifica que omitir los campos de coordenadas persiste `null` correctamente.
+
+El schema `CreateRequestSchema` (Zod) en `src/app/api/transport-requests/route.ts` se actualizó para incluir los cuatro campos de coordenadas como opcionales (`z.number().optional()`). Total de tests de integración: 22.
+
+---
+
 ### Reflexión sobre la Modalidad de Uso
 
 El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.

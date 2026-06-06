@@ -67,7 +67,7 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 |---|---|---|
 | **Tailwind CSS v4** | CSS Modules, Styled Components | Sin cambio de contexto entre CSS y JSX. Config en CSS puro (no JS), más simple en v4. |
 | **Componentes propios** | shadcn/ui CLI, MUI, Chakra | La CLI de shadcn v4 es completamente interactiva (sin flags no-prompt). Se construyeron los componentes directamente con Tailwind para control total del diseño y sin dependencias externas de UI. |
-| **react-hook-form v7 + Zod v4** | Formik, validación manual | Type-safety end-to-end: el mismo schema Zod valida en cliente y en servidor. Con Zod v4 y `valueAsNumber` en los inputs numéricos se evita el problema de tipos en `z.coerce`. |
+| **react-hook-form v7 + Zod v4** | Formik, validación manual | Type-safety end-to-end: el mismo schema Zod valida en cliente y en servidor. Con Zod v4 y `valueAsNumber` en los inputs numéricos se evita el problema de tipos en `z.coerce`. `mode: "onChange"` habilita `isValid` reactivo, usado para deshabilitar el botón de envío hasta que todos los campos requeridos están completos. |
 | **react-leaflet v5 + OSM** | Mapbox GL JS, Google Maps | Gratuito, sin API key, suficiente para trazado de rutas en Argentina. |
 | **lucide-react** | Heroicons, Font Awesome | Consistente con el ecosistema React, tree-shakeable. |
 | **next-intl v4** | react-i18next, strings hardcodeados | Centraliza todos los strings de UI en `messages/es.json`. Integración nativa con App Router (RSC + Client). Doble validación: ESLint detecta strings hardcodeados en JSX, TypeScript detecta keys inexistentes en el JSON. |
@@ -83,11 +83,11 @@ El App Router de Next.js permite mezclar Server Components (renderizan en servid
 
 **Estrategia de tests en tres capas:**
 
-| Capa | Herramienta | Qué testea | Comando |
-|---|---|---|---|
-| **Unitaria** | Vitest | Funciones puras (`calculations.ts`, `phoneFormat.ts`) | `npm test` |
-| **Integración API** | Vitest + DB real | Route handlers completos contra `bovitrans_test` | `npm run test:integration` |
-| **E2E browser** | Playwright | Flujos completos en browser contra `bovitrans_e2e` | `npm run test:e2e` |
+| Capa | Herramienta | Qué testea | Tests | Comando |
+|---|---|---|---|---|
+| **Unitaria** | Vitest | Funciones puras (`calculations.ts`, `phoneFormat.ts`) | 66 | `npm test` |
+| **Integración API** | Vitest + DB real | Route handlers completos contra `bovitrans_test` | 22 | `npx vitest run --config vitest.integration.config.ts` |
+| **E2E browser** | Playwright | Flujos completos en browser contra `bovitrans_e2e` | — | `npm run test:e2e` |
 
 Los tests de integración llaman a los route handlers directamente (sin servidor HTTP) construyendo un `NextRequest` mock. Cada test trunca las tablas antes de ejecutarse para garantizar aislamiento. Los tests E2E corren contra un servidor de producción Next.js en puerto 3001 con una DB efímera, coexistiendo con el dev server en puerto 3000.
 
@@ -139,8 +139,13 @@ src/components/
 │                  CapacityAlert, RouteMap, FilterBar
 └── organisms/   → Componentes complejos con estado y lógica de negocio
                    DashboardClient, NewRequestModal, NewTruckForm,
-                   TruckSelector, MapInner, Sidebar
+                   TruckSelector, MapInner, Sidebar,
+                   LocationPickerInline, LocationPickerInner
 ```
+
+`LocationPickerInline` — widget de selección de ubicación embebido en el formulario de nueva solicitud. Combina un input de búsqueda con autocompletado Nominatim (debounce 500ms) y un mapa Leaflet interactivo de 208px de altura. La ubicación se guarda automáticamente al seleccionar una sugerencia o al soltar el pin después de un drag (reverse geocoding con debounce 600ms). No requiere un botón de confirmación.
+
+`LocationPickerInner` — envuelve los componentes de react-leaflet que requieren el DOM (`DraggableMarker`, `MapFly`, `MapClickHandler`). Se importa con `dynamic(..., { ssr: false })` desde `LocationPickerInline`. Los marcadores son `L.divIcon` con SVG inline para evitar el problema de rutas rotas del ícono por defecto de Leaflet en Next.js.
 
 Las páginas en `app/` actúan como templates — componen organismos sin lógica propia. Convenciones internas:
 - Todos los componentes y funciones internas son arrow functions (`const X = () =>`)
@@ -348,12 +353,18 @@ Crea una nueva solicitud en estado `PENDING`.
 ```json
 {
   "requesterName": "Juan Pérez",
-  "requesterPhone": "+54 9 341 555-1234",
+  "requesterPhone": "+595 985 246 653",
   "cattleCount": 25,
-  "origin": "Rosario, Santa Fe",
-  "destination": "Córdoba Capital"
+  "origin": "Encarnación, Paraguay",
+  "originLat": -27.3364,
+  "originLng": -55.8675,
+  "destination": "Asunción, Paraguay",
+  "destinationLat": -25.2867,
+  "destinationLng": -57.6478
 }
 ```
+
+Los campos de coordenadas (`originLat`, `originLng`, `destinationLat`, `destinationLng`) son opcionales. Si el usuario seleccionó la ubicación en el mapa del formulario, se envían junto con el string de localidad; si no, se persisten como `null` y se geocodifican la primera vez que se abre el detalle.
 
 **Responses:** `201` creada · `400` validación
 
@@ -449,9 +460,29 @@ RequestDetailPage (Server) ← /requests/:id
 ### Navegación — Sidebar
 
 La navegación es un sidebar colapsable (`src/components/organisms/Sidebar.tsx`):
-- **Mobile:** siempre visible en modo icon-only (`w-16`)
-- **Desktop:** toggleable entre icon-only (`w-16`) y expandido (`w-56`)
-- El estado de colapso se persiste en `localStorage` via lazy initializer de `useState`
+- **Mobile:** top bar fijo con la marca a la izquierda y el ícono hamburger a la derecha. Al abrir, un panel desliza desde la derecha sobre un backdrop oscuro. Los links cierran el drawer al navegar.
+- **Desktop:** sidebar sticky a la izquierda, toggleable entre icon-only (`w-16`) y expandido (`w-56`) con transición CSS en `width`.
+- El estado de colapso en desktop se persiste en `localStorage` via lazy initializer de `useState`.
+
+### Formulario de Nueva Solicitud — Mapa inline y validación reactiva
+
+El formulario `NewRequestModal` tiene dos widgets `LocationPickerInline` siempre visibles (uno para origen, uno para destino). No hay selector de texto libre — el usuario busca con Nominatim o arrastra el pin directamente.
+
+La ubicación se auto-guarda sin botón de confirmación:
+- **Sugerencia seleccionada:** `onChange(lat, lng, displayName)` se llama inmediatamente.
+- **Pin arrastrado:** reverse geocoding con Nominatim (debounce 600ms). Si falla, se usa `"lat, lng"` como nombre de fallback.
+
+El botón "Crear solicitud" permanece deshabilitado hasta que todos los campos requeridos tengan valor. Esto se logra con `mode: "onChange"` en `useForm` y `setValue("origin", displayName, { shouldValidate: true })` al seleccionar una ubicación en el mapa.
+
+### Formateo de teléfono internacional
+
+`src/lib/phoneFormat.ts` exporta dos funciones:
+
+- **`formatInternationalPhone`** — formateador de propósito general con detección greedy de código de país (CC3 de 3 dígitos primero, CC2 de 2 dígitos, NANP +1). Soporta Paraguay (+595), Bolivia (+591), Ecuador (+593), Argentina (+54), Brasil (+55), Chile (+56), EE.UU/Canadá (+1), entre otros. Respeta el límite E.164 de 15 dígitos. Formato de salida: `+CC subscriber_digits`.
+
+- **`formatArgentinePhone`** — formateador específico para números argentinos (+54 9 XXX XXX-XXXX). Se mantiene por compatibilidad con datos seed existentes.
+
+El formulario de nueva solicitud usa `formatInternationalPhone` dado el contexto regional del negocio (Paraguay + Argentina).
 
 ### Integración de Mapas (Leaflet)
 
@@ -626,7 +657,7 @@ npm test
 npm run test:coverage
 
 # Tests de integración API (requiere Docker DB corriendo)
-npm run test:integration
+npx vitest run --config vitest.integration.config.ts
 
 # Tests E2E browser (requiere build previo, levanta servidor en :3001)
 npm run test:e2e
