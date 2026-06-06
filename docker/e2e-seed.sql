@@ -72,43 +72,43 @@ INSERT INTO transport_requests (
   status, assigned_truck_id, distance_km, fuel_cost
 ) VALUES
   ('4e7a2b5c-9f1d-4a3e-8b6c-0d2f4a6e8c0d',
-   'Juan Pérez', '+54 9 341 555-1234', 25,
-   'Rosario, Santa Fe', 'Córdoba Capital',
-   -32.9442, -60.6505, -31.4201, -64.1888,
+   'Carlos Benítez', '+595 981 555-1234', 25,
+   'Asunción', 'Encarnación',
+   -25.2867, -57.6478, -27.3364, -55.8675,
    'PENDING', NULL, NULL, NULL),
   ('8c1f3a5e-7b9d-4c2f-b8e0-1d3a5c7f9b1d',
-   'María González', '+54 9 11 555-5678', 45,
-   'Buenos Aires', 'Mar del Plata, Buenos Aires',
-   -34.6037, -58.3816, -38.0023, -57.5575,
+   'María Rodríguez', '+595 985 555-5678', 45,
+   'Ciudad del Este', 'Villarrica',
+   -25.5097, -54.6116, -25.7508, -56.4343,
    'PENDING', NULL, NULL, NULL),
   ('2a4c6e8f-0b1d-4a3e-9c5f-7b9d1a3e5c7f',
-   'Carlos Rodríguez', '+54 9 351 555-9012', 18,
-   'Córdoba Capital', 'Mendoza Capital',
-   -31.4201, -64.1888, -32.8908, -68.8272,
-   'ASSIGNED', '3d6f8a2c-e1b4-4c9d-87f5-a2e3b4c5d6e7', 680.50, 138.70),
+   'José González', '+595 971 555-9012', 18,
+   'Concepción', 'Asunción',
+   -23.4070, -57.4340, -25.2867, -57.6478,
+   'ASSIGNED', '3d6f8a2c-e1b4-4c9d-87f5-a2e3b4c5d6e7', 310.50, 1047937.50),
   ('6f8b0d2e-4a7c-4f9b-8d1e-3c5a7f9b1d3c',
-   'Ana Martínez', '+54 9 221 555-3456', 15,
-   'La Plata, Buenos Aires', 'Bahía Blanca, Buenos Aires',
-   -34.9215, -57.9545, -38.7183, -62.2663,
-   'ASSIGNED', '7a1c5f3e-29b0-4d8a-b627-c4e8d9f01234', 650.20, 93.63),
+   'Ana Martínez', '+595 991 555-3456', 15,
+   'Encarnación', 'Ciudad del Este',
+   -27.3364, -55.8675, -25.5097, -54.6116,
+   'ASSIGNED', '7a1c5f3e-29b0-4d8a-b627-c4e8d9f01234', 290.40, 827640.00),
   ('0d2a4c6e-8f1b-4d3a-b5e7-9c1f3a5e7b9d',
-   'Roberto Silva', '+54 9 387 555-7890', 35,
-   'Salta Capital', 'Tucumán Capital',
-   -24.7859, -65.4117, -26.8083, -65.2176,
-   'COMPLETED', '9b2e4a6c-8d1f-4e3b-a594-f7c2e1d0b8a6', 310.80, 171.44);
+   'Roberto Silva', '+595 961 555-7890', 35,
+   'Villarrica', 'Asunción',
+   -25.7508, -56.4343, -25.2867, -57.6478,
+   'COMPLETED', '9b2e4a6c-8d1f-4e3b-a594-f7c2e1d0b8a6', 162.30, 669487.50);
 
-INSERT INTO system_config (key, value) VALUES ('fuel_price_per_liter', '1250');
+INSERT INTO system_config (key, value) VALUES ('fuel_price_per_liter', '7500');
 
 -- Extra records so the first page (24 items) doesn't exhaust the list,
 -- allowing the infinite scroll test to trigger a second page load.
 DO $$
 DECLARE
   cities TEXT[] := ARRAY[
-    'Rosario, Santa Fe', 'Córdoba Capital', 'Buenos Aires', 'Mendoza Capital',
-    'La Plata, Buenos Aires', 'Salta Capital', 'Tucumán Capital', 'Neuquén Capital'
+    'Asunción', 'Encarnación', 'Ciudad del Este', 'Concepción',
+    'Villarrica', 'Pilar', 'Coronel Oviedo', 'Caacupé'
   ];
   names TEXT[] := ARRAY[
-    'Martín López', 'Lucía Fernández', 'Diego Torres', 'Valeria Romero',
+    'Carlos Benítez', 'Lucía Fernández', 'Diego Torres', 'Valeria Romero',
     'Pablo Gómez', 'Claudia Herrera', 'Sergio Díaz', 'Natalia Ruiz'
   ];
   n INTEGER := array_length(cities, 1);

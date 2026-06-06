@@ -88,49 +88,49 @@ INSERT INTO transport_requests (
 ) VALUES
   (
     '4e7a2b5c-9f1d-4a3e-8b6c-0d2f4a6e8c0d',
-    'Juan Pérez', '+54 9 341 555-1234', 25,
-    'Rosario, Santa Fe', 'Córdoba Capital',
-    -32.9442, -60.6505, -31.4201, -64.1888,
+    'Carlos Benítez', '+595 981 555-1234', 25,
+    'Asunción', 'Encarnación',
+    -25.2867, -57.6478, -27.3364, -55.8675,
     'PENDING', NULL, NULL, NULL
   ),
   (
     '8c1f3a5e-7b9d-4c2f-b8e0-1d3a5c7f9b1d',
-    'María González', '+54 9 11 555-5678', 45,
-    'Buenos Aires', 'Mar del Plata, Buenos Aires',
-    -34.6037, -58.3816, -38.0023, -57.5575,
+    'María Rodríguez', '+595 985 555-5678', 45,
+    'Ciudad del Este', 'Villarrica',
+    -25.5097, -54.6116, -25.7508, -56.4343,
     'PENDING', NULL, NULL, NULL
   ),
   (
     '2a4c6e8f-0b1d-4a3e-9c5f-7b9d1a3e5c7f',
-    'Carlos Rodríguez', '+54 9 351 555-9012', 18,
-    'Córdoba Capital', 'Mendoza Capital',
-    -31.4201, -64.1888, -32.8908, -68.8272,
+    'José González', '+595 971 555-9012', 18,
+    'Concepción', 'Asunción',
+    -23.4070, -57.4340, -25.2867, -57.6478,
     'ASSIGNED',
     '3d6f8a2c-e1b4-4c9d-87f5-a2e3b4c5d6e7',
-    680.50, 138.70
+    310.50, 1047937.50
   ),
   (
     '6f8b0d2e-4a7c-4f9b-8d1e-3c5a7f9b1d3c',
-    'Ana Martínez', '+54 9 221 555-3456', 15,
-    'La Plata, Buenos Aires', 'Bahía Blanca, Buenos Aires',
-    -34.9215, -57.9545, -38.7183, -62.2663,
+    'Ana Martínez', '+595 991 555-3456', 15,
+    'Encarnación', 'Ciudad del Este',
+    -27.3364, -55.8675, -25.5097, -54.6116,
     'ASSIGNED',
     '7a1c5f3e-29b0-4d8a-b627-c4e8d9f01234',
-    650.20, 93.63
+    290.40, 827640.00
   ),
   (
     '0d2a4c6e-8f1b-4d3a-b5e7-9c1f3a5e7b9d',
-    'Roberto Silva', '+54 9 387 555-7890', 35,
-    'Salta Capital', 'Tucumán Capital',
-    -24.7859, -65.4117, -26.8083, -65.2176,
+    'Roberto Silva', '+595 961 555-7890', 35,
+    'Villarrica', 'Asunción',
+    -25.7508, -56.4343, -25.2867, -57.6478,
     'COMPLETED',
     '9b2e4a6c-8d1f-4e3b-a594-f7c2e1d0b8a6',
-    310.80, 171.44
+    162.30, 669487.50
   );
 
--- System config: fuel price in Argentine pesos per liter
+-- System config: fuel price in Guaraníes per liter (~7500 Gs/L diesel Paraguay 2025)
 INSERT INTO system_config (key, value) VALUES
-  ('fuel_price_per_liter', '1250');
+  ('fuel_price_per_liter', '7500');
 
 -- =============================================================================
 -- BULK SEED — 500 additional transport requests for load testing
@@ -143,33 +143,33 @@ DECLARE
     '9b2e4a6c-8d1f-4e3b-a594-f7c2e1d0b8a6'
   ];
   first_names  TEXT[]  := ARRAY[
-    'Juan', 'Carlos', 'Roberto', 'Diego', 'Fernando', 'Martín', 'Pablo', 'Alejandro',
-    'Miguel', 'Ricardo', 'José', 'Eduardo', 'Gabriel', 'Sergio', 'Luis',
+    'Carlos', 'José', 'Roberto', 'Diego', 'Fernando', 'Miguel', 'Pablo', 'Alejandro',
+    'Ricardo', 'Jorge', 'Luis', 'Eduardo', 'Gabriel', 'Sergio', 'Ramón',
     'María', 'Ana', 'Laura', 'Sofía', 'Valeria', 'Claudia', 'Patricia', 'Carolina',
-    'Natalia', 'Gabriela', 'Florencia', 'Silvana', 'Daniela', 'Verónica', 'Sandra'
+    'Natalia', 'Gabriela', 'Rosa', 'Silvana', 'Daniela', 'Verónica', 'Sandra'
   ];
   last_names   TEXT[]  := ARRAY[
-    'Pérez', 'González', 'Rodríguez', 'Fernández', 'López', 'Martínez', 'García',
+    'Benítez', 'González', 'Rodríguez', 'Fernández', 'López', 'Martínez', 'García',
     'Sánchez', 'Romero', 'Torres', 'Álvarez', 'Flores', 'Ruiz', 'Díaz', 'Morales',
     'Herrera', 'Medina', 'Aguilar', 'Castro', 'Ortiz', 'Vargas', 'Delgado', 'Ramos'
   ];
   city_names   TEXT[]  := ARRAY[
-    'Rosario, Santa Fe', 'Córdoba Capital', 'Buenos Aires', 'Mendoza Capital',
-    'La Plata, Buenos Aires', 'Mar del Plata, Buenos Aires', 'Bahía Blanca, Buenos Aires',
-    'Salta Capital', 'Tucumán Capital', 'Santa Fe Capital', 'Santiago del Estero',
-    'Neuquén Capital', 'Río Cuarto, Córdoba', 'San Luis Capital', 'Paraná, Entre Ríos',
-    'Resistencia, Chaco', 'Posadas, Misiones', 'Formosa Capital', 'San Juan Capital',
-    'Catamarca Capital'
+    'Asunción', 'Encarnación', 'Ciudad del Este', 'Concepción', 'Villarrica',
+    'Pilar', 'San Pedro', 'Coronel Oviedo', 'Caacupé', 'Pedro Juan Caballero',
+    'Carapeguá', 'San Juan Bautista', 'Luque', 'Lambaré', 'Fernando de la Mora',
+    'Capiatá', 'Itauguá', 'San Ignacio', 'Ayolas', 'Filadelfia'
   ];
   city_lats    FLOAT[] := ARRAY[
-    -32.9442, -31.4201, -34.6037, -32.8908, -34.9215, -38.0023, -38.7183,
-    -24.7859, -26.8083, -31.6333, -27.7951, -38.9516, -33.1307, -33.2950, -31.7333,
-    -27.4514, -27.3671, -26.1775, -31.5375, -28.4696
+    -25.2867, -27.3364, -25.5097, -23.4070, -25.7508,
+    -26.8667, -24.0977, -25.4450, -25.3844, -22.5399,
+    -25.9808, -26.6717, -25.2370, -25.3496, -25.3366,
+    -25.3569, -25.3938, -26.8836, -27.3771, -22.3438
   ];
   city_lngs    FLOAT[] := ARRAY[
-    -60.6505, -64.1888, -58.3816, -68.8272, -57.9545, -57.5575, -62.2663,
-    -65.4117, -65.2176, -60.7000, -64.2615, -68.0591, -64.3499, -66.3356, -60.5333,
-    -58.9867, -55.8962, -58.1781, -68.5364, -65.7795
+    -57.6478, -55.8675, -54.6116, -57.4340, -56.4343,
+    -58.3000, -57.0836, -56.4391, -57.1429, -55.7330,
+    -57.0269, -57.1514, -57.4494, -57.5950, -57.5214,
+    -57.4447, -57.3493, -57.0233, -56.8835, -60.0289
   ];
   -- Weighted toward PENDING so the dashboard has interesting data
   statuses     TEXT[]  := ARRAY[
@@ -199,9 +199,9 @@ BEGIN
 
     IF status_val IN ('ASSIGNED', 'COMPLETED') THEN
       truck_id     := truck_ids[floor(random() * 3 + 1)::int];
-      dist_km      := round((random() * 900 + 100)::numeric, 2);
-      -- Use average fuel consumption ~0.45 L/km at $1250/L
-      fuel_cost_val := round((dist_km * 0.45 * 1250)::numeric, 2);
+      dist_km      := round((random() * 350 + 50)::numeric, 2);
+      -- Use average fuel consumption ~0.45 L/km at Gs. 7500/L
+      fuel_cost_val := round((dist_km * 0.45 * 7500)::numeric, 2);
     ELSE
       truck_id      := NULL;
       dist_km       := NULL;
@@ -216,7 +216,7 @@ BEGIN
     ) VALUES (
       gen_random_uuid(),
       first_names[floor(random() * n_first + 1)::int] || ' ' || last_names[floor(random() * n_last + 1)::int],
-      '+54 9 ' || (floor(random() * 900 + 100)::int)::text || ' ' || (floor(random() * 900 + 100)::int)::text || '-' || lpad((floor(random() * 9000 + 1000)::int)::text, 4, '0'),
+      '+595 9' || (floor(random() * 90 + 10)::int)::text || ' ' || (floor(random() * 900 + 100)::int)::text || '-' || lpad((floor(random() * 9000 + 1000)::int)::text, 4, '0'),
       floor(random() * 79 + 1)::int,
       city_names[orig_idx],
       city_names[dest_idx],

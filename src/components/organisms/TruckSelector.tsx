@@ -61,7 +61,7 @@ const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, cu
                     )}
                   </div>
                   <p className="text-xs text-gray-500">
-                    {t("capacityHint", { capacity: truck.maxCapacity, consumption: truck.fuelConsumption })}
+                    {t("capacityHint", { capacity: truck.maxCapacity, consumption: Number(truck.fuelConsumption).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) })}
                   </p>
                 </div>
               </div>
@@ -70,7 +70,7 @@ const TruckSelector = ({ trucks, selectedId, onSelect, distanceKm, fuelPrice, cu
                 <div className="text-right shrink-0">
                   <p className="text-xs text-gray-500">{t("fuelLabel")}</p>
                   <p className={cn("text-sm font-bold", selected ? "text-emerald-700" : "text-gray-700")}>
-                    ${fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+                    Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
                   </p>
                 </div>
               )}

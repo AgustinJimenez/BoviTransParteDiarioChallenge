@@ -30,8 +30,8 @@ const RequestAssignmentClient = ({ request, trucks, fuelPrice }: RequestAssignme
     : null;
 
   const fuelDisplay = (): string => {
-    if (previewCost != null) return `$${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
-    if (request.fuelCost != null) return `$${Number(request.fuelCost).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+    if (previewCost != null) return `Gs. ${previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+    if (request.fuelCost != null) return `Gs. ${Number(request.fuelCost).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
     return "—";
   }
 
@@ -62,7 +62,7 @@ const RequestAssignmentClient = ({ request, trucks, fuelPrice }: RequestAssignme
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t("sectionAssignment")}</p>
-        <span className="text-xs text-gray-500">${fuelPrice.toLocaleString("es-AR")}/L</span>
+        <span className="text-xs text-gray-500">Gs. {fuelPrice.toLocaleString("es-AR")}/L</span>
       </div>
 
       <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
@@ -76,8 +76,8 @@ const RequestAssignmentClient = ({ request, trucks, fuelPrice }: RequestAssignme
       {selectedTruck && request.distanceKm && previewCost != null && (
         <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
           {t("fuelFormula", {
-            distance: Number(request.distanceKm).toFixed(1),
-            consumption: selectedTruck.fuelConsumption,
+            distance: Number(request.distanceKm).toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+            consumption: Number(selectedTruck.fuelConsumption).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             price: fuelPrice.toLocaleString("es-AR"),
             total: previewCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }),
           })}

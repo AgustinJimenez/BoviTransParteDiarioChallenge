@@ -98,7 +98,7 @@ const CardAssignedTruck = ({ truck, fuelCost, placeholder }: CardAssignedTruckPr
       <span>{truck.plate}</span>
       {fuelCost != null && (
         <span className="ml-auto font-semibold">
-          ${fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+          Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
         </span>
       )}
     </div>

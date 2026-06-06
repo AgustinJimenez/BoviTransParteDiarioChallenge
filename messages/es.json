@@ -41,7 +41,7 @@
     "distance": "Distancia",
     "fuelEstimate": "Combustible est.",
     "sectionAssignment": "Asignación de Camión",
-    "fuelFormula": "{distance} km × {consumption} L/km × ${price}/L = ${total}",
+    "fuelFormula": "{distance} km × {consumption} L/km × Gs. {price}/L = Gs. {total}",
     "loadError": "No se pudo cargar la solicitud.",
     "assignedWithWarning": "⚠️ Asignado con advertencia: se requieren {trips} viajes.",
     "completedBanner": "✓ Solicitud completada",
@@ -130,7 +130,7 @@
   "settings": {
     "title": "Configuración",
     "subtitle": "Parámetros globales de la plataforma.",
-    "fuelPriceLabel": "Precio de combustible ($ por litro)",
+    "fuelPriceLabel": "Precio de combustible (Gs. por litro)",
     "lastUpdated": "Última actualización: {date}",
     "success": "Precio actualizado correctamente.",
     "disclaimer": "El precio de combustible se aplica a todos los cálculos de costo de transporte nuevos. Los costos ya calculados en solicitudes existentes no se modifican retroactivamente.",

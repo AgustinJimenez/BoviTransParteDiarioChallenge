@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Phone, User, Ruler } from "lucide-react";
+import { Phone, User, Ruler, Fuel, Truck as TruckIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
@@ -41,6 +41,15 @@ interface RequestCargoCardProps {
 
 interface RequestCompletedBannerProps {
   label: string;
+}
+
+interface RequestCompletedAssignmentProps {
+  request: TransportRequest;
+  fuelPrice: number;
+  sectionLabel: string;
+  fuelEstimateLabel: string;
+  fuelFormula: string;
+  completedBannerLabel: string;
 }
 
 type RequestWithTruck = Prisma.TransportRequestGetPayload<{ include: { assignedTruck: true } }>;
@@ -166,6 +175,61 @@ const RequestCompletedBanner = ({ label }: RequestCompletedBannerProps) => (
   </div>
 );
 
+const RequestCompletedAssignment = ({ request, fuelPrice, sectionLabel, fuelEstimateLabel, fuelFormula, completedBannerLabel }: RequestCompletedAssignmentProps) => {
+  const truck = request.assignedTruck;
+  const fuelCost = request.fuelCost;
+  const distanceKm = request.distanceKm;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{sectionLabel}</p>
+        <span className="text-xs text-gray-500">Gs. {fuelPrice.toLocaleString("es-AR")}/L</span>
+      </div>
+
+      {fuelCost != null && (
+        <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2.5">
+          <Fuel className="w-4 h-4 text-gray-400 shrink-0" />
+          <div>
+            <p className="text-xs text-gray-500">{fuelEstimateLabel}</p>
+            <p className="font-semibold text-gray-800 text-sm">
+              Gs. {fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {truck && distanceKm != null && fuelCost != null && (
+        <div className="bg-emerald-50 rounded-xl px-3 py-2 text-xs text-emerald-700 font-mono">
+          {fuelFormula
+            .replace("{distance}", distanceKm.toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
+            .replace("{consumption}", truck.fuelConsumption.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+            .replace("{price}", fuelPrice.toLocaleString("es-AR"))
+            .replace("{total}", fuelCost.toLocaleString("es-AR", { maximumFractionDigits: 0 }))}
+        </div>
+      )}
+
+      {truck && (
+        <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+            <TruckIcon className="w-4 h-4 text-emerald-700" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{truck.plate}</p>
+            <p className="text-xs text-gray-500">
+              Cap. {truck.maxCapacity} cab. · {truck.fuelConsumption.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L/km
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-3 text-sm text-emerald-700 text-center font-medium">
+        {completedBannerLabel}
+      </div>
+    </div>
+  );
+};
+
 export const dynamic = "force-dynamic";
 
 const RequestDetailPage = async ({ params }: RequestDetailPageProps) => {
@@ -235,7 +299,16 @@ const RequestDetailPage = async ({ params }: RequestDetailPageProps) => {
           {isActionable && (
             <RequestAssignmentClient request={request} trucks={trucks} fuelPrice={fuelPrice} />
           )}
-          {request.status === "COMPLETED" && <RequestCompletedBanner label={t("completedBanner")} />}
+          {request.status === "COMPLETED" && (
+            <RequestCompletedAssignment
+              request={request}
+              fuelPrice={fuelPrice}
+              sectionLabel={t("sectionAssignment")}
+              fuelEstimateLabel={t("fuelEstimate")}
+              fuelFormula={t("fuelFormula")}
+              completedBannerLabel={t("completedBanner")}
+            />
+          )}
         </div>
       </div>
     </div>
