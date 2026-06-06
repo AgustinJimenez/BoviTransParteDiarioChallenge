@@ -71,6 +71,7 @@ const NewRequestModal = ({ onClose, onCreated }: NewRequestModalProps) => {
   const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting, isValid } } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange",
+    defaultValues: { requesterPhone: "+" },
   });
 
   const originName = watch("origin");
