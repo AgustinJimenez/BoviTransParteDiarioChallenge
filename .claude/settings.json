@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\npath = data.get('tool_input', {}).get('file_path', '')\nskip = ['/integration/', '/__tests__/', '.test.', '.spec.', 'messages/', 'DOCUMENTACION', 'BACKLOG', 'TEST_PLAN', 'README', 'questions']\nif path.endswith(('.ts', '.tsx')) and not any(s in path for s in skip):\n    print('Code change in ' + path.split('/')[-1] + '. Before finishing: (1) unit/integration tests need adding or updating? (2) DOCUMENTACION.md, BACKLOG.md or TEST_PLAN.md need updating? (3) run npm run lint && npm run type-check to catch regressions.')\n\""
+          }
+        ]
+      }
+    ]
+  }
+}
