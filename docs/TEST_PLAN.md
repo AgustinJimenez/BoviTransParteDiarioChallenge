@@ -462,6 +462,19 @@ El sistema arranca con los siguientes datos cargados automáticamente en `docker
 **Resultado esperado:**
 - La UI sugiere IJ-789-KL (40 cabezas) — el de **mayor capacidad disponible** como fallback
 
+### TC-507 — Pill de capacidad excedida en tarjeta del dashboard
+
+**Precondición:** Existe una solicitud ASSIGNED donde `cattleCount > assignedTruck.maxCapacity` (ej. 45 cabezas asignadas a EF-456-GH con capacidad 20).
+
+**Pasos:**
+1. Navegar al dashboard `/`
+2. Localizar la tarjeta de la solicitud con exceso de capacidad (sin abrir el detalle)
+
+**Resultado esperado:**
+- La tarjeta muestra el pill ámbar "Capacidad excedida" debajo del pill azul del camión
+- El pill es visible sin hacer scroll dentro de la tarjeta (la card se expande con `min-h-52`)
+- Las demás tarjetas sin exceso de capacidad no muestran el pill ámbar
+
 ---
 
 ## TP-06: Verificación de Fórmula de Combustible
@@ -884,6 +897,7 @@ Para considerar el MVP listo para entrega, todos los siguientes deben estar en v
 - [ ] TC-201: Se puede crear una solicitud nueva
 - [ ] TC-401: Se puede asignar un camión a una solicitud PENDING
 - [ ] TC-503: La alerta de capacidad excedida funciona correctamente
+- [ ] TC-507: El pill de capacidad excedida es visible en las tarjetas del dashboard
 - [ ] TC-601: La fórmula de combustible produce el resultado matemático correcto
 - [ ] TC-702: Se puede registrar un nuevo camión
 - [ ] TC-709: La desactivación de camión con solicitudes activas genera advertencia (sin bloquear)

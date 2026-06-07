@@ -197,6 +197,8 @@
   - [x] Layout: badge de estado, datos del solicitante, ruta origen→destino, conteo de ganado, camión asignado
   - [x] Colores semánticos por estado: amarillo/pendiente, azul/asignado, verde/completado
   - [x] Acción "Ver detalle / Asignar" que abre el panel de detalle
+  - [x] Pill ámbar "Capacidad excedida" visible en la tarjeta cuando `assignedTruck.maxCapacity < cattleCount`
+  - [x] Altura `min-h-52` (en lugar de `h-52` fija) para que el pill no quede recortado por `overflow-hidden`
 
 - [x] TASK-13: Implementar vista de dashboard `/` con grid de tarjetas
   - [x] Layout responsivo (1 col mobile, 2 col tablet, 3 col desktop)

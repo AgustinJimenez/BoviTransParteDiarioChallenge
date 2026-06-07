@@ -476,6 +476,9 @@ DashboardPage (Server)
        ├── FilterBar → actualiza URL params → re-fetcha via API
        ├── VirtuosoGrid (virtual list, 24 items/página, infinite scroll)
        │    └── RequestCard (Link → /requests/:id)
+       │         ├── Pill azul con patente + costo de combustible (si asignado)
+       │         └── Pill ámbar "Capacidad excedida" si assignedTruck.maxCapacity < cattleCount
+       │              (altura fija h-52 → min-h-52 para no recortar el pill con overflow-hidden)
        └── NewRequestModal (formulario react-hook-form)
 
 RequestDetailPage (Server) ← /requests/:id
@@ -544,7 +547,11 @@ El costo de combustible se actualiza instantáneamente al seleccionar un camión
 
 El formateo de números usa locale `es-AR` (puntos como separador de miles, comas como decimal) mediante las funciones de `src/lib/format.ts` (`fmtDistance`, `fmtConsumption`, `fmtCost`, `fmtPrice`), que son la única fuente de verdad del formateo numérico en la UI.
 
-### Alerta de Capacidad
+### Alerta de Capacidad en tarjetas del dashboard
+
+`RequestCard` muestra un pill ámbar compacto ("Capacidad excedida") directamente sobre la grilla del dashboard cuando el camión asignado tiene `maxCapacity < cattleCount`. Esta advertencia es independiente de la alerta detallada del panel de detalle — permite al operador detectar el problema sin abrir la solicitud.
+
+### Alerta de Capacidad detallada (página de detalle)
 
 Tres estados visuales:
 
