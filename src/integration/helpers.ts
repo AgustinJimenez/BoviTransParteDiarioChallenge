@@ -30,6 +30,10 @@ export const createRequest = async (overrides: Partial<{
   assignedTruckId: string;
   distanceKm:     number;
   fuelCost:       number;
+  originLat:      number;
+  originLng:      number;
+  destinationLat: number;
+  destinationLng: number;
 }> = {}) => {
   return prisma.transportRequest.create({
     data: {
@@ -42,6 +46,10 @@ export const createRequest = async (overrides: Partial<{
       assignedTruckId: overrides.assignedTruckId,
       distanceKm:      overrides.distanceKm,
       fuelCost:        overrides.fuelCost,
+      originLat:       overrides.originLat,
+      originLng:       overrides.originLng,
+      destinationLat:  overrides.destinationLat,
+      destinationLng:  overrides.destinationLng,
     },
     include: { assignedTruck: true },
   });
