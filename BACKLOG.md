@@ -43,21 +43,21 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-01: Diseñar y crear tabla `trucks` en PostgreSQL
-  - [ ] Campos: `id` (UUID PK), `plate` (VARCHAR, UNIQUE, NOT NULL), `max_capacity` (INTEGER, NOT NULL, CHECK > 0), `fuel_consumption` (DECIMAL(5,2), NOT NULL, CHECK > 0), `is_active` (BOOLEAN, DEFAULT true), `created_at`, `updated_at`
-  - [ ] Índice único sobre `plate`
-  - [ ] Datos semilla: 4 camiones con capacidades y consumos realistas (ej. 20-40 cabezas, 0.35-0.55 L/km)
+- [x] TASK-01: Diseñar y crear tabla `trucks` en PostgreSQL
+  - [x] Campos: `id` (UUID PK), `plate` (VARCHAR, UNIQUE, NOT NULL), `max_capacity` (INTEGER, NOT NULL, CHECK > 0), `fuel_consumption` (DECIMAL(5,2), NOT NULL, CHECK > 0), `is_active` (BOOLEAN, DEFAULT true), `created_at`, `updated_at`
+  - [x] Índice único sobre `plate`
+  - [x] Datos semilla: 4 camiones con capacidades y consumos realistas (ej. 20-40 cabezas, 0.35-0.55 L/km)
 
-- [ ] TASK-02: Crear endpoint `POST /api/trucks`
-  - [ ] Validación de body con Zod: patente formato regex, capacity entero positivo, fuel_consumption decimal positivo
-  - [ ] Manejo de error 409 si patente duplicada
-  - [ ] Retorna 201 con el recurso creado
+- [x] TASK-02: Crear endpoint `POST /api/trucks`
+  - [x] Validación de body con Zod: patente formato regex, capacity entero positivo, fuel_consumption decimal positivo
+  - [x] Manejo de error 409 si patente duplicada
+  - [x] Retorna 201 con el recurso creado
 
-- [ ] TASK-03: Crear formulario de registro de camión en `/fleet/new`
-  - [ ] Campos: Patente, Capacidad (cabezas), Consumo (L/km)
-  - [ ] Validación client-side con react-hook-form + Zod
-  - [ ] Feedback visual de éxito/error post-submit
-  - [ ] Redirige al listado tras registro exitoso
+- [x] TASK-03: Crear formulario de registro de camión en `/fleet/new`
+  - [x] Campos: Patente, Capacidad (cabezas), Consumo (L/km)
+  - [x] Validación client-side con react-hook-form + Zod
+  - [x] Feedback visual de éxito/error post-submit
+  - [x] Redirige al listado tras registro exitoso
 
 ---
 
@@ -81,16 +81,16 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-04: Crear endpoint `GET /api/trucks`
-  - [ ] Retorna lista completa con todos los campos no sensibles
-  - [ ] Soporte para query param `?active=true` para filtrar solo activos
-  - [ ] Respuesta 200 con array (vacío si no hay registros)
+- [x] TASK-04: Crear endpoint `GET /api/trucks`
+  - [x] Retorna lista completa con todos los campos no sensibles
+  - [x] Soporte para query param `?active=true` para filtrar solo activos
+  - [x] Respuesta 200 con array (vacío si no hay registros)
 
-- [ ] TASK-05: Crear página `/fleet` con listado de camiones
-  - [ ] Tabla responsiva con columnas: Patente, Capacidad, Consumo, Estado, Acciones
-  - [ ] Estado vacío con ilustración y CTA
-  - [ ] Botón "Registrar camión" que navega a `/fleet/new`
-  - [ ] Indicador visual de estado activo/inactivo
+- [x] TASK-05: Crear página `/fleet` con listado de camiones
+  - [x] Tabla responsiva con columnas: Patente, Capacidad, Consumo, Estado, Acciones
+  - [x] Estado vacío con ilustración y CTA
+  - [x] Botón "Registrar camión" que navega a `/fleet/new`
+  - [x] Indicador visual de estado activo/inactivo
 
 ---
 
@@ -112,15 +112,15 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-06: Crear endpoint `PATCH /api/trucks/:id` para toggle de estado
-  - [ ] Actualiza campo `is_active`
-  - [ ] Verifica si hay solicitudes pendientes asignadas al camión (estado `pending` o `assigned`)
-  - [ ] Retorna 200 con el recurso actualizado o 409 con detalle si hay conflictos activos
+- [x] TASK-06: Crear endpoint `PATCH /api/trucks/:id` para toggle de estado
+  - [x] Actualiza campo `is_active`
+  - [x] Verifica si hay solicitudes pendientes asignadas al camión (estado `pending` o `assigned`)
+  - [x] Retorna 200 con el recurso actualizado o 409 con detalle si hay conflictos activos
 
-- [ ] TASK-07: Agregar acción de desactivar en el listado de flota
-  - [ ] Botón/ícono de desactivar por fila
-  - [ ] Modal de confirmación con mensaje contextual (menciona viajes pendientes si los hay)
-  - [ ] Actualización optimista del estado en UI
+- [x] TASK-07: Agregar acción de desactivar en el listado de flota
+  - [x] Botón/ícono de desactivar por fila
+  - [x] Modal de confirmación con mensaje contextual (menciona viajes pendientes si los hay)
+  - [x] Actualización optimista del estado en UI
 
 ---
 
@@ -150,21 +150,21 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-08: Diseñar y crear tabla `transport_requests` en PostgreSQL
-  - [ ] Campos: `id` (UUID PK), `requester_name` (VARCHAR, NOT NULL), `requester_phone` (VARCHAR), `cattle_count` (INTEGER, NOT NULL, CHECK > 0), `origin` (VARCHAR, NOT NULL), `destination` (VARCHAR, NOT NULL), `origin_lat` (DECIMAL, NULLABLE), `origin_lng` (DECIMAL, NULLABLE), `destination_lat` (DECIMAL, NULLABLE), `destination_lng` (DECIMAL, NULLABLE), `status` (ENUM: `pending`, `assigned`, `completed`, `cancelled`), `assigned_truck_id` (UUID FK NULLABLE → trucks.id), `distance_km` (DECIMAL, NULLABLE), `fuel_cost` (DECIMAL, NULLABLE), `created_at`, `updated_at`
-  - [ ] FK con ON DELETE SET NULL hacia trucks
-  - [ ] Índice sobre `status` y `assigned_truck_id`
-  - [ ] Datos semilla: 5 solicitudes en distintos estados
+- [x] TASK-08: Diseñar y crear tabla `transport_requests` en PostgreSQL
+  - [x] Campos: `id` (UUID PK), `requester_name` (VARCHAR, NOT NULL), `requester_phone` (VARCHAR), `cattle_count` (INTEGER, NOT NULL, CHECK > 0), `origin` (VARCHAR, NOT NULL), `destination` (VARCHAR, NOT NULL), `origin_lat` (DECIMAL, NULLABLE), `origin_lng` (DECIMAL, NULLABLE), `destination_lat` (DECIMAL, NULLABLE), `destination_lng` (DECIMAL, NULLABLE), `status` (ENUM: `pending`, `assigned`, `completed`, `cancelled`), `assigned_truck_id` (UUID FK NULLABLE → trucks.id), `distance_km` (DECIMAL, NULLABLE), `fuel_cost` (DECIMAL, NULLABLE), `created_at`, `updated_at`
+  - [x] FK con ON DELETE SET NULL hacia trucks
+  - [x] Índice sobre `status` y `assigned_truck_id`
+  - [x] Datos semilla: 5 solicitudes en distintos estados
 
-- [ ] TASK-09: Crear endpoint `POST /api/transport-requests`
-  - [ ] Validación con Zod: campos requeridos, cattle_count > 0
-  - [ ] Estado inicial: `pending`, sin camión asignado
-  - [ ] Retorna 201 con el recurso creado
+- [x] TASK-09: Crear endpoint `POST /api/transport-requests`
+  - [x] Validación con Zod: campos requeridos, cattle_count > 0
+  - [x] Estado inicial: `pending`, sin camión asignado
+  - [x] Retorna 201 con el recurso creado
 
-- [ ] TASK-10: Crear modal/formulario de nueva solicitud
-  - [ ] Campos: Nombre solicitante, Teléfono, Cabezas de ganado, Origen (text), Destino (text)
-  - [ ] Validación client-side
-  - [ ] Accesible desde el dashboard con botón "Nueva Solicitud"
+- [x] TASK-10: Crear modal/formulario de nueva solicitud
+  - [x] Campos: Nombre solicitante, Teléfono, Cabezas de ganado, Origen (text), Destino (text)
+  - [x] Validación client-side
+  - [x] Accesible desde el dashboard con botón "Nueva Solicitud"
 
 ---
 
@@ -188,20 +188,20 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-11: Crear endpoint `GET /api/transport-requests`
-  - [ ] Retorna solicitudes con datos del camión asignado (JOIN)
-  - [ ] Soporte para filtrado por `?status=pending`
-  - [ ] Ordenamiento: pendientes primero, luego por `created_at` DESC
+- [x] TASK-11: Crear endpoint `GET /api/transport-requests`
+  - [x] Retorna solicitudes con datos del camión asignado (JOIN)
+  - [x] Soporte para filtrado por `?status=pending`
+  - [x] Ordenamiento: pendientes primero, luego por `created_at` DESC
 
-- [ ] TASK-12: Diseñar e implementar tarjeta de solicitud (componente `RequestCard`)
-  - [ ] Layout: badge de estado, datos del solicitante, ruta origen→destino, conteo de ganado, camión asignado
-  - [ ] Colores semánticos por estado: amarillo/pendiente, azul/asignado, verde/completado
-  - [ ] Acción "Ver detalle / Asignar" que abre el panel de detalle
+- [x] TASK-12: Diseñar e implementar tarjeta de solicitud (componente `RequestCard`)
+  - [x] Layout: badge de estado, datos del solicitante, ruta origen→destino, conteo de ganado, camión asignado
+  - [x] Colores semánticos por estado: amarillo/pendiente, azul/asignado, verde/completado
+  - [x] Acción "Ver detalle / Asignar" que abre el panel de detalle
 
-- [ ] TASK-13: Implementar vista de dashboard `/` con grid de tarjetas
-  - [ ] Layout responsivo (1 col mobile, 2 col tablet, 3 col desktop)
-  - [ ] Header con estadísticas rápidas: total pendientes, asignados, completados
-  - [ ] Estado vacío si no hay solicitudes
+- [x] TASK-13: Implementar vista de dashboard `/` con grid de tarjetas
+  - [x] Layout responsivo (1 col mobile, 2 col tablet, 3 col desktop)
+  - [x] Header con estadísticas rápidas: total pendientes, asignados, completados
+  - [x] Estado vacío si no hay solicitudes
 
 ---
 
@@ -221,13 +221,13 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-14: Crear endpoint `GET /api/transport-requests/:id`
-  - [ ] Retorna solicitud completa con datos del camión asignado
-  - [ ] 404 si no existe
+- [x] TASK-14: Crear endpoint `GET /api/transport-requests/:id`
+  - [x] Retorna solicitud completa con datos del camión asignado
+  - [x] 404 si no existe
 
-- [ ] TASK-15: Crear panel de detalle de solicitud (slide-over o modal)
-  - [ ] Secciones: Info del solicitante | Datos del traslado | Mapa | Asignación de camión
-  - [ ] Carga el mapa al abrir el detalle
+- [x] TASK-15: Crear panel de detalle de solicitud (slide-over o modal)
+  - [x] Secciones: Info del solicitante | Datos del traslado | Mapa | Asignación de camión
+  - [x] Carga el mapa al abrir el detalle
 
 ---
 
@@ -257,22 +257,22 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-16: Integrar Leaflet + OpenStreetMap en Next.js
-  - [ ] Instalar `leaflet` y `react-leaflet`
-  - [ ] Resolver problema de SSR (importación dinámica con `dynamic(() => import(...), { ssr: false })`)
-  - [ ] Configurar tile layer de OpenStreetMap
+- [x] TASK-16: Integrar Leaflet + OpenStreetMap en Next.js
+  - [x] Instalar `leaflet` y `react-leaflet`
+  - [x] Resolver problema de SSR (importación dinámica con `dynamic(() => import(...), { ssr: false })`)
+  - [x] Configurar tile layer de OpenStreetMap
 
-- [ ] TASK-17: Implementar servicio de geocodificación con Nominatim (OpenStreetMap)
-  - [ ] Función `geocode(address: string): Promise<{lat, lng} | null>`
-  - [ ] Rate limiting awareness (Nominatim tiene límite de 1 req/seg)
-  - [ ] Cache de geocodificación en DB (guardar lat/lng en la solicitud al primera vez que se resuelve)
+- [x] TASK-17: Implementar servicio de geocodificación con Nominatim (OpenStreetMap)
+  - [x] Función `geocode(address: string): Promise<{lat, lng} | null>`
+  - [x] Rate limiting awareness (Nominatim tiene límite de 1 req/seg)
+  - [x] Cache de geocodificación en DB (guardar lat/lng en la solicitud al primera vez que se resuelve)
 
-- [ ] TASK-18: Componente `RouteMap`
-  - [ ] Props: `origin: {lat, lng, label}`, `destination: {lat, lng, label}`
-  - [ ] Marcadores con popups (nombre de la localidad)
-  - [ ] Polilínea entre puntos
-  - [ ] Auto-fit bounds para mostrar ambos puntos completos
-  - [ ] Estado de carga mientras geocodifica
+- [x] TASK-18: Componente `RouteMap`
+  - [x] Props: `origin: {lat, lng, label}`, `destination: {lat, lng, label}`
+  - [x] Marcadores con popups (nombre de la localidad)
+  - [x] Polilínea entre puntos
+  - [x] Auto-fit bounds para mostrar ambos puntos completos
+  - [x] Estado de carga mientras geocodifica
 
 ---
 
@@ -294,14 +294,14 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-19: Implementar servicio de cálculo de distancia
-  - [ ] Función `calculateDistance(origin: Coords, destination: Coords): Promise<number>`
-  - [ ] Integrar con OSRM public API (`router.project-osrm.org`) para distancia real de ruta
-  - [ ] Fallback a Haversine si OSRM falla
-  - [ ] Persistir resultado en `transport_requests.distance_km`
+- [x] TASK-19: Implementar servicio de cálculo de distancia
+  - [x] Función `calculateDistance(origin: Coords, destination: Coords): Promise<number>`
+  - [x] Integrar con OSRM public API (`router.project-osrm.org`) para distancia real de ruta
+  - [x] Fallback a Haversine si OSRM falla
+  - [x] Persistir resultado en `transport_requests.distance_km`
 
-- [ ] TASK-20: Mostrar distancia calculada en el panel de detalle
-  - [ ] Sección de estadísticas: distancia en km, con ícono de ruta
+- [x] TASK-20: Mostrar distancia calculada en el panel de detalle
+  - [x] Sección de estadísticas: distancia en km, con ícono de ruta
 
 ---
 
@@ -325,23 +325,23 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-21: Diseñar tabla `system_config` en PostgreSQL
-  - [ ] Campos: `key` (VARCHAR PK), `value` (VARCHAR), `updated_at`
-  - [ ] Registro inicial: `fuel_price_per_liter` con valor por defecto (ej. `1200` en pesos argentinos)
+- [x] TASK-21: Diseñar tabla `system_config` en PostgreSQL
+  - [x] Campos: `key` (VARCHAR PK), `value` (VARCHAR), `updated_at`
+  - [x] Registro inicial: `fuel_price_per_liter` con valor por defecto (ej. `1200` en pesos argentinos)
 
-- [ ] TASK-22: Crear endpoints de configuración
-  - [ ] `GET /api/config/fuel-price` → retorna precio actual
-  - [ ] `PUT /api/config/fuel-price` → actualiza precio (body: `{ price: number }`)
+- [x] TASK-22: Crear endpoints de configuración
+  - [x] `GET /api/config/fuel-price` → retorna precio actual
+  - [x] `PUT /api/config/fuel-price` → actualiza precio (body: `{ price: number }`)
 
-- [ ] TASK-23: Implementar lógica de cálculo de combustible en el backend
-  - [ ] Función pura `calculateFuelCost(distanceKm, fuelConsumption, fuelPrice): number`
-  - [ ] Usada tanto en el endpoint de asignación como accesible para preview
+- [x] TASK-23: Implementar lógica de cálculo de combustible en el backend
+  - [x] Función pura `calculateFuelCost(distanceKm, fuelConsumption, fuelPrice): number`
+  - [x] Usada tanto en el endpoint de asignación como accesible para preview
 
-- [ ] TASK-24: Implementar selector de camión con preview de costo en UI
-  - [ ] Dropdown/select de camiones disponibles (activos)
-  - [ ] Al cambiar selección: llamada a función de cálculo local (todos los datos disponibles en cliente)
-  - [ ] Panel de desglose del costo con la fórmula visible
-  - [ ] Indicador de precio de combustible usado con link a configuración
+- [x] TASK-24: Implementar selector de camión con preview de costo en UI
+  - [x] Dropdown/select de camiones disponibles (activos)
+  - [x] Al cambiar selección: llamada a función de cálculo local (todos los datos disponibles en cliente)
+  - [x] Panel de desglose del costo con la fórmula visible
+  - [x] Indicador de precio de combustible usado con link a configuración
 
 ---
 
@@ -371,18 +371,18 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-25: Crear endpoint `PATCH /api/transport-requests/:id/assign`
-  - [ ] Body: `{ truckId: string }`
-  - [ ] Valida que el camión existe y está activo
-  - [ ] Calcula y persiste `fuel_cost` y `distance_km` si no estaban calculados
-  - [ ] Actualiza `status` a `assigned` y `assigned_truck_id`
-  - [ ] Retorna 200 con la solicitud actualizada o 422 con detalle si capacidad excedida (sin bloquear — solo informa)
+- [x] TASK-25: Crear endpoint `PATCH /api/transport-requests/:id/assign`
+  - [x] Body: `{ truckId: string }`
+  - [x] Valida que el camión existe y está activo
+  - [x] Calcula y persiste `fuel_cost` y `distance_km` si no estaban calculados
+  - [x] Actualiza `status` a `assigned` y `assigned_truck_id`
+  - [x] Retorna 200 con la solicitud actualizada o 422 con detalle si capacidad excedida (sin bloquear — solo informa)
 
-- [ ] TASK-26: Botón "Confirmar Asignación" en el panel de detalle
-  - [ ] Habilitado solo cuando hay un camión seleccionado
-  - [ ] Estado de carga durante el request
-  - [ ] Actualiza la UI optimistamente tras éxito
-  - [ ] Muestra error si el request falla
+- [x] TASK-26: Botón "Confirmar Asignación" en el panel de detalle
+  - [x] Habilitado solo cuando hay un camión seleccionado
+  - [x] Estado de carga durante el request
+  - [x] Actualiza la UI optimistamente tras éxito
+  - [x] Muestra error si el request falla
 
 ---
 
@@ -406,19 +406,19 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-27: Implementar lógica de validación de capacidad en el frontend
-  - [ ] Función `getCapacityStatus(cattleCount, truck): { exceeded: boolean, tripsNeeded: number, suggestion: Truck | null }`
-  - [ ] Se ejecuta reactivamente al cambiar el camión seleccionado
-  - [ ] `tripsNeeded = Math.ceil(cattleCount / truck.maxCapacity)`
+- [x] TASK-27: Implementar lógica de validación de capacidad en el frontend
+  - [x] Función `getCapacityStatus(cattleCount, truck): { exceeded: boolean, tripsNeeded: number, suggestion: Truck | null }`
+  - [x] Se ejecuta reactivamente al cambiar el camión seleccionado
+  - [x] `tripsNeeded = Math.ceil(cattleCount / truck.maxCapacity)`
 
-- [ ] TASK-28: Diseñar componente de alerta de capacidad `CapacityAlert`
-  - [ ] Variantes: `ok` (verde, capacidad suficiente con espacio disponible), `tight` (amarillo, ≤ 10% de espacio libre), `exceeded` (rojo, capacidad insuficiente)
-  - [ ] En estado `exceeded`: muestra número de viajes sugeridos y nombre del camión alternativo
-  - [ ] Animación de entrada suave para no pasar desapercibida
+- [x] TASK-28: Diseñar componente de alerta de capacidad `CapacityAlert`
+  - [x] Variantes: `ok` (verde, capacidad suficiente con espacio disponible), `tight` (amarillo, ≤ 10% de espacio libre), `exceeded` (rojo, capacidad insuficiente)
+  - [x] En estado `exceeded`: muestra número de viajes sugeridos y nombre del camión alternativo
+  - [x] Animación de entrada suave para no pasar desapercibida
 
-- [ ] TASK-29: Validación de capacidad también en el backend (endpoint de asignación)
-  - [ ] No bloquea la asignación pero incluye en la respuesta: `{ capacityWarning: { exceeded: boolean, tripsNeeded: number } }`
-  - [ ] El frontend usa esta info para mostrar confirmación secundaria si hay exceso
+- [x] TASK-29: Validación de capacidad también en el backend (endpoint de asignación)
+  - [x] No bloquea la asignación pero incluye en la respuesta: `{ capacityWarning: { exceeded: boolean, tripsNeeded: number } }`
+  - [x] El frontend usa esta info para mostrar confirmación secundaria si hay exceso
 
 ---
 
@@ -438,11 +438,11 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-30: Crear página `/settings` con configuración de precio de combustible
-  - [ ] Input numérico con unidad ($/litro)
-  - [ ] Muestra fecha de última actualización
-  - [ ] Botón "Guardar" que llama a `PUT /api/config/fuel-price`
-  - [ ] Toast de confirmación tras actualizar
+- [x] TASK-30: Crear página `/settings` con configuración de precio de combustible
+  - [x] Input numérico con unidad ($/litro)
+  - [x] Muestra fecha de última actualización
+  - [x] Botón "Guardar" que llama a `PUT /api/config/fuel-price`
+  - [x] Toast de confirmación tras actualizar
 
 ---
 
@@ -472,24 +472,24 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-31: Crear `Dockerfile` para la aplicación Next.js
-  - [ ] Multi-stage build: `builder` (instalación de deps + build) y `runner` (imagen mínima)
-  - [ ] Imagen base: `node:20-alpine`
-  - [ ] Variables de entorno via `ARG` y `ENV`
+- [x] TASK-31: Crear `Dockerfile` para la aplicación Next.js
+  - [x] Multi-stage build: `builder` (instalación de deps + build) y `runner` (imagen mínima)
+  - [x] Imagen base: `node:20-alpine`
+  - [x] Variables de entorno via `ARG` y `ENV`
 
-- [ ] TASK-32: Crear `docker-compose.yml`
-  - [ ] Servicio `app` (Next.js): build desde Dockerfile, puerto 3000:3000, depends_on db
-  - [ ] Servicio `db` (PostgreSQL 15): imagen oficial, volumen persistente, variables de entorno
-  - [ ] Red interna compartida entre servicios
-  - [ ] Variables sensibles en `.env` (no commiteado) con `.env.example` como referencia
+- [x] TASK-32: Crear `docker-compose.yml`
+  - [x] Servicio `app` (Next.js): build desde Dockerfile, puerto 3000:3000, depends_on db
+  - [x] Servicio `db` (PostgreSQL 15): imagen oficial, volumen persistente, variables de entorno
+  - [x] Red interna compartida entre servicios
+  - [x] Variables sensibles en `.env` (no commiteado) con `.env.example` como referencia
 
-- [ ] TASK-33: Crear `init.sql` con schema completo y seed data
-  - [ ] CREATE TABLE para todas las tablas con constraints
-  - [ ] INSERT de datos semilla: 4 camiones, 5 solicitudes de transporte en distintos estados, precio de combustible inicial
+- [x] TASK-33: Crear `init.sql` con schema completo y seed data
+  - [x] CREATE TABLE para todas las tablas con constraints
+  - [x] INSERT de datos semilla: 4 camiones, 5 solicitudes de transporte en distintos estados, precio de combustible inicial
 
-- [ ] TASK-34: Crear `.env.example` con todas las variables necesarias documentadas
-  - [ ] `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-  - [ ] `NEXT_PUBLIC_OSRM_URL` (opcional, con fallback a instancia pública)
+- [x] TASK-34: Crear `.env.example` con todas las variables necesarias documentadas
+  - [x] `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+  - [x] `NEXT_PUBLIC_OSRM_URL` (opcional, con fallback a instancia pública)
 
 ---
 
@@ -509,18 +509,18 @@
 
 #### Tareas Técnicas
 
-- [ ] TASK-35: Configurar Prisma en el proyecto Next.js
-  - [ ] Instalar `@prisma/client` y `prisma`
-  - [ ] Inicializar con `prisma init`
-  - [ ] Singleton de PrismaClient para evitar múltiples conexiones en desarrollo
+- [x] TASK-35: Configurar Prisma en el proyecto Next.js
+  - [x] Instalar `@prisma/client` y `prisma`
+  - [x] Inicializar con `prisma init`
+  - [x] Singleton de PrismaClient para evitar múltiples conexiones en desarrollo
 
-- [ ] TASK-36: Definir schema completo en `prisma/schema.prisma`
-  - [ ] Modelos: `Truck`, `TransportRequest`, `SystemConfig`
-  - [ ] Relaciones, enums de estado, campos opcionales correctamente tipados
+- [x] TASK-36: Definir schema completo en `prisma/schema.prisma`
+  - [x] Modelos: `Truck`, `TransportRequest`, `SystemConfig`
+  - [x] Relaciones, enums de estado, campos opcionales correctamente tipados
 
-- [ ] TASK-37: Crear script de seed en `prisma/seed.ts`
-  - [ ] Datos coherentes con los del `init.sql`
-  - [ ] Configurable para entornos de test
+- [x] TASK-37: Crear script de seed en `prisma/seed.ts`
+  - [x] Datos coherentes con los del `init.sql`
+  - [x] Configurable para entornos de test
 
 ---
 
