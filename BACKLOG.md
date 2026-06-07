@@ -1,0 +1,1192 @@
+# BACKLOG — BoviTrans MVP
+
+> Generado con Claude (claude-sonnet-4-6) actuando como Analista de Negocios y Arquitecto de Software.
+> El árbol de conversación y los prompts utilizados se documentan al final de este archivo.
+
+---
+
+## Índice de Épicas
+
+| ID | Épica | Historias |
+|---|---|---|
+| EP-01 | Administración de Flotas | US-01, US-02, US-03 |
+| EP-02 | Gestión de Solicitudes de Transporte | US-04, US-05, US-06 |
+| EP-03 | Inteligencia de Rutas y Costos | US-07, US-08, US-09 |
+| EP-04 | Panel de Operaciones y Asignación | US-10, US-11, US-12 |
+| EP-05 | Configuración e Infraestructura | US-13, US-14 |
+
+---
+
+## EP-01: Administración de Flotas
+
+> El operador necesita registrar y gestionar su flota de camiones para que puedan ser asignados a solicitudes de transporte. Cada vehículo tiene características técnicas fijas que determinan su capacidad y eficiencia.
+
+---
+
+### US-01: Registro de Camión
+
+**Como** operador logístico, **quiero** registrar un nuevo camión con su patente, capacidad máxima de ganado y consumo de combustible, **para** tenerlo disponible como opción de asignación en las solicitudes de transporte.
+
+#### Criterios de Aceptación
+
+- **Dado que** estoy en el módulo de Flotas
+  **Cuando** completo el formulario con patente, capacidad (cabezas) y consumo (L/km) y confirmo
+  **Entonces** el camión aparece en el listado de flota activa con sus datos correctos
+
+- **Dado que** intento registrar un camión con una patente que ya existe en el sistema
+  **Cuando** envío el formulario
+  **Entonces** el sistema muestra un error claro indicando que la patente ya está registrada y no crea el duplicado
+
+- **Dado que** dejo algún campo obligatorio vacío o ingreso un valor negativo en capacidad o consumo
+  **Cuando** intento enviar el formulario
+  **Entonces** el sistema muestra validaciones inline por campo antes de llegar al servidor
+
+#### Tareas Técnicas
+
+- [x] TASK-01: Diseñar y crear tabla `trucks` en PostgreSQL
+  - [x] Campos: `id` (UUID PK), `plate` (VARCHAR, UNIQUE, NOT NULL), `max_capacity` (INTEGER, NOT NULL, CHECK > 0), `fuel_consumption` (DECIMAL(5,2), NOT NULL, CHECK > 0), `is_active` (BOOLEAN, DEFAULT true), `created_at`, `updated_at`
+  - [x] Índice único sobre `plate`
+  - [x] Datos semilla: 4 camiones con capacidades y consumos realistas (ej. 20-40 cabezas, 0.35-0.55 L/km)
+
+- [x] TASK-02: Crear endpoint `POST /api/trucks`
+  - [x] Validación de body con Zod: patente formato regex, capacity entero positivo, fuel_consumption decimal positivo
+  - [x] Manejo de error 409 si patente duplicada
+  - [x] Retorna 201 con el recurso creado
+
+- [x] TASK-03: Crear formulario de registro de camión en `/fleet/new`
+  - [x] Campos: Patente, Capacidad (cabezas), Consumo (L/km)
+  - [x] Validación client-side con react-hook-form + Zod
+  - [x] Feedback visual de éxito/error post-submit
+  - [x] Redirige al listado tras registro exitoso
+
+---
+
+### US-02: Visualización de Flota
+
+**Como** operador logístico, **quiero** ver el listado completo de camiones registrados con sus características técnicas, **para** conocer los recursos disponibles al momento de asignar un transporte.
+
+#### Criterios de Aceptación
+
+- **Dado que** hay camiones registrados en el sistema
+  **Cuando** accedo al módulo de Flotas
+  **Entonces** veo una tabla/grilla con todos los camiones activos mostrando patente, capacidad y consumo
+
+- **Dado que** no hay camiones registrados
+  **Cuando** accedo al módulo de Flotas
+  **Entonces** veo un estado vacío con un llamado a la acción para registrar el primer camión
+
+- **Dado que** hay camiones tanto activos como inactivos
+  **Cuando** visualizo el listado
+  **Entonces** los camiones inactivos se diferencian visualmente (ej. opacidad reducida, badge "Inactivo") pero siguen siendo visibles
+
+#### Tareas Técnicas
+
+- [x] TASK-04: Crear endpoint `GET /api/trucks`
+  - [x] Retorna lista completa con todos los campos no sensibles
+  - [x] Soporte para query param `?active=true` para filtrar solo activos
+  - [x] Respuesta 200 con array (vacío si no hay registros)
+
+- [x] TASK-05: Crear página `/fleet` con listado de camiones
+  - [x] Tabla responsiva con columnas: Patente, Capacidad, Consumo, Estado, Acciones
+  - [x] Estado vacío con ilustración y CTA
+  - [x] Botón "Registrar camión" que navega a `/fleet/new`
+  - [x] Indicador visual de estado activo/inactivo
+
+---
+
+### US-03: Desactivación de Camión
+
+**Como** operador logístico, **quiero** desactivar un camión de la flota, **para** que no esté disponible para nuevas asignaciones sin perder su historial de viajes.
+
+> ⚠️ **Decisión de diseño:** La especificación indica que las características del vehículo son "inalterables". Se opta por soft-delete (campo `is_active`) en lugar de eliminación física, preservando integridad referencial con solicitudes históricas. No se permite edición de datos técnicos del camión una vez registrado.
+
+#### Criterios de Aceptación
+
+- **Dado que** un camión está activo en el listado de flota
+  **Cuando** el operador selecciona "Desactivar" y confirma el diálogo
+  **Entonces** el camión pasa a estado inactivo y no aparece como opción en el selector de camiones del dashboard
+
+- **Dado que** un camión está activo y tiene solicitudes de transporte pendientes asignadas
+  **Cuando** el operador intenta desactivarlo
+  **Entonces** el sistema muestra una advertencia indicando los viajes pendientes afectados y solicita confirmación explícita
+
+#### Tareas Técnicas
+
+- [x] TASK-06: Crear endpoint `PATCH /api/trucks/:id` para toggle de estado
+  - [x] Actualiza campo `is_active`
+  - [x] Verifica si hay solicitudes pendientes asignadas al camión (estado `pending` o `assigned`)
+  - [x] Retorna 200 con el recurso actualizado o 409 con detalle si hay conflictos activos
+
+- [x] TASK-07: Agregar acción de desactivar en el listado de flota
+  - [x] Botón/ícono de desactivar por fila
+  - [x] Modal de confirmación con mensaje contextual (menciona viajes pendientes si los hay)
+  - [x] Actualización optimista del estado en UI
+
+---
+
+## EP-02: Gestión de Solicitudes de Transporte
+
+> El sistema debe permitir registrar y visualizar solicitudes de traslado de ganado. Cada solicitud contiene datos del cliente, cantidad de animales y puntos geográficos de origen y destino.
+
+---
+
+### US-04: Creación de Solicitud de Transporte
+
+**Como** operador logístico, **quiero** registrar una nueva solicitud de transporte con los datos del cliente, la cantidad de ganado y las localidades de origen y destino, **para** tener un registro formal del pedido y poder asignarle un camión.
+
+#### Criterios de Aceptación
+
+- **Dado que** estoy en el dashboard o en la sección de solicitudes
+  **Cuando** completo el formulario con nombre del solicitante, teléfono, cantidad de cabezas, origen y destino, y lo confirmo
+  **Entonces** la solicitud aparece en el dashboard con estado "Pendiente" y todos sus datos visibles
+
+- **Dado que** ingreso 0 o un número negativo en la cantidad de cabezas
+  **Cuando** intento enviar el formulario
+  **Entonces** el sistema valida y muestra un error antes de llegar al servidor
+
+- **Dado que** ingreso texto libre en los campos de origen y destino
+  **Cuando** el sistema recibe la solicitud
+  **Entonces** los valores se almacenan como strings de localidad/dirección (sin geocodificación obligatoria en creación — la geocodificación ocurre al visualizar en mapa)
+
+#### Tareas Técnicas
+
+- [x] TASK-08: Diseñar y crear tabla `transport_requests` en PostgreSQL
+  - [x] Campos: `id` (UUID PK), `requester_name` (VARCHAR, NOT NULL), `requester_phone` (VARCHAR), `cattle_count` (INTEGER, NOT NULL, CHECK > 0), `origin` (VARCHAR, NOT NULL), `destination` (VARCHAR, NOT NULL), `origin_lat` (DECIMAL, NULLABLE), `origin_lng` (DECIMAL, NULLABLE), `destination_lat` (DECIMAL, NULLABLE), `destination_lng` (DECIMAL, NULLABLE), `status` (ENUM: `pending`, `assigned`, `completed`, `cancelled`), `assigned_truck_id` (UUID FK NULLABLE → trucks.id), `distance_km` (DECIMAL, NULLABLE), `fuel_cost` (DECIMAL, NULLABLE), `created_at`, `updated_at`
+  - [x] FK con ON DELETE SET NULL hacia trucks
+  - [x] Índice sobre `status` y `assigned_truck_id`
+  - [x] Datos semilla: 5 solicitudes en distintos estados
+
+- [x] TASK-09: Crear endpoint `POST /api/transport-requests`
+  - [x] Validación con Zod: campos requeridos, cattle_count > 0
+  - [x] Estado inicial: `pending`, sin camión asignado
+  - [x] Retorna 201 con el recurso creado
+
+- [x] TASK-10: Crear modal/formulario de nueva solicitud
+  - [x] Campos: Nombre solicitante, Teléfono, Cabezas de ganado, Origen (text), Destino (text)
+  - [x] Validación client-side
+  - [x] Accesible desde el dashboard con botón "Nueva Solicitud"
+
+---
+
+### US-05: Visualización de Solicitudes en el Dashboard
+
+**Como** operador logístico, **quiero** ver todas las solicitudes de transporte en el Panel Principal organizadas por estado, **para** tener visibilidad completa de mi operación y priorizar asignaciones.
+
+#### Criterios de Aceptación
+
+- **Dado que** existen solicitudes en el sistema
+  **Cuando** accedo al dashboard
+  **Entonces** veo tarjetas para cada solicitud mostrando: nombre del solicitante, cabezas de ganado, origen → destino, estado actual y camión asignado (si aplica)
+
+- **Dado que** hay solicitudes en múltiples estados
+  **Cuando** visualizo el dashboard
+  **Entonces** las solicitudes están diferenciadas visualmente por estado (pendiente, asignado, completado)
+
+- **Dado que** el sistema tiene muchas solicitudes
+  **Cuando** visualizo el dashboard
+  **Entonces** las solicitudes pendientes aparecen primero (ordenadas por fecha de creación descendente)
+
+#### Tareas Técnicas
+
+- [x] TASK-11: Crear endpoint `GET /api/transport-requests`
+  - [x] Retorna solicitudes con datos del camión asignado (JOIN)
+  - [x] Soporte para filtrado por `?status=pending`
+  - [x] Ordenamiento: pendientes primero, luego por `created_at` DESC
+
+- [x] TASK-12: Diseñar e implementar tarjeta de solicitud (componente `RequestCard`)
+  - [x] Layout: badge de estado, datos del solicitante, ruta origen→destino, conteo de ganado, camión asignado
+  - [x] Colores semánticos por estado: amarillo/pendiente, azul/asignado, verde/completado
+  - [x] Acción "Ver detalle / Asignar" que abre el panel de detalle
+
+- [x] TASK-13: Implementar vista de dashboard `/` con grid de tarjetas
+  - [x] Layout responsivo (1 col mobile, 2 col tablet, 3 col desktop)
+  - [x] Header con estadísticas rápidas: total pendientes, asignados, completados
+  - [x] Estado vacío si no hay solicitudes
+
+---
+
+### US-06: Detalle de Solicitud
+
+**Como** operador logístico, **quiero** ver el detalle completo de una solicitud de transporte, **para** revisar toda la información antes de asignar un camión.
+
+#### Criterios de Aceptación
+
+- **Dado que** estoy en el dashboard
+  **Cuando** hago click en una tarjeta de solicitud
+  **Entonces** veo un panel de detalle (modal o página) con todos los datos: solicitante, ganado, ruta en mapa, distancia calculada y el selector de camión
+
+- **Dado que** la solicitud ya tiene un camión asignado
+  **Cuando** abro el detalle
+  **Entonces** veo el costo de combustible calculado y el estado de capacidad
+
+#### Tareas Técnicas
+
+- [x] TASK-14: Crear endpoint `GET /api/transport-requests/:id`
+  - [x] Retorna solicitud completa con datos del camión asignado
+  - [x] 404 si no existe
+
+- [x] TASK-15: Crear panel de detalle de solicitud (slide-over o modal)
+  - [x] Secciones: Info del solicitante | Datos del traslado | Mapa | Asignación de camión
+  - [x] Carga el mapa al abrir el detalle
+
+---
+
+## EP-03: Inteligencia de Rutas y Costos
+
+> El corazón analítico del sistema. Combina geolocalización, cálculo de distancias y lógica financiera para dar al operador información precisa para decidir.
+
+---
+
+### US-07: Visualización de Ruta en Mapa
+
+**Como** operador logístico, **quiero** ver la ruta entre el origen y destino de una solicitud trazada sobre un mapa interactivo, **para** evaluar visualmente el trayecto antes de confirmar la asignación.
+
+#### Criterios de Aceptación
+
+- **Dado que** abro el detalle de una solicitud con origen y destino especificados
+  **Cuando** el mapa carga
+  **Entonces** veo los marcadores de origen (verde) y destino (rojo) posicionados correctamente sobre el mapa
+
+- **Dado que** el sistema puede obtener las coordenadas de origen y destino
+  **Cuando** el mapa carga
+  **Entonces** se traza una polilínea entre ambos puntos representando la ruta aproximada
+
+- **Dado que** el geocoding de una localidad falla (nombre ambiguo o no encontrado)
+  **Cuando** intento visualizar el mapa
+  **Entonces** el sistema muestra un mensaje claro indicando que no pudo resolver la ubicación, sin romper la UI
+
+#### Tareas Técnicas
+
+- [x] TASK-16: Integrar Leaflet + OpenStreetMap en Next.js
+  - [x] Instalar `leaflet` y `react-leaflet`
+  - [x] Resolver problema de SSR (importación dinámica con `dynamic(() => import(...), { ssr: false })`)
+  - [x] Configurar tile layer de OpenStreetMap
+
+- [x] TASK-17: Implementar servicio de geocodificación con Nominatim (OpenStreetMap)
+  - [x] Función `geocode(address: string): Promise<{lat, lng} | null>`
+  - [x] Rate limiting awareness (Nominatim tiene límite de 1 req/seg)
+  - [x] Cache de geocodificación en DB (guardar lat/lng en la solicitud al primera vez que se resuelve)
+
+- [x] TASK-18: Componente `RouteMap`
+  - [x] Props: `origin: {lat, lng, label}`, `destination: {lat, lng, label}`
+  - [x] Marcadores con popups (nombre de la localidad)
+  - [x] Polilínea entre puntos
+  - [x] Auto-fit bounds para mostrar ambos puntos completos
+  - [x] Estado de carga mientras geocodifica
+
+---
+
+### US-08: Cálculo de Distancia
+
+**Como** operador logístico, **quiero** que el sistema calcule automáticamente la distancia en kilómetros entre origen y destino, **para** tener una base objetiva para el cálculo de costos.
+
+> ⚠️ **Decisión de diseño:** Para el MVP se usa distancia de línea recta (Haversine formula) o la distancia provista por OSRM (Open Source Routing Machine, gratuito). OSRM provee distancia real de ruta; Haversine es una aproximación. Se implementa con OSRM para mayor precisión sin costos de API.
+
+#### Criterios de Aceptación
+
+- **Dado que** tengo el origen y destino geocodificados
+  **Cuando** el sistema calcula la distancia
+  **Entonces** se muestra la distancia en km con un decimal de precisión (ej. "342.5 km")
+
+- **Dado que** la distancia fue calculada previamente
+  **Cuando** vuelvo a abrir el detalle de la misma solicitud
+  **Entonces** la distancia se lee desde la DB (campo `distance_km`) sin recalcular
+
+#### Tareas Técnicas
+
+- [x] TASK-19: Implementar servicio de cálculo de distancia
+  - [x] Función `calculateDistance(origin: Coords, destination: Coords): Promise<number>`
+  - [x] Integrar con OSRM public API (`router.project-osrm.org`) para distancia real de ruta
+  - [x] Fallback a Haversine si OSRM falla
+  - [x] Persistir resultado en `transport_requests.distance_km`
+
+- [x] TASK-20: Mostrar distancia calculada en el panel de detalle
+  - [x] Sección de estadísticas: distancia en km, con ícono de ruta
+
+---
+
+### US-09: Proyección Dinámica de Costo de Combustible
+
+**Como** operador logístico, **quiero** que el sistema calcule y muestre el costo estimado de combustible en tiempo real al seleccionar un camión para una solicitud, **para** tomar decisiones de asignación informadas financieramente.
+
+#### Criterios de Aceptación
+
+- **Dado que** tengo una solicitud con distancia calculada y selecciono un camión del listado
+  **Cuando** el selector de camión cambia
+  **Entonces** el costo proyectado se actualiza instantáneamente sin recargar la página usando la fórmula: `Distancia × Consumo × Precio/Litro`
+
+- **Dado que** el precio de combustible está configurado en el sistema
+  **Cuando** calculo el costo
+  **Entonces** el valor usa ese precio y lo muestra junto a la fórmula desglosada (ej. "342 km × 0.45 L/km × $1.20/L = $184.68")
+
+- **Dado que** el precio de combustible NO está configurado
+  **Cuando** intento ver la proyección
+  **Entonces** el sistema muestra un aviso con link a la configuración de precio
+
+#### Tareas Técnicas
+
+- [x] TASK-21: Diseñar tabla `system_config` en PostgreSQL
+  - [x] Campos: `key` (VARCHAR PK), `value` (VARCHAR), `updated_at`
+  - [x] Registro inicial: `fuel_price_per_liter` con valor por defecto (ej. `1200` en pesos argentinos)
+
+- [x] TASK-22: Crear endpoints de configuración
+  - [x] `GET /api/config/fuel-price` → retorna precio actual
+  - [x] `PUT /api/config/fuel-price` → actualiza precio (body: `{ price: number }`)
+
+- [x] TASK-23: Implementar lógica de cálculo de combustible en el backend
+  - [x] Función pura `calculateFuelCost(distanceKm, fuelConsumption, fuelPrice): number`
+  - [x] Usada tanto en el endpoint de asignación como accesible para preview
+
+- [x] TASK-24: Implementar selector de camión con preview de costo en UI
+  - [x] Dropdown/select de camiones disponibles (activos)
+  - [x] Al cambiar selección: llamada a función de cálculo local (todos los datos disponibles en cliente)
+  - [x] Panel de desglose del costo con la fórmula visible
+  - [x] Indicador de precio de combustible usado con link a configuración
+
+---
+
+## EP-04: Panel de Operaciones y Asignación
+
+> La interacción crítica del sistema: asignar un camión a una solicitud, con todas las validaciones de negocio activas.
+
+---
+
+### US-10: Asignación de Camión a Solicitud
+
+**Como** operador logístico, **quiero** asignar un camión disponible a una solicitud de transporte pendiente, **para** confirmar el viaje y registrar el costo proyectado.
+
+#### Criterios de Aceptación
+
+- **Dado que** seleccioné un camión con capacidad suficiente para la solicitud
+  **Cuando** confirmo la asignación
+  **Entonces** la solicitud cambia a estado "Asignado", queda vinculada al camión y el costo de combustible calculado se persiste en la DB
+
+- **Dado que** la solicitud ya fue asignada previamente
+  **Cuando** intento asignarla nuevamente
+  **Entonces** el sistema permite reasignar (cambiar de camión) mientras el estado sea "Asignado" (no "Completado")
+
+- **Dado que** confirmo la asignación
+  **Cuando** vuelvo al dashboard
+  **Entonces** la tarjeta de la solicitud refleja el nuevo estado y el camión asignado inmediatamente
+
+#### Tareas Técnicas
+
+- [x] TASK-25: Crear endpoint `PATCH /api/transport-requests/:id/assign`
+  - [x] Body: `{ truckId: string }`
+  - [x] Valida que el camión existe y está activo
+  - [x] Calcula y persiste `fuel_cost` y `distance_km` si no estaban calculados
+  - [x] Actualiza `status` a `assigned` y `assigned_truck_id`
+  - [x] Retorna 200 con la solicitud actualizada o 422 con detalle si capacidad excedida (sin bloquear — solo informa)
+
+- [x] TASK-26: Botón "Confirmar Asignación" en el panel de detalle
+  - [x] Habilitado solo cuando hay un camión seleccionado
+  - [x] Estado de carga durante el request
+  - [x] Actualiza la UI optimistamente tras éxito
+  - [x] Muestra error si el request falla
+
+---
+
+### US-11: Alerta de Capacidad Excedida
+
+**Como** operador logístico, **quiero** recibir una alerta clara cuando la cantidad de ganado de una solicitud supera la capacidad del camión seleccionado, **para** evitar asignaciones físicamente imposibles o peligrosas.
+
+#### Criterios de Aceptación
+
+- **Dado que** selecciono un camión cuya capacidad máxima es menor a la cantidad de ganado solicitada
+  **Cuando** el selector de camión cambia
+  **Entonces** aparece inmediatamente una alerta visual (sin requerir click en "Confirmar") indicando la capacidad excedida
+
+- **Dado que** la capacidad es excedida
+  **Cuando** veo la alerta
+  **Entonces** el sistema calcula y sugiere el número mínimo de viajes necesarios: `Math.ceil(cattle_count / max_capacity)` y lo muestra de forma legible (ej. "Se necesitan 3 viajes con este camión")
+
+- **Dado que** hay un camión con mayor capacidad disponible en la flota
+  **Cuando** veo la alerta de capacidad excedida
+  **Entonces** el sistema sugiere el camión de mayor capacidad disponible como alternativa
+
+#### Tareas Técnicas
+
+- [x] TASK-27: Implementar lógica de validación de capacidad en el frontend
+  - [x] Función `getCapacityStatus(cattleCount, truck): { exceeded: boolean, tripsNeeded: number, suggestion: Truck | null }`
+  - [x] Se ejecuta reactivamente al cambiar el camión seleccionado
+  - [x] `tripsNeeded = Math.ceil(cattleCount / truck.maxCapacity)`
+
+- [x] TASK-28: Diseñar componente de alerta de capacidad `CapacityAlert`
+  - [x] Variantes: `ok` (verde, capacidad suficiente con espacio disponible), `tight` (amarillo, ≤ 10% de espacio libre), `exceeded` (rojo, capacidad insuficiente)
+  - [x] En estado `exceeded`: muestra número de viajes sugeridos y nombre del camión alternativo
+  - [x] Animación de entrada suave para no pasar desapercibida
+
+- [x] TASK-29: Validación de capacidad también en el backend (endpoint de asignación)
+  - [x] No bloquea la asignación pero incluye en la respuesta: `{ capacityWarning: { exceeded: boolean, tripsNeeded: number } }`
+  - [x] El frontend usa esta info para mostrar confirmación secundaria si hay exceso
+
+---
+
+### US-12: Configuración de Precio de Combustible
+
+**Como** operador logístico, **quiero** poder actualizar el precio del combustible en el sistema, **para** que todos los cálculos de costo reflejen el precio de mercado actual.
+
+#### Criterios de Aceptación
+
+- **Dado que** accedo a la sección de configuración
+  **Cuando** veo la pantalla
+  **Entonces** veo el precio de combustible actual y un campo para actualizarlo
+
+- **Dado que** actualizo el precio de combustible
+  **Cuando** confirmo el cambio
+  **Entonces** el nuevo precio se aplica inmediatamente a todos los cálculos futuros (no retroactivo a solicitudes ya completadas)
+
+#### Tareas Técnicas
+
+- [x] TASK-30: Crear página `/settings` con configuración de precio de combustible
+  - [x] Input numérico con unidad ($/litro)
+  - [x] Muestra fecha de última actualización
+  - [x] Botón "Guardar" que llama a `PUT /api/config/fuel-price`
+  - [x] Toast de confirmación tras actualizar
+
+---
+
+## EP-05: Configuración e Infraestructura
+
+> Base técnica que permite que la aplicación corra de forma consistente en cualquier entorno.
+
+---
+
+### US-13: Contenedorización con Docker
+
+**Como** desarrollador, **quiero** que la aplicación completa pueda levantarse con un único comando (`docker-compose up --build`), **para** garantizar que el entorno sea reproducible y sin dependencias locales externas.
+
+#### Criterios de Aceptación
+
+- **Dado que** tengo Docker y docker-compose instalados
+  **Cuando** ejecuto `docker-compose up --build` desde la raíz del proyecto
+  **Entonces** la aplicación Next.js está disponible en `localhost:3000` y la DB en `localhost:5432` sin configuración adicional
+
+- **Dado que** el contenedor de la DB arranca por primera vez
+  **Cuando** se inicializa
+  **Entonces** las tablas se crean y los datos semilla se cargan automáticamente desde `init.sql`
+
+- **Dado que** reinicio los contenedores sin `--build`
+  **Cuando** la DB ya tiene datos
+  **Entonces** los datos persisten gracias al volumen de Docker
+
+#### Tareas Técnicas
+
+- [x] TASK-31: Crear `Dockerfile` para la aplicación Next.js
+  - [x] Multi-stage build: `builder` (instalación de deps + build) y `runner` (imagen mínima)
+  - [x] Imagen base: `node:20-alpine`
+  - [x] Variables de entorno via `ARG` y `ENV`
+
+- [x] TASK-32: Crear `docker-compose.yml`
+  - [x] Servicio `app` (Next.js): build desde Dockerfile, puerto 3000:3000, depends_on db
+  - [x] Servicio `db` (PostgreSQL 15): imagen oficial, volumen persistente, variables de entorno
+  - [x] Red interna compartida entre servicios
+  - [x] Variables sensibles en `.env` (no commiteado) con `.env.example` como referencia
+
+- [x] TASK-33: Crear `init.sql` con schema completo y seed data
+  - [x] CREATE TABLE para todas las tablas con constraints
+  - [x] INSERT de datos semilla: 4 camiones, 5 solicitudes de transporte en distintos estados, precio de combustible inicial
+
+- [x] TASK-34: Crear `.env.example` con todas las variables necesarias documentadas
+  - [x] `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+  - [x] `NEXT_PUBLIC_OSRM_URL` (opcional, con fallback a instancia pública)
+
+---
+
+### US-14: Migraciones y Schema de Base de Datos con Prisma
+
+**Como** desarrollador, **quiero** gestionar el schema de la base de datos con Prisma ORM, **para** tener type-safety en las queries y un flujo de migraciones controlado.
+
+#### Criterios de Aceptación
+
+- **Dado que** el schema de Prisma está definido
+  **Cuando** ejecuto `prisma migrate dev`
+  **Entonces** las tablas se crean en la DB con todas las constraints definidas
+
+- **Dado que** uso Prisma Client en el código
+  **Cuando** escribo queries
+  **Entonces** tengo autocompletado y type-checking sobre todos los modelos
+
+#### Tareas Técnicas
+
+- [x] TASK-35: Configurar Prisma en el proyecto Next.js
+  - [x] Instalar `@prisma/client` y `prisma`
+  - [x] Inicializar con `prisma init`
+  - [x] Singleton de PrismaClient para evitar múltiples conexiones en desarrollo
+
+- [x] TASK-36: Definir schema completo en `prisma/schema.prisma`
+  - [x] Modelos: `Truck`, `TransportRequest`, `SystemConfig`
+  - [x] Relaciones, enums de estado, campos opcionales correctamente tipados
+
+- [x] TASK-37: Crear script de seed en `prisma/seed.ts`
+  - [x] Datos coherentes con los del `init.sql`
+  - [x] Configurable para entornos de test
+
+---
+
+## Resumen de Tareas por Fase de Desarrollo
+
+| Prioridad | Tareas | Descripción |
+|---|---|---|
+| 🔴 P0 - Fundación | TASK-31 a 37 | Docker, DB schema, Prisma |
+| 🟠 P1 - Core Data | TASK-01 a 03, 08 a 10 | Tablas trucks y requests, endpoints base |
+| 🟡 P2 - Dashboard | TASK-11 a 15 | Visualización de solicitudes y flota |
+| 🟢 P3 - Inteligencia | TASK-16 a 24 | Mapas, geocodificación, cálculo de costos |
+| 🔵 P4 - Operaciones | TASK-25 a 30 | Asignación, alertas, configuración |
+
+---
+
+## Árbol de Conversación con Claude
+
+> Esta sección documenta la interacción real con Claude Code (claude-sonnet-4-6) durante el desarrollo del proyecto. Refleja los intercambios que dieron forma a las decisiones técnicas y de producto más relevantes.
+
+**Herramienta:** Claude Code (claude-sonnet-4-6) — CLI interactivo con MCP Chrome DevTools  
+**Modalidad:** Agente autónomo — el desarrollador da dirección de alto nivel, Claude ejecuta y propone
+
+---
+
+### Intercambio 1 — Lectura inicial de requerimientos
+
+**Desarrollador:**
+> "We need to start this project, the only file is here. Make a docs folder, move that file there, read it and let me know what you think."
+
+**Claude** leyó el PDF `Pauta de Prueba Tecnica_ MVP BoviTrans - Parte Diario.pdf`, lo convirtió a Markdown para facilitar la lectura, e identificó los cuatro entregables evaluados: BACKLOG.md, implementación, DOCUMENTACION.md, y el uso documentado de IA.
+
+**Decisión derivada:** Antes de escribir una línea de código, crear el BACKLOG completo con épicas, historias y criterios de aceptación — es un entregable independiente y la base de todo lo demás.
+
+---
+
+### Intercambio 2 — Configuración del contexto de IA
+
+**Desarrollador:**
+> "Ok, let's proceed then, phase 1."
+
+**Claude** propuso crear `.claude/custom_instructions.md` para que Claude actuara como Analista de Negocios y Arquitecto de Software con contexto completo del dominio (transporte ganadero, fórmula de combustible, módulos requeridos). El objetivo fue evitar repetir contexto en cada mensaje y que todas las decisiones de diseño fuesen coherentes entre sí.
+
+**Lo que se incluyó en las instrucciones:**
+- Stack tecnológico completo con justificaciones
+- La fórmula de combustible textualmente: `Costo = Distancia × Consumo × Precio/Litro`
+- Formato de salida esperado: Épica → US → AC (Dado/Cuando/Entonces) → Tasks técnicas
+- Instrucción de marcar ambigüedades explícitamente antes de tomar decisiones de diseño
+
+**Decisión derivada:** Las instrucciones se convirtieron en el "contrato" entre el desarrollador y el agente — cualquier decisión tomada por Claude sin input explícito debía estar justificada en ese archivo.
+
+---
+
+### Intercambio 3 — Elección de librerías de mapas y geocodificación
+
+**Desarrollador:**
+> "Ok, and what libraries are we gonna use on the frontend side? Is that specified?"
+
+**Claude** propuso las opciones y las evaluó:
+
+| Opción | Pros | Contras |
+|---|---|---|
+| Google Maps API | Familiar, completo | Requiere API key, costo en producción |
+| Mapbox | Bello, moderno | También requiere API key |
+| **Leaflet + OpenStreetMap** | **Gratuito, sin API key, open source** | Más manual que las otras |
+
+**Desarrollador:** Aceptó Leaflet + OSM sin objeciones.
+
+**Claude** agregó Nominatim (geocodificación, gratuito) y OSRM (distancia real por ruta, gratuito) como servicios complementarios — ambos sin requerir registro ni API key. Se documentó que OSRM da distancia real por ruta en lugar de línea recta (Haversine), con Haversine como fallback.
+
+**Decisión derivada:** Toda la capa de mapas es 100% open source y gratuita. Nominatim tiene rate limiting, por lo que se definió geocodificar de forma lazy (solo al visualizar) y cachear el resultado en DB.
+
+---
+
+### Intercambio 4 — Estructura de componentes
+
+**Desarrollador:**
+> "Sounds good, any additional considerations? Like having an Atomic Design structure?"
+
+**Claude** evaluó Atomic Design completo (atoms/molecules/organisms/templates/pages) vs una estructura orientada al dominio:
+
+- Atomic Design completo: introduce una jerarquía de cinco niveles que cobra sentido en design systems compartidos entre múltiples productos o equipos. Para una aplicación de dominio acotado con dos módulos y un solo equipo, genera abstracciones sin destinatario real.
+**Decisión implementada:** Atomic Design completo con tres niveles:
+- `components/atoms/` — Button, Badge, Input
+- `components/molecules/` — RequestCard, TruckCard, CapacityAlert, RouteMap
+- `components/organisms/` — DashboardClient, RequestDetailPanel, NewRequestModal, NewTruckForm, TruckSelector, MapInner, Navbar
+
+**Desarrollador:** Decidió implementar Atomic Design completo para demostrar arquitectura escalable.
+
+**Decisión derivada:** La jerarquía atoms → molecules → organisms refleja el nivel de composición y complejidad de cada componente. Los átomos no conocen el dominio, las moléculas lo representan de forma simple, los organismos encapsulan estado y lógica de negocio. Las páginas en `app/` actúan como templates que componen organismos.
+
+---
+
+### Intercambio 5 — Tests unitarios e integración
+
+**Desarrollador:**
+> "Do we need unit tests and integration tests?"
+
+**Claude** analizó el valor real de cada tipo de test para este sistema:
+
+- **Tests unitarios:** la única lógica de negocio pura es la fórmula de combustible y los cálculos de capacidad — ambas son funciones matemáticas deterministas de 3-4 líneas.
+- **Tests de integración:** los endpoints dependen de Prisma + PostgreSQL + servicios externos (Nominatim, OSRM). Requeriría base de datos de test, mocks de servicios externos, y mantenimiento continuo — complejidad desproporcionada para 6 endpoints con lógica lineal.
+- **El riesgo real** en este sistema no está en la lógica de negocio sino en la integración con Prisma v7, Leaflet SSR y Zod v4 — todos problemas que los tests no habrían detectado antes de la ejecución real.
+
+**Decisión implementada:** Tests unitarios con **Vitest** sobre `src/lib/calculations.ts` (27 tests). No se incluyen tests de integración ni de componentes — la función de cálculo es la única lógica de negocio pura con suficiente complejidad de casos borde para justificarlos. El plan de pruebas manual en `docs/TEST_PLAN.md` cubre los flujos de integración.
+
+**Desarrollador:** Decidió implementar los tests al tener tiempo disponible y poder demostrar buenas prácticas.
+
+**Decisión derivada:** `npm test` corre 27 tests en ~70ms. Los tests verifican la fórmula de combustible, casos borde de capacidad (límite exacto, exceso por uno, números grandes), y la función Haversine con coordenadas argentinas reales.
+
+---
+
+### Intercambio 6 — Docker y entorno de desarrollo
+
+**Desarrollador:**
+> "Oh, docker is not installed, can you install it?"
+
+**Claude** detectó que Docker no estaba disponible en el sistema. Evaluó las opciones para macOS:
+
+| Opción | Espacio en disco | RAM | Notas |
+|---|---|---|---|
+| Docker Desktop | ~4 GB | ~2-4 GB | Licencia comercial para empresas |
+| Colima | ~1 GB base | ~2 GB | VM Linux, requiere configuración manual |
+| **OrbStack** | **~200 MB** | **~300 MB** | Comparte kernel macOS, mucho más liviano |
+| Rancher Desktop | ~1.5 GB | ~1.5 GB | Similar a Colima |
+
+**Desarrollador:**
+> "What I care about is which one will end up using less space."
+
+**Claude** recomendó OrbStack por footprint mínimo y porque no necesita configurar `DOCKER_HOST` — parchea el socket de Docker automáticamente.
+
+**Desarrollador:** Aprobó la instalación de OrbStack.
+
+**Problema encontrado durante desarrollo:** Colima (instalado previamente) estaba usando 7+ GB en disco con una imagen de 100 GB virtual. Se eliminó Colima y se migró completamente a OrbStack, reduciendo el uso a ~1-2 GB.
+
+**Decisión derivada:** OrbStack como runtime Docker. Nota en `CLAUDE.md`: "OrbStack auto-patches the Docker socket — no DOCKER_HOST needed. Use `docker compose` (v2, no hyphen)."
+
+---
+
+### Intercambio 7 — Librerías de accesibilidad
+
+**Desarrollador:**
+> "Is having libraries for accessibility in the dev pipeline required?"
+
+**Claude** evaluó el encaje de `eslint-plugin-jsx-a11y` y `@axe-core/react`. El primero detecta violaciones en tiempo de lint (atributos aria faltantes, roles incorrectos, interactividad sin focus), el segundo las detecta en runtime durante el desarrollo y las reporta en la consola del browser.
+
+**Decisión implementada:** Ambas herramientas activas:
+
+1. **`eslint-plugin-jsx-a11y`** — ya incluido por `eslint-config-next` con 6 reglas base. Se agregaron reglas adicionales: `interactive-supports-focus`, `label-has-associated-control`, `anchor-is-valid`, `tabindex-no-positive`.
+
+2. **`@axe-core/react`** — montado en el layout como `<AxeDevTools />`, activo solo en `NODE_ENV !== "production"`. Corre un análisis del DOM cada vez que se renderiza la app y reporta violaciones en la consola del browser.
+
+**Desarrollador:** Decidió incluirlas al tener tiempo disponible.
+
+**Decisión derivada:** Las violaciones de accesibilidad se detectan en dos momentos distintos — en `npm run lint` (estático) y en el browser durante desarrollo (runtime). En producción el componente `AxeDevTools` no se incluye en el bundle.
+
+---
+
+### Intercambio 8 — Internacionalización
+
+**Desarrollador:**
+> "What do you think about using a lang library to avoid hardcoded strings on labels?"
+
+**Claude** evaluó la propuesta: el beneficio principal de centralizar strings en un archivo no es la traducción en sí, sino la mantenibilidad — un único lugar donde buscar y modificar cualquier texto de la UI, y la posibilidad de detectar strings faltantes antes del deploy.
+
+**Decisión implementada:** `next-intl v4` con todos los strings centralizados en `messages/es.json` organizado por namespaces (`nav`, `dashboard`, `fleet`, `requestDetail`, etc.). Se agregaron dos capas de verificación automática:
+
+1. **ESLint** (`eslint-plugin-i18next`) — detecta strings hardcodeados en JSX en tiempo de lint
+2. **TypeScript** (augmentación de `AppConfig`) — usar una key inexistente en `es.json` es un error de compilación
+
+**Desarrollador:** Decidió implementarlo al tener tiempo disponible.
+
+**Decisión derivada:** `npm run lint` detecta strings hardcodeados. `npm run type-check` detecta keys inexistentes. Ambas verificaciones corren en CI automáticamente junto con `npm test`.
+
+---
+
+### Intercambio 9 — Plan de pruebas manual
+
+**Desarrollador:**
+> "Do you think we should add somewhere in the docs folder, test stories? Like detailed test cases and what to expect, like how we defined the stories in the backlog file."
+
+**Claude** propuso crear `docs/TEST_PLAN.md` con el mismo nivel de detalle que el BACKLOG: casos de prueba con ID, precondiciones, pasos, resultado esperado, y casos borde explícitos. El documento sirve como guía de validación manual y como checklist de regresión antes de cada deploy.
+
+**Desarrollador:**
+> "Yes, try to think of edge cases to include as well."
+
+**Claude** generó 50+ casos de prueba organizados en 8 secciones (Dashboard, Creación de solicitud, Detalle y mapa, Asignación de camión, Alerta de capacidad, Verificación de fórmula, Gestión de flota, Configuración), con énfasis en casos borde de negocio:
+
+- Capacidad exacta (30/30 → no excedida, 31/30 → excedida con 2 viajes)
+- Precio de combustible no recalcula asignaciones previas
+- Desactivar camión con solicitudes activas → procede con warning, sin bloquear
+- Origen = destino → distancia ~0, costo ~$0
+- Geocodificación fallida → UI no crashea
+
+**Decisión derivada:** `docs/TEST_PLAN.md` incluye además una **Matriz de Riesgo** (áreas de mayor probabilidad de regresión) y **Criterios de Aceptación Global** (checklist mínimo para considerar el MVP listo para entrega).
+
+---
+
+### Intercambio 10 — Workflow de desarrollo y hot reload
+
+**Desarrollador:**
+> "puede hacer que sea hotreload?"
+
+Durante el desarrollo, la app corría dentro de Docker (`docker compose up --build`). Cada cambio de código requería un rebuild completo de la imagen — inviable para iterar rápido.
+
+**Claude** propuso y configuró el modo híbrido:
+- Solo la base de datos corre en Docker (`docker compose up db -d`)
+- Next.js corre localmente con `npm run dev` → hot reload instantáneo
+- `.env.local` apunta a `localhost:5432` en lugar de al host `db` del compose
+
+**Impacto en la documentación:** Se reescribió la sección "Cómo Correr el Proyecto" en `DOCUMENTACION.md` con tres modos diferenciados (híbrido, Docker completo, local sin Docker), y se reemplazó el README boilerplate de create-next-app con uno específico del proyecto que documenta el inicio rápido, los comandos disponibles y los enlaces a los artefactos de entrega.
+
+**Decisión derivada:** El modo híbrido quedó como el recomendado para desarrollo activo. Docker completo se mantiene para validar el build de producción antes de cada release.
+
+---
+
+### Intercambio 11 — Filtrado del dashboard con persistencia en URL
+
+**Desarrollador:**
+> "I'm thinking about some additional changes, for example the dashboard, the user can't filter the cards. Also, what happens if the system gets filled with hundreds or thousands of cards? Can it render efficiently? Do we need to implement some kind of pagination or infinite scroll?"
+
+**Claude** propuso encarar el filtrado primero y la paginación como segunda instancia, dado que si el operador puede filtrar por PENDING el problema de escala desaparece para el uso diario. Para el historial (COMPLETED) se recomendó paginación server-side simple. El desarrollador acordó arrancar con los filtros.
+
+**Desarrollador:**
+> "Ok, let's do it then."
+
+**Requerimientos definidos en la conversación:**
+- Filtros por estado (PENDING, ASSIGNED, COMPLETED, CANCELLED) y búsqueda de texto libre
+- Los filtros deben vivir en la URL (`?status=PENDING&search=Juan`) para persistir al navegar y volver
+- Búsqueda contra los campos visibles en el card: nombre, teléfono, origen, destino
+- Sin tabla `requesters` separada — los campos inline son suficientes para el scope del MVP
+
+**Decisión implementada:** Filtrado server-side con dos queries paralelas:
+1. Query sin filtros → stats globales (los contadores siempre muestran el total real)
+2. Query con filtros Prisma (`contains insensitive`) → cards del grid
+
+`FilterBar` es un client component que actualiza la URL con `router.push({ scroll: false })` y debounce de 300ms en el campo de texto. No usa `useSearchParams()` — recibe los filtros actuales como props desde `page.tsx` para evitar el boundary de `Suspense`. Estado vacío diferenciado: "Sin resultados para los filtros aplicados" vs "No hay solicitudes" cuando la DB está vacía.
+
+**Smoke test vía Chrome MCP:** Filtro por estado → URL `?status=PENDING`, 2 cards, stats intactos. Búsqueda "Córdoba" → 2 resultados (origen + destino). Navegar y volver → filtros restaurados desde URL. Búsqueda sin resultados → empty state correcto.
+
+---
+
+### Intercambio 12 — Cursor pointer en elementos interactivos
+
+**Desarrollador:**
+> "Cursor pointer when hovering on the items." / "It's not just that, also the nueva solicitud button and the filter buttons."
+
+**Decisión implementada:** `cursor-pointer` agregado al atom `Button` (cubre todos los botones del sistema automáticamente) y a los chips del `FilterBar`. Los `RequestCard` ya tenían el fix en el mismo intercambio inicial.
+
+---
+
+### Intercambio 13 — Regla ESLint: prohibir ternarios anidados
+
+**Desarrollador:**
+> "podemos poner una regla en el linter para no tener inline el ?:"
+
+**Decisión implementada:** Reglas `no-nested-ternary` y `no-unneeded-ternary` agregadas a `eslint.config.mjs`. Las 5 violaciones existentes se refactorizaron extrayendo funciones render (`renderCards()`, `renderContent()`, `renderToggleIcon()`, `formatFuelDisplay()`) en lugar de ternarios encadenados. A partir de este punto cualquier ternario anidado nuevo rompe el pipeline de lint.
+
+---
+
+### Intercambio 14 — Issues de accesibilidad detectados por axe-core en runtime
+
+**Desarrollador:**
+> "there are lint issues"
+
+Los issues no eran de ESLint sino del overlay de Next.js reportando violaciones detectadas por `@axe-core/react` en runtime. Dos problemas de contraste WCAG AA:
+
+1. **Botón de filtro activo** (`bg-emerald-600 text-white`) — ratio 3.65:1, mínimo requerido 4.5:1 → corregido a `bg-emerald-800`
+2. **Texto secundario** `text-gray-400` en fecha y teléfono de los cards — ratio 2.6:1 → corregido a `text-gray-500` (~4.6:1)
+
+**Decisión derivada:** axe-core en runtime detectó problemas que el linter estático no hubiera encontrado. La combinación de `eslint-plugin-jsx-a11y` (estático) + `@axe-core/react` (runtime) cubre distintas capas de validación de accesibilidad.
+
+---
+
+### Intercambio 15 — Decomposición de secciones JSX en sub-componentes nombrados
+
+**Desarrollador:**
+> "for example on src/components/molecules/RequestCard.tsx i saw you have some comments like `{/* Route */}`, instead of having it like that, make them components"
+> "revisa los demás componentes, el nombre de los componentes debe indicar que son, tienen que ser individualizados, cada sección"
+
+**Decisión implementada:** Todos los comentarios de sección (`{/* Route */}`, `{/* Header */}`, etc.) se eliminaron y cada bloque se extrajo como sub-componente nombrado dentro del mismo archivo. Por ejemplo, `RequestCard` pasó a tener `CardHeader`, `CardRequester`, `CardCattleCount`, `CardRoute`, `CardAssignedTruck`. Lo mismo en `RequestDetailPanel` (13 sub-componentes), `TruckCard`, `Navbar`, `DashboardClient`, `NewRequestModal`, y las páginas `fleet/page.tsx` y `settings/page.tsx`. Los comentarios de sección en JSX son documentación que se desactualiza; los nombres de componentes son contratos que el compilador verifica.
+
+---
+
+### Intercambio 16 — Arrow functions para componentes y funciones internas; regla ESLint
+
+**Desarrollador:**
+> "i prefer to declare the components as const arrow func, not as 'function ComponentName'"
+> "can this be a lint rule?"
+> "the functions inside the components too, 'function handleClear' to be const"
+
+**Decisión implementada:** Dos reglas ESLint agregadas a `eslint.config.mjs`, ambas scoped a `src/**/*.tsx`:
+- `react/function-component-definition: { namedComponents: "arrow-function" }` — todos los componentes deben ser `const X = () =>`.
+- `func-style: ["error", "expression"]` — todas las funciones internas (`handleClear`, `handleToggle`, `pushURL`, etc.) deben ser `const`. Scoped solo a `.tsx` para no romper los `export async function GET` de las rutas de API de Next.js, que requieren named exports.
+
+La conversión se aplicó en los 9 archivos `.tsx` con violaciones existentes.
+
+---
+
+### Intercambio 17 — Ramas JSX condicionales como sub-componentes; documentación en CLAUDE.md
+
+**Desarrollador:**
+> "can we specify this on the claude file? also, i noticed, inside the components, there are some conditions, and some returns jsx, can we make them components? is possible to make it a lint rule or something?"
+
+**Decisión implementada:** Las funciones `render*()` que retornaban JSX (`renderCards`, `renderContent`, `renderIcon`) se eliminaron y cada rama se convirtió en un sub-componente nombrado: `DashboardCardGrid`, `DashboardNoResults`, `DashboardEmptyState`, `FleetLoadingState`, `FleetEmptyState`, `FleetTruckGrid`, `ToggleButtonIcon`. Lo mismo con los bloques condicionales en `CapacityAlert`: `CapacityOkAlert`, `CapacityTightAlert`, `CapacityExceededAlert`.
+
+No existe una regla ESLint estándar que detecte el patrón `renderX()`. La más cercana, `react/no-unstable-nested-components`, solo captura definiciones de componentes dentro del render, no llamadas a funciones que retornan JSX. La convención se documentó en `CLAUDE.md` como regla de code review.
+
+---
+
+### Intercambio 18 — Named prop interfaces; ESLint consistent-type-definitions
+
+**Desarrollador:**
+> "we are not isolating the props for each function, we are using objects instead of types or interfaces, like `const CompName = ({a: type, b: type}) => {}`, we need to declare the proptypes, maybe in a dedicated file for types, if possible lint rules"
+
+**Decisión implementada:** Todos los tipos de props inline se extrajeron a interfaces nombradas con convención `ComponentNameProps`. Regla ESLint agregada: `@typescript-eslint/consistent-type-definitions: ["error", "interface"]`, que obliga a usar `interface` en lugar de `type` para definiciones de objetos. No existe regla ESLint que detecte tipos inline en parámetros de función — se documenta como regla de code review en `CLAUDE.md`.
+
+**Sobre el archivo dedicado:** Las interfaces de props de sub-componentes se mantienen co-localizadas en el mismo archivo (no en un `types.ts` separado). Los tipos compartidos de dominio (`Truck`, `TransportRequest`, etc.) ya están en `src/types/index.ts`. Mover props privadas a un archivo separado agrega indirección sin beneficio: `PanelBackdropProps` solo tiene sentido en el contexto de `RequestDetailPanel.tsx`.
+
+---
+
+### Intercambio 19 — Interfaces agrupadas al inicio del archivo
+
+**Desarrollador:**
+> "i see you declared interfaces alongside the components, is not better a dedicated file for this somewhere else? what you think?"
+> "ok, at least lets declare them at the top side"
+
+**Decisión implementada:** Todas las interfaces de un archivo se agrupan juntas al inicio, inmediatamente después del bloque de imports, antes de cualquier constante o componente. Estructura de archivo: `imports → interfaces → constants/helpers → components`. Se actualizó `CLAUDE.md` con esta convención.
+
+---
+
+### Intercambio 20 — Página de detalle en lugar de sidebar o modal
+
+**Desarrollador:**
+> "when I click on a transport request card, is not better to display a modal instead of a sidebar for the details?"
+> "maybe better a details page"
+
+**Decisión implementada:** Se reemplazó el `RequestDetailPanel` (sidebar deslizante) por una ruta dedicada `/requests/[id]`. El server component de la página realiza directamente las queries de Prisma (incluyendo el enriquecimiento de geocodificación y routing que antes hacía la API), y pasa los datos serializados a `RequestAssignmentClient` (client component) para la interacción de asignación. `RequestCard` pasó de `<button onClick>` a `<Link href="/requests/[id]">`. `DashboardClient` eliminó el estado `selectedId` y el rendering del panel lateral.
+
+**Ventajas sobre sidebar/modal:** URL compartible, botón atrás del navegador funciona naturalmente, el mapa dispone de toda la pantalla (antes estaba limitado a 480px de ancho), y el layout de dos columnas separa mejor la información estática (ruta, solicitante, carga) de la acción interactiva (asignación de camión).
+
+---
+
+### Intercambio 21 — Botón volver: solo ícono, preserva parámetros de URL
+
+**Desarrollador:**
+> "the goback button, just the icon, and it must do go back, is not keeping the url params"
+
+**Decisión implementada:** El botón volver cambió de `<Link href="/">` (siempre navega a `/` sin query params) a un `<BackButton>` client component co-localizado en `src/app/requests/[id]/BackButton.tsx` que usa `router.back()`. Esto preserva los filtros activos (`?status=PENDING&search=Juan`) cuando el usuario vuelve al dashboard. Solo muestra el ícono `ArrowLeft` sin texto.
+
+---
+
+### Intercambio 22 — Sidebar colapsable en lugar de top header
+
+**Desarrollador:**
+> "what you think is better, to have the top header? or a collapsable left sidebar?"
+> "i think it could grow, that is why, for scalability"
+
+**Decisión implementada:** Se reemplazó el top `Navbar` por un `Sidebar` colapsable (`src/components/organisms/Sidebar.tsx`). El estado de colapso persiste en `localStorage` mediante un lazy initializer en `useState` (evita el patrón `setState` dentro de `useEffect` que falla la regla `react-hooks/set-state-in-effect`). Mobile: sidebar siempre visible icon-only (`w-16`). Desktop: toggleable entre icon-only (`w-16`) y expandido (`w-56`) con transición CSS en `width`. El layout cambió de `flex-col` (top nav + content) a `flex-row` (sidebar + content).
+
+---
+
+### Intercambio 23 — Issues de contraste detectados por axe-core (segunda ronda)
+
+**Desarrollador:**
+> "lint error" (console error en browser)
+
+Los nuevos componentes introducidos (página de detalle, `RequestAssignmentClient`, sidebar) usaban `text-gray-400` sobre fondos blancos. Se hizo un sweep completo: todas las instancias de `text-gray-400` en texto legible (labels, secciones, disclaimers, empty states) se migraron a `text-gray-500` (~4.6:1). Los íconos decorativos se mantuvieron en `text-gray-400` ya que no necesitan cumplir contraste WCAG. También se corrigió el input de búsqueda (`FilterBar`) que carecía de `name` y `aria-label`.
+
+---
+
+### Intercambio 24 — UUIDs de seed datos con formato realista
+
+**Desarrollador:**
+> "the id is b2c3d4e5-0004-0004-0004-000000000004?"
+> "yeah, maybe we must use same id format for both, seed and the actual one"
+
+Los UUIDs del seed en `docker/init.sql` eran estructurados y predecibles (`b2c3d4e5-0004-0004-0004-000000000004`). Se reemplazaron por UUIDs v4 de aspecto aleatorio manteniendo consistencia en las referencias de FK entre trucks y transport_requests. Requirió `docker compose down -v && docker compose up -d` para reinicializar el volumen.
+
+---
+
+### Intercambio 25 — Bulk seed de 500 solicitudes para pruebas de carga
+
+**Desarrollador:**
+> "can you add more seeds? we need to test how the cards render when there are thousands of them, maybe even use faker in loop or something"
+
+Se agregó un bloque `DO $$` en `init.sql` que genera 500 solicitudes adicionales usando `gen_random_uuid()`, arrays de 30 nombres, 20 ciudades argentinas con coordenadas reales, y distribución ponderada de estados (más PENDING que otros). Sin dependencias externas — solo PL/pgSQL nativo de PostgreSQL.
+
+---
+
+### Intercambio 26 — Infinite scroll con VirtuosoGrid
+
+**Desarrollador:**
+> "can we have some sort of infinite scroll virtual list?"
+
+**Decisión implementada:** El dashboard pasó de cargar todas las solicitudes en el server component a carga paginada en el cliente. Tres cambios coordinados:
+1. `GET /api/transport-requests` — agregados `page`, `limit`, `search` con filtrado de texto completo. Retorna `{ items, hasMore, total }`.
+2. `src/app/page.tsx` — ahora solo obtiene stats globales vía Prisma (consulta liviana).
+3. `DashboardClient` — fetching paginado con `useCallback` + `AbortController` (cancelación en cambio de filtros) + `VirtuosoGrid` con `useWindowScroll` para virtualización del grid.
+
+---
+
+### Intercambio 27 — Altura fija en RequestCard
+
+**Desarrollador:**
+> "sometimes the cards are short, it must have probably fixed height to avoid this"
+
+Se agregó `h-52` (208px) y `flex flex-col` a `RequestCard`. La sección del camión se ancla al fondo con `mt-auto`, de modo que todas las cards tienen la misma altura independientemente de si tienen teléfono o camión asignado. Altura fija también mejora la precisión de scroll de VirtuosoGrid.
+
+---
+
+### Intercambio 28 — Placeholder "Sin camión asignado"
+
+**Desarrollador:**
+> "the last item inside the card is the truck assigned? when that is not assigned we are currently not showing anything, looks empty"
+
+`CardAssignedTruck` retornaba `null` cuando no había camión, dejando el fondo de la card vacío. Se agregó un pill gris con el ícono de camión y el texto "Sin camión asignado" usando la misma estructura visual que el pill sky-blue del camión asignado, pero en tono muted.
+
+---
+
+### Intercambio 29 — Formateo de teléfono mientras el usuario escribe
+
+**Desarrollador:**
+> "el form de nueva solicitud, el field de telefono de contacto, debe de ser formateado mientras el usuario escribe"
+
+**Decisión implementada:** Se extrajo `formatArgentinePhone` a `src/lib/phoneFormat.ts` (función pura, sin dependencias). Formatea progresivamente como `+54 9 XXX XXX-XXXX` mientras el usuario tipea, stripping prefijos de país que el usuario pudiera escribir (`54`, `549`, `9`). En `NewRequestModal`, el campo pasó de `register("requesterPhone")` a `Controller` de react-hook-form con `onChange` que aplica el formatter.
+
+---
+
+### Intercambio 30 — Unit tests para formateo de teléfono
+
+**Desarrollador:**
+> "must you make it a isolated component and have a unit test?"
+
+Se creó `src/lib/__tests__/phoneFormat.test.ts` con 20 tests en 5 grupos: input vacío, formateo progresivo, stripping de prefijos, truncado a 10 dígitos, y ejemplos reales de los seed data. El total de tests pasó de 27 a 47.
+
+---
+
+### Intercambio 31 — Tests de integración con base de datos real
+
+**Desarrollador:**
+> "Do we have integration tests?"
+> "Does it need a .env file? Can't it be hardcoded? It's just a temporary test DB."
+
+Se implementó una capa de tests de integración con Vitest contra una DB `bovitrans_test` real, sin mocks. La URL está hardcodeada en `vitest.integration.config.ts` — decisión explícita para evitar el riesgo de correr accidentalmente contra la DB de desarrollo. Se incluyó `TRUNCATE ... RESTART IDENTITY CASCADE` en `beforeEach` para garantizar el aislamiento entre tests.
+
+---
+
+### Intercambio 32 — Tests E2E con Playwright
+
+**Desarrollador:**
+> "And we need to make another section for the browser-based one, right?"
+> "Are we having quality rules on the test code? Like not having hardcoded selector IDs, but proper test IDs for selectors?"
+
+Se configuró Playwright contra la DB `bovitrans_e2e` en el puerto 3001, usando `next build && next start` en lugar de `next dev`, ya que Next.js 16 no permite dos instancias de desarrollo concurrentes. Se agregaron reglas de calidad con `eslint-plugin-playwright`: `no-raw-locators` y `prefer-web-first-assertions`. Los selectores se estabilizan mediante atributos `data-testid`.
+
+---
+
+### Intercambio 33 — Sidebar hamburger en mobile: drawer desde la derecha
+
+**Desarrollador:**
+> "I think the sidebar must be closed on mobile, and we need to add a hamburger icon button on the top area to allow the user to open it as a sort of modal that covers the screen showing the items."
+> "I realized — it should actually be on the right side to have the hamburger icon."
+> "The sidebar must come from the right side too."
+
+Se reemplazó el sidebar siempre visible en mobile por un patrón de drawer: top bar fijo con la marca a la izquierda y el hamburger a la derecha, backdrop oscuro al abrir, y panel que desliza desde la derecha. El sidebar en desktop no cambia (sticky y colapsable). Los nav links cierran el drawer al navegar.
+
+---
+
+### Intercambio 34 — Axe-core: contenido fuera de landmarks
+
+**Desarrollador:**
+> "There are lint errors."
+> "Can we note this in the Claude file? To check it when the page is open after a UI change."
+
+El top bar mobile usaba `<div>`, lo que hacía que el texto "BoviTrans" quedara fuera de un landmark y disparara la regla axe `region`. La solución fue cambiar el elemento a `<header>`, que es el landmark `banner`. Se agregó una instrucción en `CLAUDE.md`: revisar la consola del browser en busca de errores axe después de cualquier cambio de UI.
+
+---
+
+### Intercambio 35 — Formateo de teléfono internacional
+
+**Desarrollador:**
+> "El campo de teléfono debe soportar números internacionales, no solo argentinos. El contexto del negocio incluye Paraguay y Argentina."
+
+**Decisión implementada:** Se reescribió `src/lib/phoneFormat.ts` para exportar `formatInternationalPhone` junto con el existente `formatArgentinePhone` (mantenido por compatibilidad con datos seed). La nueva función usa detección greedy de código de país: primero prueba CC3 (3 dígitos — Paraguay +595, Bolivia +591, Ecuador +593, y otros), luego CC2 (2 dígitos — Argentina +54, Brasil +55, Chile +56, y otros), luego NANP (+1). Respeta el límite E.164 de 15 dígitos. Sin separadores adicionales entre el área y el número de abonado — solo `+CC subscriber`. El formulario de nueva solicitud pasó a usar `formatInternationalPhone`.
+
+**Tests agregados:** 19 tests nuevos en `src/lib/__tests__/phoneFormat.test.ts` cubriendo los tres bloques de detección de CC, límite E.164, y formateo progresivo mientras el usuario tipea. Total unitario: 66 tests.
+
+---
+
+### Intercambio 36 — Selector de ubicación inline en el formulario
+
+**Desarrollador:**
+> "No quiero que sea otro modal que ocupe toda la pantalla, solo un cuadrado dentro del form."
+> "Creo que podemos mostrar el mapa por default."
+
+**Contexto:** El formulario de nueva solicitud usaba un `LocationPickerModal` (fullscreen) que se abría al tocar los campos de origen/destino.
+
+**Decisión implementada:** Se creó `LocationPickerInline` — un widget auto-contenido que incluye: input de búsqueda con autocompletado Nominatim (debounce 500ms), lista de sugerencias en flujo (no absolute positioned, para no quedar cortada por el `overflow-y-auto` del modal), y mapa Leaflet de 208px de altura con pin arrastrable. Ambos widgets (origen y destino) son siempre visibles en el formulario sin requerir tap previo. `LocationPickerModal` sigue existiendo pero ya no se usa.
+
+---
+
+### Intercambio 37 — Auto-guardado en el selector de ubicación
+
+**Desarrollador** (pregunta de diseño presentada como opciones):
+> A) Auto-guardar en drag — el campo se actualiza sin confirmación explícita
+> B) Guardar solo al confirmar con botón
+
+**Desarrollador:** Eligió opción A — "Auto-guardar (sin botón)".
+
+**Decisión implementada:** La prop `onChange(lat, lng, displayName)` del widget se invoca en dos momentos:
+1. **Selección de sugerencia:** inmediatamente al hacer click en un resultado de Nominatim.
+2. **Fin de drag del pin:** reverse geocoding con Nominatim (debounce 600ms) y luego `onChange`. Si el geocoding falla, el `displayName` es `"${lat.toFixed(5)}, ${lng.toFixed(5)}"` para garantizar que siempre haya un valor legible.
+
+Se eliminaron los botones "Confirmar ubicación" y "Cerrar" del widget. No hay estado pendiente — cualquier movimiento del pin actualiza el form en tiempo real.
+
+---
+
+### Intercambio 38 — Botón de envío deshabilitado hasta campos completos
+
+**Desarrollador:**
+> "The submit button must be enabled only when the important fields are filled."
+
+**Decisión implementada:** Se configuró `mode: "onChange"` en `useForm` del `NewRequestModal`. Esto hace que `formState.isValid` se recalcule en cada cambio de campo. El botón "Crear solicitud" usa `disabled={!isValid}`. Para que la selección en el mapa también active la validación, se usa `setValue("origin", displayName, { shouldValidate: true })` — sin el flag `shouldValidate`, el cambio programático no dispara el recálculo de `isValid`.
+
+---
+
+### Intercambio 39 — Tests de integración de la API de solicitudes
+
+**Desarrollador:**
+> "I think we must update our unit/integration tests given the last couple of changes."
+
+**Decisión implementada:** Se agregaron dos tests de integración en `src/integration/transport-requests.integration.test.ts`:
+
+1. **"accepts optional coordinate fields and returns them as numbers"** — verifica que `POST /api/transport-requests` acepta `originLat`, `originLng`, `destinationLat`, `destinationLng` y los devuelve como `number` (no como `string` de Prisma Decimal).
+2. **"returns null coordinates when not provided"** — verifica que omitir los campos de coordenadas persiste `null` correctamente.
+
+El schema `CreateRequestSchema` (Zod) en `src/app/api/transport-requests/route.ts` se actualizó para incluir los cuatro campos de coordenadas como opcionales (`z.number().optional()`). Total de tests de integración: 22.
+
+---
+
+### Intercambio 40 — Helpers de formateo unificados para números
+
+**Desarrollador:**
+> "en la pagina de detalles, los precios, estan con separador de miles en puntos y decimales en comas?"
+> "can you check where else is being used? we must use probably an unified function or helper"
+
+**Diagnóstico:** El sistema usaba `toLocaleString("es-AR", ...)` con opciones distintas en cada archivo, lo que generaba inconsistencias. En la página de detalle, la distancia aparecía como "392,95 km" en la sección de ruta pero "393,0 km" en la fórmula de combustible, ya que cada llamada usaba opciones de decimales distintas.
+
+**Decisión implementada:** Se creó `src/lib/format.ts` como única fuente de verdad para todos los números formateados:
+- `fmtDistance(km)` — hasta 2 decimales sin trailing zeros (`392,95`, `310`)
+- `fmtConsumption(lPerKm)` — siempre 2 decimales (`0,45`, `0,40`)
+- `fmtCost(gs)` — sin decimales (`1.078.043`)
+- `fmtPrice(gs)` — sin decimales (`7.500`)
+
+Se migró cada `toLocaleString("es-AR", ...)` en los 5 archivos que lo usaban: `RequestAssignmentClient.tsx`, `page.tsx`, `RequestCard.tsx`, `TruckCard.tsx`, `TruckSelector.tsx`. Cualquier cambio futuro en la forma de mostrar números solo requiere editar un archivo.
+
+---
+
+### Intercambio 41 — Moneda Guaraníes y contexto paraguayo en los seed data
+
+**Desarrollador:**
+> "what currency are you using?"
+> "guaranies, but, the cost, are you using some realistic values?"
+
+El sistema usaba pesos argentinos (`$`) y un precio de combustible de 1.250 ARS/L con ciudades argentinas. BoviTrans es una plataforma paraguaya.
+
+**Decisión implementada:**
+- Símbolo de moneda cambiado de `$` a `Gs.` en toda la UI
+- `system_config.fuel_price_per_liter`: 1250 → **7500** (Gs./L, precio real del diésel en Paraguay 2025)
+- `docker/init.sql` y `docker/e2e-seed.sql` actualizados con 20 ciudades paraguayas (Asunción, Encarnación, Ciudad del Este, Concepción, Villarrica, y otras) con coordenadas reales
+- Teléfonos de seed: `+54 9 ...` (Argentina) → `+595 9XX ...` (Paraguay)
+- Costos de combustible de los 5 pedidos base recalculados con el nuevo precio
+- Se reinicializó el volumen Docker (`docker compose down -v && up`) para re-seedear
+
+---
+
+### Intercambio 42 — Detalle de costo visible en pedidos COMPLETADOS
+
+**Desarrollador:**
+> "en las completas no puedo ver los detalles del costo"
+
+**Diagnóstico:** La flag `isActionable = status !== "COMPLETED" && status !== "CANCELLED"` ocultaba toda la sección de asignación para pedidos completados. El usuario solo veía el badge "✓ Solicitud completada" sin ningún detalle del costo ni del camión.
+
+**Error encontrado:** Al intentar pasar la fórmula de combustible como string interpolado con `t("fuelFormula")` sin argumentos, next-intl lanzaba `FORMATTING_ERROR` porque la key tiene variables `{distance}`, `{consumption}`, etc. y el cliente las exige todas.
+
+**Fix del error:** La fórmula se computa íntegramente en el server component (donde están los valores) y se pasa como `formattedFormula: string | null` al componente hijo — que la renderiza directamente sin llamar a `t()`.
+
+**Decisión implementada:** Se creó `RequestCompletedAssignment` — un componente server de solo lectura que muestra para pedidos COMPLETED: precio de combustible por litro, costo total, fórmula desglosada, datos del camión asignado, y el banner de completado. El icono `Truck` de lucide-react se importa como `TruckIcon` para evitar colisión de nombres con el tipo de dominio `Truck`.
+
+---
+
+### Intercambio 43 — Fix en sugerencia de camión alternativo (capacidad excedida)
+
+**Desarrollador:**
+> [captura mostrando que se sugiere el camión de 50 cuando debería sugerirse el de 40 para un pedido de 34 cabezas]
+
+**Diagnóstico:** La lógica de `suggestedTruck` en `RequestAssignmentClient.tsx` ordenaba los camiones por capacidad **descendente** y tomaba el primero — siempre el mayor. Lo correcto es sugerir el camión de capacidad mínima suficiente para el pedido.
+
+**Decisión implementada:** Nueva lógica en tres pasos:
+1. Filtrar camiones con `maxCapacity >= cattleCount`
+2. De esos, ordenar ascendente y tomar el primero (mínimo suficiente)
+3. Si ninguno cubre el total, fallback al mayor disponible
+
+Ejemplo: pedido de 34 cabezas, camiones disponibles de 20, 30, 40 y 50 → sugiere el de **40** (mínimo que cabe), no el de 50.
+
+---
+
+### Intercambio 44 — Transiciones de estado: Completar y Cancelar
+
+**Desarrollador:**
+> "ok, y una vez que ya esta asignado, cuales son los sgtes estados en el que el pedido puede avanzar?"
+> "si, en la pagina de detalles, agreguemos dos botones para que el usuario cambie el estado"
+
+**Diagnóstico:** Los estados `COMPLETED` y `CANCELLED` existían en el enum pero ningún endpoint ni botón los activaba. Un pedido asignado quedaba atascado indefinidamente.
+
+**Decisión implementada:**
+
+Máquina de estados implementada:
+- `PENDING → CANCELLED`
+- `ASSIGNED → COMPLETED`
+- `ASSIGNED → CANCELLED`
+
+1. **`PATCH /api/transport-requests/[id]/status`** — nuevo endpoint que valida la transición permitida según el estado actual y retorna 422 si no corresponde.
+2. **`RequestStatusActions`** — client component co-localizado en `/requests/[id]/`. Muestra "Marcar como completado" (verde, solo si ASSIGNED) y "Cancelar solicitud" (borde rojo). Ambos bloquean el otro mientras están cargando. Usa `router.refresh()` para que el server component recargue el nuevo estado. El botón "Completar" usa `variant="primary"` del atom `Button` (emerald-700) para garantizar contraste WCAG AA — emerald-600 (#009966) falla con texto blanco (ratio 3.65:1).
+
+---
+
+### Intercambio 45 — Lint, contraste y migración de strings a i18n
+
+**Desarrollador:**
+> "check lint, mcp chrome error"
+
+**Diagnóstico:** 7 errores de `i18next/no-literal-string` por strings hardcodeados en JSX (`"Gs. {price}/L"`, `"Gs. {cost}"`, `"Cap. {capacity} cab. · {consumption} L/km"`). Error de contraste axe-core: botón "Completar" usaba `bg-emerald-600` (#009966), ratio 3.65:1 con texto blanco (mínimo WCAG AA: 4.5:1). Dos warnings de variables no usadas (`RequestCompletedBanner` y `distanceKm`).
+
+**Decisión implementada:**
+- Nuevas keys en `messages/es.json`: `fuelPricePerLiter`, `fuelCostValue`, `truckStats` en `requestDetail`; `fuelCostValue` en `requestCard` y `truckSelector`
+- `RequestCompletedAssignment` refactorizado para recibir strings pre-formateados como props (`fuelPriceLabel`, `fuelCostLabel`, `truckStatsLabel`) en lugar de números raw — evita llamar a `t()` dentro de un server component que no tiene acceso directo a la función
+- `CardAssignedTruck` en `RequestCard` pasó de `fuelCost: number` a `fuelCostLabel: string | null` por la misma razón (sub-componente sin acceso a `t`)
+- `RequestCompletedBanner` eliminado (muerto tras crear `RequestCompletedAssignment`)
+- Botón "Completar": `bg-emerald-600` → `variant="primary"` (emerald-700, ratio ~5.3:1 ✓)
+
+---
+
+### Intercambio 46 — Costo visible en pedidos CANCELADOS; mensaje para cancelados sin camión
+
+**Desarrollador:**
+> "en esta solicitud cancelada, no se ven los precios"
+> "cuando se cancela un pedido pendiente, hay que mencionar que no tiene asignacion, ahora solo muestra en blanco"
+
+**Diagnóstico:** `RequestCompletedAssignment` solo se mostraba para `status === "COMPLETED"`. Un pedido cancelado que tenía camión asignado (ASSIGNED → CANCELLED) no mostraba ningún detalle. Además, un pedido cancelado desde PENDING (sin camión) mostraba la sección vacía sin ningún mensaje.
+
+**Decisión implementada:**
+- La condición cambió de `request.status === "COMPLETED"` a `!isActionable && request.assignedTruck` — cubre tanto COMPLETED como CANCELLED con camión
+- `completedBannerLabel` pasó a ser `string | null`; se renderiza el banner verde solo cuando `status === "COMPLETED"`, para CANCELLED se pasa `null`
+- Para CANCELLED sin camión: se agrega un mensaje en gris `"Solicitud cancelada sin camión asignado."` usando la nueva key `cancelledNoAssignment` en `messages/es.json`
+
+---
+
+### Reflexión sobre la Modalidad de Uso
+
+El patrón de interacción dominante en este proyecto fue **dirección de alto nivel → ejecución autónoma**: el desarrollador indicaba qué fase o módulo encarar, Claude analizaba las opciones, proponía una dirección, y el desarrollador aprobaba o redirigía.
+
+Este modo de trabajo tiene implicancias concretas:
+
+1. **Lo que Claude aportó:** velocidad de ejecución, detección proactiva de problemas (Prisma v7 breaking changes, rate limiting de Nominatim, footprint de Docker), y consistencia entre módulos.
+
+2. **Lo que el desarrollador aportó:** criterio de priorización, decisiones de scope (qué implementar, qué descartar), y validación de que las propuestas eran apropiadas para el contexto del negocio.
+
+3. **Lo que ninguno puede reemplazar al otro:** las decisiones como "la alerta de capacidad advierte pero no bloquea" requieren entender tanto el dominio de negocio (el operador puede planificar múltiples viajes) como las implicancias técnicas (bloquear en UI vs bloquear en API). Ese juicio emergió de la conversación, no de ninguno de los dos de forma aislada.

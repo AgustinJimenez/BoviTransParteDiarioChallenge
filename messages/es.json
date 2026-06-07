@@ -1,0 +1,149 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "fleet": "Flotas",
+    "settings": "Configuración",
+    "collapse": "Colapsar menú",
+    "expand": "Expandir menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "filterBar": {
+    "searchPlaceholder": "Buscar por nombre, teléfono o ciudad...",
+    "all": "Todas",
+    "noResults": "Sin resultados para los filtros aplicados.",
+    "clearFilters": "Limpiar filtros",
+    "statusPending": "Pendiente",
+    "statusAssigned": "Asignado",
+    "statusCompleted": "Completado",
+    "statusCancelled": "Cancelado"
+  },
+  "dashboard": {
+    "statPending": "Pendientes",
+    "statAssigned": "Asignados",
+    "statCompleted": "Completados",
+    "title": "Solicitudes de Transporte",
+    "newRequest": "Nueva solicitud",
+    "emptyTitle": "No hay solicitudes",
+    "emptySubtitle": "Creá la primera solicitud de transporte"
+  },
+  "requestCard": {
+    "cattleUnit": "cabezas de ganado",
+    "noTruck": "Sin camión asignado",
+    "fuelCostValue": "Gs. {cost}",
+    "capacityExceeded": "Capacidad excedida"
+  },
+  "requestDetail": {
+    "sectionRequester": "Solicitante",
+    "sectionCargo": "Carga",
+    "cattleUnit": "cabezas de ganado",
+    "sectionRoute": "Ruta",
+    "origin": "Origen",
+    "destination": "Destino",
+    "distance": "Distancia",
+    "fuelEstimate": "Combustible est.",
+    "sectionAssignment": "Asignación de Camión",
+    "fuelFormula": "{distance} km × {consumption} L/km × Gs. {price}/L = Gs. {total}",
+    "loadError": "No se pudo cargar la solicitud.",
+    "assignedWithWarning": "⚠️ Asignado con advertencia: se requieren {trips} viajes.",
+    "completedBanner": "✓ Solicitud completada",
+    "close": "Cerrar",
+    "reassign": "Reasignar",
+    "assign": "Asignar camión",
+    "fuelPricePerLiter": "Gs. {price}/L",
+    "fuelCostValue": "Gs. {cost}",
+    "truckStats": "Cap. {capacity} cab. · {consumption} L/km",
+    "cancelledNoAssignment": "Solicitud cancelada sin camión asignado.",
+    "sectionActions": "Acciones",
+    "markCompleted": "Marcar como completado",
+    "markCancelled": "Cancelar solicitud"
+  },
+  "capacityAlert": {
+    "ok": "Capacidad suficiente — quedan <b>{free}</b> lugares disponibles.",
+    "tight": "Carga casi completa — {count}/{capacity} cabezas ({percent}%).",
+    "exceededTitle": "Capacidad excedida",
+    "exceededBody": "Este camión soporta <b>{capacity}</b> cabezas pero la solicitud requiere <b>{count}</b>.",
+    "tripsNeeded": "→ Se necesitarían <b>{trips} viajes</b> con este camión.",
+    "suggestion": "→ Alternativa sugerida: <b>{plate}</b> (capacidad {capacity} cabezas)."
+  },
+  "newRequest": {
+    "title": "Nueva Solicitud",
+    "subtitle": "Registrar un nuevo pedido de transporte",
+    "nameLabel": "Nombre del solicitante",
+    "namePlaceholder": "Juan Pérez",
+    "phoneLabel": "Teléfono de contacto",
+    "phonePlaceholder": "595 98xxxxxxx",
+    "phoneHint": "Opcional",
+    "cattleLabel": "Cabezas de ganado",
+    "originLabel": "Origen",
+    "originPlaceholder": "Tocá para seleccionar en el mapa",
+    "destinationLabel": "Destino",
+    "destinationPlaceholder": "Tocá para seleccionar en el mapa",
+    "cancel": "Cancelar",
+    "submit": "Crear solicitud"
+  },
+  "fleet": {
+    "title": "Administración de Flotas",
+    "activeTrucks": "{count, plural, one {# camión activo} other {# camiones activos}}",
+    "inactiveTrucks": "{count, plural, one {· # inactivo} other {· # inactivos}}",
+    "register": "Registrar camión",
+    "emptyTitle": "Sin camiones registrados",
+    "emptySubtitle": "Registrá el primer camión de tu flota",
+    "newTitle": "Registrar Camión",
+    "newDisclaimer": "Los datos técnicos del vehículo no podrán editarse una vez registrados.",
+    "sectionActive": "Activos",
+    "sectionInactive": "Inactivos"
+  },
+  "truckCard": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "capacityLabel": "cabezas máx.",
+    "consumptionLabel": "L/km",
+    "deactivate": "Desactivar camión",
+    "activate": "Activar camión"
+  },
+  "truckSelector": {
+    "empty": "No hay camiones activos disponibles.",
+    "current": "Actual",
+    "fuelLabel": "Combustible",
+    "fuelCostValue": "Gs. {cost}",
+    "capacityHint": "Cap. {capacity} cab. · {consumption} L/km"
+  },
+  "newTruck": {
+    "plateLabel": "Patente / Matrícula",
+    "platePlaceholder": "AB-123-CD",
+    "plateHint": "Se guardará en mayúsculas",
+    "capacityLabel": "Capacidad máxima (cabezas de ganado)",
+    "capacityHint": "Cantidad máxima de animales que puede transportar en un viaje",
+    "consumptionLabel": "Consumo de combustible (L/km)",
+    "consumptionHint": "Litros consumidos por kilómetro recorrido",
+    "cancel": "Cancelar",
+    "submit": "Registrar camión"
+  },
+  "locationPicker": {
+    "selectOrigin": "Seleccionar origen",
+    "selectDestination": "Seleccionar destino",
+    "searchPlaceholder": "Buscar ciudad, dirección...",
+    "searching": "Buscando...",
+    "noResults": "Sin resultados",
+    "dragHint": "Tocá el mapa o arrastrá el pin para ajustar",
+    "confirm": "Confirmar ubicación",
+    "close": "Cerrar",
+    "markerTitle": "Arrastrá para mover"
+  },
+  "map": {
+    "loading": "Cargando mapa...",
+    "noCoordinates": "No se pudieron obtener las coordenadas",
+    "origin": "Origen",
+    "destination": "Destino"
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Parámetros globales de la plataforma.",
+    "fuelPriceLabel": "Precio de combustible (Gs. por litro)",
+    "lastUpdated": "Última actualización: {date}",
+    "success": "Precio actualizado correctamente.",
+    "disclaimer": "El precio de combustible se aplica a todos los cálculos de costo de transporte nuevos. Los costos ya calculados en solicitudes existentes no se modifican retroactivamente.",
+    "save": "Guardar cambios"
+  }
+}

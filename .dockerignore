@@ -1,0 +1,38 @@
+# Dependencies — reinstalled inside the container
+node_modules
+npm-debug.log*
+
+# Next.js build output — rebuilt inside the container
+.next
+out
+
+# Prisma generated client — regenerated via prisma generate in builder stage
+src/generated
+
+# Development & local config
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs (not needed at runtime)
+docs
+
+# Test output
+coverage
+
+# Colima / Docker
+.colima
