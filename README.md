@@ -4,6 +4,22 @@ MVP de logística para digitalizar el transporte terrestre de ganado vacuno en P
 
 ---
 
+## Capturas de pantalla
+
+| Dashboard — solicitudes con filtros y alertas de capacidad | Detalle de solicitud — mapa, ruta y asignación de camión |
+|:---:|:---:|
+| ![Dashboard](docs/1.png) | ![Detalle](docs/5.png) |
+
+| Nueva solicitud — mapa interactivo para seleccionar ubicaciones | |
+|:---:|:---:|
+| ![Nueva solicitud](docs/2.png) | |
+
+| Administración de flota | Configuración de precio de combustible |
+|:---:|:---:|
+| ![Flotas](docs/3.png) | ![Configuración](docs/4.png) |
+
+---
+
 ## Características principales
 
 - **Dashboard con infinite scroll** — grilla paginada de solicitudes, filtros por estado y búsqueda en tiempo real

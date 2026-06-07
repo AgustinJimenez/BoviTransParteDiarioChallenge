@@ -30,7 +30,8 @@
   "requestCard": {
     "cattleUnit": "cabezas de ganado",
     "noTruck": "Sin camión asignado",
-    "fuelCostValue": "Gs. {cost}"
+    "fuelCostValue": "Gs. {cost}",
+    "capacityExceeded": "Capacidad excedida"
   },
   "requestDetail": {
     "sectionRequester": "Solicitante",

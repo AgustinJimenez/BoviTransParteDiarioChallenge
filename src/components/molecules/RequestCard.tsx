@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Phone, Truck } from "lucide-react";
+import { ArrowRight, Phone, Truck, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { StatusBadge } from "@/components/atoms/Badge";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,8 @@ interface CardAssignedTruckProps {
   truck: TransportRequest["assignedTruck"];
   fuelCostLabel: string | null;
   placeholder: string;
+  capacityExceeded: boolean;
+  capacityExceededLabel: string;
 }
 
 interface RequestCardProps {
@@ -86,7 +88,7 @@ const CardRoute = ({ origin, destination }: CardRouteProps) => {
   );
 }
 
-const CardAssignedTruck = ({ truck, fuelCostLabel, placeholder }: CardAssignedTruckProps) => {
+const CardAssignedTruck = ({ truck, fuelCostLabel, placeholder, capacityExceeded, capacityExceededLabel }: CardAssignedTruckProps) => {
   if (!truck) return (
     <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1.5">
       <Truck className="w-3.5 h-3.5 shrink-0" />
@@ -94,11 +96,19 @@ const CardAssignedTruck = ({ truck, fuelCostLabel, placeholder }: CardAssignedTr
     </div>
   );
   return (
-    <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
-      <Truck className="w-3.5 h-3.5 shrink-0" />
-      <span>{truck.plate}</span>
-      {fuelCostLabel && (
-        <span className="ml-auto font-semibold">{fuelCostLabel}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 rounded-lg px-2.5 py-1.5">
+        <Truck className="w-3.5 h-3.5 shrink-0" />
+        <span>{truck.plate}</span>
+        {fuelCostLabel && (
+          <span className="ml-auto font-semibold">{fuelCostLabel}</span>
+        )}
+      </div>
+      {capacityExceeded && (
+        <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1">
+          <AlertTriangle className="w-3 h-3 shrink-0" />
+          <span>{capacityExceededLabel}</span>
+        </div>
       )}
     </div>
   );
@@ -113,7 +123,7 @@ const RequestCard = ({ request }: RequestCardProps) => {
       href={`/requests/${request.id}`}
       data-testid="request-card"
       className={cn(
-        "flex flex-col h-52 bg-white rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all duration-150 overflow-hidden cursor-pointer",
+        "flex flex-col min-h-52 bg-white rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all duration-150 overflow-hidden cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500",
         statusBorder[request.status] ?? "border-l-gray-300"
       )}
@@ -124,7 +134,13 @@ const RequestCard = ({ request }: RequestCardProps) => {
         <CardCattleCount count={request.cattleCount} unit={t("cattleUnit")} />
         <CardRoute origin={request.origin} destination={request.destination} />
         <div className="mt-auto">
-          <CardAssignedTruck truck={request.assignedTruck} fuelCostLabel={request.fuelCost != null ? t("fuelCostValue", { cost: fmtCost(request.fuelCost) }) : null} placeholder={t("noTruck")} />
+          <CardAssignedTruck
+            truck={request.assignedTruck}
+            fuelCostLabel={request.fuelCost != null ? t("fuelCostValue", { cost: fmtCost(request.fuelCost) }) : null}
+            placeholder={t("noTruck")}
+            capacityExceeded={!!request.assignedTruck && request.assignedTruck.maxCapacity < request.cattleCount}
+            capacityExceededLabel={t("capacityExceeded")}
+          />
         </div>
       </div>
     </Link>
